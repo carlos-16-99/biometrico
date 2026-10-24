@@ -11,7 +11,7 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
 
   <!-- Navegación Superior -->
-  <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-10">
+  <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-20">
     <div class="flex items-center gap-3">
       <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-900/40">
         <i class="fa-solid fa-motorcycle text-xl"></i>
@@ -24,10 +24,10 @@
 
     <!-- Pestañas Principales -->
     <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
-      <button onclick="switchTab('kiosk')" id="tab-kiosk" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow">
+      <button type="button" onclick="switchTab('kiosk')" id="tab-kiosk" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow">
         <i class="fa-solid fa-desktop mr-2"></i>Kiosco
       </button>
-      <button onclick="switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white">
+      <button type="button" onclick="switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white">
         <i class="fa-solid fa-user-shield mr-2"></i>Panel Administrativo
       </button>
     </div>
@@ -50,10 +50,10 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4 pt-2">
-          <button onclick="abrirModalEscaner('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 font-bold py-5 rounded-2xl text-white text-lg shadow-lg shadow-emerald-900/40 transition active:scale-95 flex items-center justify-center gap-3">
+          <button type="button" onclick="abrirModalEscaner('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 font-bold py-5 rounded-2xl text-white text-lg shadow-lg shadow-emerald-900/40 transition active:scale-95 flex items-center justify-center gap-3">
             <i class="fa-solid fa-right-to-bracket text-xl"></i> Registrar ENTRADA
           </button>
-          <button onclick="abrirModalEscaner('Salida')" class="bg-rose-600 hover:bg-rose-500 font-bold py-5 rounded-2xl text-white text-lg shadow-lg shadow-rose-900/40 transition active:scale-95 flex items-center justify-center gap-3">
+          <button type="button" onclick="abrirModalEscaner('Salida')" class="bg-rose-600 hover:bg-rose-500 font-bold py-5 rounded-2xl text-white text-lg shadow-lg shadow-rose-900/40 transition active:scale-95 flex items-center justify-center gap-3">
             <i class="fa-solid fa-right-from-bracket text-xl"></i> Registrar SALIDA
           </button>
         </div>
@@ -67,7 +67,7 @@
     <!-- MODAL RECONOCIMIENTO FACIAL -->
     <div id="modal-escaner" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
-        <button onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+        <button type="button" onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
           <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -109,7 +109,7 @@
             <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Contraseña</label>
             <input type="password" id="auth-pass" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white outline-none focus:border-blue-500">
           </div>
-          <button onclick="loginAdmin()" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 rounded-lg text-white transition shadow-lg shadow-blue-900/30">
+          <button type="button" onclick="loginAdmin()" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 rounded-lg text-white transition shadow-lg shadow-blue-900/30">
             Ingresar al Panel
           </button>
           <div id="auth-error" class="text-xs text-rose-400 text-center min-h-[16px]"></div>
@@ -130,17 +130,17 @@
               <h3 class="font-bold text-white text-sm" id="user-display">CDAMOTOSRUTA (SuperAdmin)</h3>
             </div>
           </div>
-          <button onclick="logoutAdmin()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3.5 py-2 rounded-lg text-slate-300 transition">
+          <button type="button" onclick="logoutAdmin()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3.5 py-2 rounded-lg text-slate-300 transition">
             <i class="fa-solid fa-right-from-bracket mr-1.5"></i> Cerrar Sesión
           </button>
         </div>
 
         <!-- Sub-Pestañas -->
         <div class="flex gap-2 border-b border-slate-700 pb-2">
-          <button onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">
+          <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">
             <i class="fa-solid fa-user-plus mr-2"></i>Registro de Personal
           </button>
-          <button onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+          <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
             <i class="fa-solid fa-list-check mr-2"></i>Historial de Asistencias
           </button>
         </div>
@@ -196,7 +196,7 @@
               </button>
             </div>
 
-            <button onclick="guardarPersonal()" class="bg-blue-600 hover:bg-blue-500 font-bold px-4 py-3 rounded-xl text-white text-sm w-full transition shadow-lg shadow-blue-900/30">
+            <button type="button" onclick="guardarPersonal()" class="bg-blue-600 hover:bg-blue-500 font-bold px-4 py-3 rounded-xl text-white text-sm w-full transition shadow-lg shadow-blue-900/30">
               <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar Registro en Sistema
             </button>
             <div id="emp-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
@@ -254,59 +254,58 @@
   </main>
 
   <script>
+    // --- NAVEGACIÓN DIRECTA ENTRE PESTAÑAS (100% INDEPENDIENTE) ---
+    function switchTab(tab) {
+      document.getElementById('view-kiosk').style.display = (tab === 'kiosk') ? 'block' : 'none';
+      document.getElementById('view-admin').style.display = (tab === 'admin') ? 'block' : 'none';
+
+      document.getElementById('tab-kiosk').className = (tab === 'kiosk')
+        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow'
+        : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+
+      document.getElementById('tab-admin').className = (tab === 'admin')
+        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow'
+        : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+    }
+
+    function switchAdminTab(subtab) {
+      document.getElementById('subview-empleados').style.display = (subtab === 'empleados') ? 'grid' : 'none';
+      document.getElementById('subview-asistencias').style.display = (subtab === 'asistencias') ? 'block' : 'none';
+
+      document.getElementById('subtab-empleados').className = (subtab === 'empleados')
+        ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white'
+        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+
+      document.getElementById('subtab-asistencias').className = (subtab === 'asistencias')
+        ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white'
+        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+
+      if (subtab === 'empleados') initRefCamera();
+      if (subtab === 'asistencias') cargarHistorialAsistencias();
+    }
+
     // --- CONFIGURACIÓN DE SUPABASE ---
     const SUPABASE_URL = "https://hpoqpfgmrpjrpyqpavww.supabase.co";
-    // REEMPLAZA ESTE TEXTO POR TU CLAVE REAL ANON PUBLIC DE SUPABASE:
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb3FwZmdtcnBqcnB5cXBhdnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTY4MDIsImV4cCI6MjEwODQzMjgwMn0.o-acuK47laVODMREnAhoWQH4qFJsMbR9ll6d-SV44J8"; 
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb3FwZmdtcnBqcnB5cXBhdnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTY4MDIsImV4cCI6MjEwODQzMjgwMn0.o-acuK47laVODMREnAhoWQH4qFJsMbR9ll6d-SV44J8";
     
-    let supabase = null;
+    let supabaseClient = null;
     try {
-      if (SUPABASE_KEY !== "TU_CLAVE_ANON_PUBLIC_AQUI") {
-        supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      if (typeof supabase !== 'undefined' && supabase.createClient) {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
-    } catch(e) { console.error("Error al inicializar Supabase:", e); }
+    } catch(e) { console.error("Error al iniciar Supabase:", e); }
 
     let scanStream = null, refStream = null;
     let fotoRefBlob = null;
     let currentLat = null, currentLng = null;
     let scanTipo = 'Entrada';
 
-    // Geolocalización GPS
+    // GPS Tracker
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(pos => {
         currentLat = pos.coords.latitude;
         currentLng = pos.coords.longitude;
       });
-    }
-
-    // --- CAMBIO DE VISTAS PRINCIPALES (KIOSCO / ADMIN) ---
-    function switchTab(tab) {
-      document.getElementById('view-kiosk').classList.toggle('hidden', tab !== 'kiosk');
-      document.getElementById('view-admin').classList.toggle('hidden', tab !== 'admin');
-
-      document.getElementById('tab-kiosk').className = tab === 'kiosk'
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-
-      document.getElementById('tab-admin').className = tab === 'admin'
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-    }
-
-    function switchAdminTab(subtab) {
-      document.getElementById('subview-empleados').classList.toggle('hidden', subtab !== 'empleados');
-      document.getElementById('subview-asistencias').classList.toggle('hidden', subtab !== 'asistencias');
-      
-      document.getElementById('subtab-empleados').className = subtab === 'empleados'
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
-
-      document.getElementById('subtab-asistencias').className = subtab === 'asistencias'
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
-
-      if(subtab === 'empleados') initRefCamera();
-      if(subtab === 'asistencias') cargarHistorialAsistencias();
     }
 
     // --- AUTENTICACIÓN ADMIN ---
@@ -330,7 +329,7 @@
       document.getElementById('admin-dashboard').classList.add('hidden');
       document.getElementById('admin-auth-card').classList.remove('hidden');
       document.getElementById('auth-pass').value = "";
-      if(refStream) refStream.getTracks().forEach(t => t.stop());
+      if (refStream) refStream.getTracks().forEach(t => t.stop());
     }
 
     // --- MODAL KIOSCO (RECONOCIMIENTO) ---
@@ -351,23 +350,23 @@
     }
 
     function cerrarModalEscaner() {
-      if(scanStream) scanStream.getTracks().forEach(t => t.stop());
+      if (scanStream) scanStream.getTracks().forEach(t => t.stop());
       document.getElementById('modal-escaner').classList.add('hidden');
     }
 
     async function procesarMarcacionFacial() {
       const status = document.getElementById('scan-status');
 
-      if (!supabase) {
+      if (!supabaseClient) {
         status.className = "text-amber-400";
-        status.innerText = "⚠️ Falta configurar la clave de Supabase en el código.";
+        status.innerText = "⚠️ Error de conexión con Supabase.";
         return;
       }
 
       status.innerText = "🔍 Verificando rostro registrado...";
-      const { data: empleados } = await supabase.from('empleados').select('*');
+      const { data: empleados } = await supabaseClient.from('empleados').select('*');
 
-      if(!empleados || empleados.length === 0) {
+      if (!empleados || empleados.length === 0) {
         status.innerText = "❌ No hay personal registrado en la base de datos.";
         return;
       }
@@ -383,10 +382,10 @@
 
       canvas.toBlob(async (blob) => {
         const fileName = `${personaMatch.id}_${scanTipo}_${Date.now()}.jpg`;
-        await supabase.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
+        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
         const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
 
-        await supabase.from('asistencias').insert([{
+        await supabaseClient.from('asistencias').insert([{
           empleado_id: personaMatch.id,
           tipo: scanTipo,
           latitud: currentLat,
@@ -445,9 +444,9 @@
         return;
       }
 
-      if (!supabase) {
+      if (!supabaseClient) {
         status.className = "text-amber-400";
-        status.innerText = "⚠️ Reemplaza la clave de Supabase en el código.";
+        status.innerText = "⚠️ Error de conexión con Supabase.";
         return;
       }
 
@@ -455,10 +454,10 @@
       status.innerText = "💾 Guardando datos y foto biométrica...";
 
       const fileName = `ref_${doc}.jpg`;
-      await supabase.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
+      await supabaseClient.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
       const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
 
-      const { error } = await supabase.from('empleados').upsert([{
+      const { error } = await supabaseClient.from('empleados').upsert([{
         id: doc,
         nombre: nombre,
         departamento: cargo,
@@ -482,8 +481,8 @@
     }
 
     async function cargarListaPersonal() {
-      if(!supabase) return;
-      const { data } = await supabase.from('empleados').select('*');
+      if (!supabaseClient) return;
+      const { data } = await supabaseClient.from('empleados').select('*');
       const tbody = document.getElementById('tabla-empleados-body');
       if (!data || !data.length) {
         tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No hay personal registrado.</td></tr>`;
@@ -496,7 +495,7 @@
           <td class="p-2.5 font-semibold text-white">${e.nombre}<br><span class="text-xs text-slate-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
           <td class="p-2.5 text-xs font-mono text-blue-400">${e.id}</td>
           <td class="p-2.5 text-right">
-            <button onclick="eliminarPersonal('${e.id}')" class="text-xs bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-2 py-1 rounded">
+            <button type="button" onclick="eliminarPersonal('${e.id}')" class="text-xs bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-2 py-1 rounded">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
@@ -505,16 +504,16 @@
     }
 
     async function eliminarPersonal(id) {
-      if(!confirm(`¿Eliminar registro del documento ${id}?`)) return;
-      await supabase.from('empleados').delete().eq('id', id);
+      if (!confirm(`¿Eliminar registro del documento ${id}?`)) return;
+      await supabaseClient.from('empleados').delete().eq('id', id);
       cargarListaPersonal();
     }
 
     async function cargarHistorialAsistencias() {
-      if(!supabase) return;
-      const { data } = await supabase.from('asistencias').select('*, empleados(nombre)').order('fecha_hora', { ascending: false });
+      if (!supabaseClient) return;
+      const { data } = await supabaseClient.from('asistencias').select('*, empleados(nombre)').order('fecha_hora', { ascending: false });
       const tbody = document.getElementById('tabla-asistencias-body');
-      if(!data || !data.length) {
+      if (!data || !data.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No hay marcaciones.</td></tr>`;
         return;
       }
@@ -527,14 +526,14 @@
           <td class="p-2.5"><span class="px-2 py-0.5 rounded text-xs ${a.tipo === 'Entrada' ? 'bg-emerald-900/50 text-emerald-300' : 'bg-rose-900/50 text-rose-300'}">${a.tipo}</span></td>
           <td class="p-2.5 text-xs">${new Date(a.fecha_hora).toLocaleString('es-CO')}</td>
           <td class="p-2.5 text-xs">${a.latitud ? `<a href="https://maps.google.com/?q=${a.latitud},${a.longitud}" target="_blank" class="text-blue-400 underline">Ver GPS</a>` : 'N/A'}</td>
-          <td class="p-2.5 text-right"><button onclick="eliminarAsistencia(${a.id})" class="text-xs text-rose-400"><i class="fa-solid fa-trash"></i></button></td>
+          <td class="p-2.5 text-right"><button type="button" onclick="eliminarAsistencia(${a.id})" class="text-xs text-rose-400"><i class="fa-solid fa-trash"></i></button></td>
         </tr>
       `).join('');
     }
 
     async function eliminarAsistencia(id) {
-      if(!confirm("¿Borrar marcación?")) return;
-      await supabase.from('asistencias').delete().eq('id', id);
+      if (!confirm("¿Borrar marcación?")) return;
+      await supabaseClient.from('asistencias').delete().eq('id', id);
       cargarHistorialAsistencias();
     }
   </script>
