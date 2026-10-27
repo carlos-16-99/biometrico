@@ -6,6 +6,8 @@
   <title>Control Biométrico - CDA MOTOS RUTA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Inteligencia Artificial / Reconocimiento Facial (face-api.js) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
@@ -18,7 +20,7 @@
       </div>
       <div>
         <h1 class="font-bold text-lg text-white">CDA MOTOS RUTA</h1>
-        <p class="text-xs text-slate-400">Sistema Biométrico de Asistencia & Personal</p>
+        <p class="text-xs text-slate-400">Sistema Biométrico Face ID & Asistencia</p>
       </div>
     </div>
 
@@ -45,7 +47,7 @@
           <div class="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
             <i class="fa-solid fa-user-check text-3xl"></i>
           </div>
-          <h2 class="text-2xl font-bold text-white">Marcación de Asistencia</h2>
+          <h2 class="text-2xl font-bold text-white">Marcación Biométrica Face ID</h2>
           <p class="text-xs text-slate-400">Selecciona tu tipo de registro para iniciar la validación facial</p>
         </div>
 
@@ -58,8 +60,8 @@
           </button>
         </div>
 
-        <div id="kiosk-gps-indicator" class="text-xs text-slate-500 pt-2 flex items-center justify-center gap-1">
-          <i class="fa-solid fa-location-dot"></i> Ubicación GPS Activa
+        <div id="models-status" class="text-xs text-amber-400 pt-2 flex items-center justify-center gap-1 font-semibold">
+          <i class="fa-solid fa-spinner fa-spin"></i> Cargando Inteligencia Artificial Face ID...
         </div>
       </div>
     </section>
@@ -75,8 +77,7 @@
 
         <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-blue-500 shadow-inner">
           <video id="scan-video" autoplay playsinline class="w-full h-full object-cover"></video>
-          <canvas id="scan-canvas" class="hidden"></canvas>
-          <div class="absolute inset-0 border-4 border-dashed border-blue-400/50 rounded-full m-8 pointer-events-none animate-pulse"></div>
+          <canvas id="scan-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
         </div>
 
         <div id="scan-status" class="text-sm font-semibold text-amber-400">
@@ -90,7 +91,7 @@
     <!-- ========================================== -->
     <section id="view-admin" class="hidden space-y-6">
 
-      <!-- Login de Administrador -->
+      <!-- Login Administrador -->
       <div id="admin-auth-card" class="max-w-md mx-auto bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl space-y-5">
         <div class="text-center space-y-1">
           <div class="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center mx-auto mb-2">
@@ -116,10 +117,9 @@
         </div>
       </div>
 
-      <!-- Dashboard de Gestión -->
+      <!-- Dashboard -->
       <div id="admin-dashboard" class="hidden space-y-6">
         
-        <!-- Header Dashboard -->
         <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl flex justify-between items-center flex-wrap gap-4">
           <div class="flex items-center gap-3">
             <div class="p-2.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-xl">
@@ -135,22 +135,20 @@
           </button>
         </div>
 
-        <!-- Sub-Pestañas -->
         <div class="flex gap-2 border-b border-slate-700 pb-2">
           <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">
-            <i class="fa-solid fa-user-plus mr-2"></i>Registro de Personal
+            <i class="fa-solid fa-user-plus mr-2"></i>Registro Biométrico Face ID
           </button>
           <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
             <i class="fa-solid fa-list-check mr-2"></i>Historial de Asistencias
           </button>
         </div>
 
-        <!-- SUBTAB 1: MÓDULO REGISTRO DE TRABAJADORES -->
+        <!-- SUBTAB REGISTRO PERSONAL DE FACE ID -->
         <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
           <div class="lg:col-span-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
             <h3 class="font-bold text-md text-blue-400 border-b border-slate-700 pb-2">
-              <i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Biometría Facial
+              <i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Registro Biométrico (Face ID)
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,29 +173,20 @@
               </div>
             </div>
 
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Rol en el Sistema</label>
-              <select id="emp-rol" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none">
-                <option value="trabajador">Trabajador (Solo Marcación Kiosco)</option>
-                <option value="administrativo">Administrativo / Operador (Acceso al Panel)</option>
-              </select>
-            </div>
-
             <div class="space-y-2 pt-2">
-              <label class="block text-xs font-semibold text-slate-300">Foto de Rostro de Referencia (Biometría)</label>
+              <label class="block text-xs font-semibold text-slate-300">Escáner Biométrico de Rostro</label>
               <div class="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-700 shadow-inner">
                 <video id="ref-video" autoplay playsinline class="w-full h-full object-cover"></video>
-                <canvas id="ref-canvas" class="hidden"></canvas>
-                <div id="ref-captured-preview" class="absolute inset-0 bg-cover bg-center hidden"></div>
+                <canvas id="ref-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
               </div>
               
-              <button type="button" onclick="capturarFotoReferencia()" class="w-full bg-slate-700 hover:bg-slate-600 text-xs py-2.5 rounded-lg text-slate-200 transition font-semibold flex items-center justify-center gap-2">
-                <i class="fa-solid fa-camera text-blue-400"></i> Tomar Captura de Rostro
+              <button type="button" onclick="escaneoBiometricoRegistro()" class="w-full bg-slate-700 hover:bg-slate-600 text-xs py-2.5 rounded-lg text-slate-200 transition font-semibold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-expand text-blue-400"></i> Escanear Puntos Faciales
               </button>
             </div>
 
             <button type="button" onclick="guardarPersonal()" class="bg-blue-600 hover:bg-blue-500 font-bold px-4 py-3 rounded-xl text-white text-sm w-full transition shadow-lg shadow-blue-900/30">
-              <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar Registro en Sistema
+              <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar Trabajador con Face ID
             </button>
             <div id="emp-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
           </div>
@@ -214,19 +203,19 @@
                     <th class="p-2.5">Rostro</th>
                     <th class="p-2.5">Nombre / Cargo</th>
                     <th class="p-2.5">Documento</th>
+                    <th class="p-2.5">Face ID</th>
                     <th class="p-2.5 text-right">Acción</th>
                   </tr>
                 </thead>
                 <tbody id="tabla-empleados-body">
-                  <tr><td colspan="4" class="p-4 text-center text-slate-500">Cargando personal...</td></tr>
+                  <tr><td colspan="5" class="p-4 text-center text-slate-500">Cargando personal...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
-
         </div>
 
-        <!-- SUBTAB 2: HISTORIAL DE ASISTENCIAS -->
+        <!-- SUBTAB HISTORIAL ASISTENCIAS -->
         <div id="subview-asistencias" class="hidden space-y-4">
           <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4">
             <table class="w-full text-left text-sm text-slate-300">
@@ -254,37 +243,6 @@
   </main>
 
   <script>
-    // --- NAVEGACIÓN DIRECTA ENTRE PESTAÑAS (100% INDEPENDIENTE) ---
-    function switchTab(tab) {
-      document.getElementById('view-kiosk').style.display = (tab === 'kiosk') ? 'block' : 'none';
-      document.getElementById('view-admin').style.display = (tab === 'admin') ? 'block' : 'none';
-
-      document.getElementById('tab-kiosk').className = (tab === 'kiosk')
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-
-      document.getElementById('tab-admin').className = (tab === 'admin')
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-    }
-
-    function switchAdminTab(subtab) {
-      document.getElementById('subview-empleados').style.display = (subtab === 'empleados') ? 'grid' : 'none';
-      document.getElementById('subview-asistencias').style.display = (subtab === 'asistencias') ? 'block' : 'none';
-
-      document.getElementById('subtab-empleados').className = (subtab === 'empleados')
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
-
-      document.getElementById('subtab-asistencias').className = (subtab === 'asistencias')
-        ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white'
-        : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
-
-      if (subtab === 'empleados') initRefCamera();
-      if (subtab === 'asistencias') cargarHistorialAsistencias();
-    }
-
-    // --- CONFIGURACIÓN DE SUPABASE ---
     const SUPABASE_URL = "https://hpoqpfgmrpjrpyqpavww.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb3FwZmdtcnBqcnB5cXBhdnd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTY4MDIsImV4cCI6MjEwODQzMjgwMn0.o-acuK47laVODMREnAhoWQH4qFJsMbR9ll6d-SV44J8";
     
@@ -295,112 +253,79 @@
       }
     } catch(e) { console.error("Error al iniciar Supabase:", e); }
 
+    let modelsLoaded = false;
     let scanStream = null, refStream = null;
     let fotoRefBlob = null;
+    let descriptorFacialGlobal = null;
     let currentLat = null, currentLng = null;
     let scanTipo = 'Entrada';
 
-    // GPS Tracker
-    if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(pos => {
-        currentLat = pos.coords.latitude;
-        currentLng = pos.coords.longitude;
-      });
+    // Cargar Modelos de IA Facial
+    async function cargarModelosIA() {
+      const status = document.getElementById('models-status');
+      try {
+        const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark64Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        modelsLoaded = true;
+        status.className = "text-xs text-emerald-400 pt-2 flex items-center justify-center gap-1 font-semibold";
+        status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Modelos Face ID Listos';
+      } catch (err) {
+        status.className = "text-xs text-rose-400 pt-2 flex items-center justify-center gap-1 font-semibold";
+        status.innerText = "❌ Error al cargar IA facial.";
+      }
     }
 
-    // --- AUTENTICACIÓN ADMIN ---
+    window.onload = () => {
+      cargarModelosIA();
+      if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(pos => {
+          currentLat = pos.coords.latitude;
+          currentLng = pos.coords.longitude;
+        });
+      }
+    };
+
+    function switchTab(tab) {
+      document.getElementById('view-kiosk').style.display = (tab === 'kiosk') ? 'block' : 'none';
+      document.getElementById('view-admin').style.display = (tab === 'admin') ? 'block' : 'none';
+      document.getElementById('tab-kiosk').className = (tab === 'kiosk') ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow' : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+      document.getElementById('tab-admin').className = (tab === 'admin') ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow' : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+    }
+
+    function switchAdminTab(subtab) {
+      document.getElementById('subview-empleados').style.display = (subtab === 'empleados') ? 'grid' : 'none';
+      document.getElementById('subview-asistencias').style.display = (subtab === 'asistencias') ? 'block' : 'none';
+      document.getElementById('subtab-empleados').className = (subtab === 'empleados') ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white' : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+      document.getElementById('subtab-asistencias').className = (subtab === 'asistencias') ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white' : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+      if (subtab === 'empleados') initRefCamera();
+      if (subtab === 'asistencias') cargarHistorialAsistencias();
+    }
+
     function loginAdmin() {
       const user = document.getElementById('auth-user').value.trim();
       const pass = document.getElementById('auth-pass').value.trim();
-      const err = document.getElementById('auth-error');
-
       if (user === 'CDAMOTOSRUTA' && pass === 'RUTA44**') {
         document.getElementById('admin-auth-card').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
-        err.innerText = "";
+        document.getElementById('auth-error').innerText = "";
         initRefCamera();
         cargarListaPersonal();
       } else {
-        err.innerText = "❌ Usuario o contraseña incorrectos.";
+        document.getElementById('auth-error').innerText = "❌ Usuario o contraseña incorrectos.";
       }
     }
 
     function logoutAdmin() {
       document.getElementById('admin-dashboard').classList.add('hidden');
       document.getElementById('admin-auth-card').classList.remove('hidden');
-      document.getElementById('auth-pass').value = "";
       if (refStream) refStream.getTracks().forEach(t => t.stop());
     }
 
-    // --- MODAL KIOSCO (RECONOCIMIENTO) ---
-    async function abrirModalEscaner(tipo) {
-      scanTipo = tipo;
-      document.getElementById('modal-titulo').innerText = `Escaneando Rostro para ${tipo.toUpperCase()}...`;
-      document.getElementById('modal-escaner').classList.remove('hidden');
-      const status = document.getElementById('scan-status');
-      status.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Activando cámara...';
-
-      try {
-        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('scan-video').srcObject = scanStream;
-        setTimeout(() => { procesarMarcacionFacial(); }, 2500);
-      } catch(err) {
-        status.innerText = "❌ Error al acceder a la cámara.";
-      }
-    }
-
-    function cerrarModalEscaner() {
-      if (scanStream) scanStream.getTracks().forEach(t => t.stop());
-      document.getElementById('modal-escaner').classList.add('hidden');
-    }
-
-    async function procesarMarcacionFacial() {
-      const status = document.getElementById('scan-status');
-
-      if (!supabaseClient) {
-        status.className = "text-amber-400";
-        status.innerText = "⚠️ Error de conexión con Supabase.";
-        return;
-      }
-
-      status.innerText = "🔍 Verificando rostro registrado...";
-      const { data: empleados } = await supabaseClient.from('empleados').select('*');
-
-      if (!empleados || empleados.length === 0) {
-        status.innerText = "❌ No hay personal registrado en la base de datos.";
-        return;
-      }
-
-      const video = document.getElementById('scan-video');
-      const canvas = document.getElementById('scan-canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const personaMatch = empleados[0];
-
-      canvas.toBlob(async (blob) => {
-        const fileName = `${personaMatch.id}_${scanTipo}_${Date.now()}.jpg`;
-        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
-        const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
-
-        await supabaseClient.from('asistencias').insert([{
-          empleado_id: personaMatch.id,
-          tipo: scanTipo,
-          latitud: currentLat,
-          longitud: currentLng,
-          foto_marcacion_url: fotoUrl
-        }]);
-
-        status.className = "text-base font-bold text-emerald-400";
-        status.innerText = `¡HOLA ${personaMatch.nombre.toUpperCase()}! ${scanTipo.toUpperCase()} REGISTRADA.`;
-
-        setTimeout(() => { cerrarModalEscaner(); }, 3000);
-      }, 'image/jpeg', 0.85);
-    }
-
-    // --- CÁMARA REGISTRO PERSONAL (ADMIN) ---
+    // REGISTRO DE PUNTOS FACIALES
     async function initRefCamera() {
       try {
         refStream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -408,22 +333,40 @@
       } catch(err){}
     }
 
-    function capturarFotoReferencia() {
+    async function escaneoBiometricoRegistro() {
+      const status = document.getElementById('emp-status');
+      if (!modelsLoaded) return alert("Cargando inteligencia artificial, espera unos segundos...");
+
+      status.className = "text-blue-400 animate-pulse";
+      status.innerText = "🔍 Mapeando facciones faciales...";
+
       const video = document.getElementById('ref-video');
       const canvas = document.getElementById('ref-canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      canvas.toBlob((blob) => {
-        fotoRefBlob = blob;
-        const preview = document.getElementById('ref-captured-preview');
-        preview.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
-        preview.classList.remove('hidden');
-        document.getElementById('emp-status').className = "text-emerald-400";
-        document.getElementById('emp-status').innerText = "📸 Foto facial capturada correctamente.";
-      }, 'image/jpeg', 0.85);
+      const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+
+      if (!detection) {
+        status.className = "text-rose-400";
+        status.innerText = "❌ Rostro no detectado. Mira fijamente a la cámara con buena iluminación.";
+        return;
+      }
+
+      descriptorFacialGlobal = Array.from(detection.descriptor);
+
+      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      faceapi.matchDimensions(canvas, displaySize);
+      const resizedDetections = faceapi.resizeResults(detection, displaySize);
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = video.videoWidth;
+      tmpCanvas.height = video.videoHeight;
+      tmpCanvas.getContext('2d').drawImage(video, 0, 0);
+      tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
+
+      status.className = "text-emerald-400 font-bold";
+      status.innerText = "✅ ¡Patrón Face ID (128 puntos) generado exitosamente!";
     }
 
     async function guardarPersonal() {
@@ -432,26 +375,11 @@
       const cargo = document.getElementById('emp-cargo').value.trim();
       const status = document.getElementById('emp-status');
 
-      if (!doc || !nombre || !cargo) {
-        status.className = "text-amber-400";
-        status.innerText = "⚠️ Completa los campos obligatorios (*).";
-        return;
-      }
-
-      if (!fotoRefBlob) {
-        status.className = "text-amber-400";
-        status.innerText = "⚠️ Captura la foto de rostro de referencia.";
-        return;
-      }
-
-      if (!supabaseClient) {
-        status.className = "text-amber-400";
-        status.innerText = "⚠️ Error de conexión con Supabase.";
-        return;
-      }
+      if (!doc || !nombre || !cargo) return alert("Completa los campos obligatorios (*).");
+      if (!descriptorFacialGlobal || !fotoRefBlob) return alert("Haz clic en 'Escanear Puntos Faciales' antes de guardar.");
 
       status.className = "text-blue-400";
-      status.innerText = "💾 Guardando datos y foto biométrica...";
+      status.innerText = "💾 Guardando datos y huella Face ID...";
 
       const fileName = `ref_${doc}.jpg`;
       await supabaseClient.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
@@ -461,39 +389,40 @@
         id: doc,
         nombre: nombre,
         departamento: cargo,
-        foto_referencia_url: fotoUrl
+        foto_referencia_url: fotoUrl,
+        descriptor_facial: descriptorFacialGlobal
       }]);
 
       if (error) {
         status.className = "text-rose-400";
-        status.innerText = "❌ Error al guardar en base de datos.";
+        status.innerText = "❌ Error al guardar datos en Supabase.";
       } else {
         status.className = "text-emerald-400";
-        status.innerText = "✅ Personal guardado exitosamente.";
+        status.innerText = "✅ Personal registrado con Face ID activo.";
         document.getElementById('emp-doc').value = "";
         document.getElementById('emp-nombre').value = "";
         document.getElementById('emp-cargo').value = "";
-        document.getElementById('emp-telefono').value = "";
-        document.getElementById('ref-captured-preview').classList.add('hidden');
+        descriptorFacialGlobal = null;
         fotoRefBlob = null;
         cargarListaPersonal();
       }
     }
 
     async function cargarListaPersonal() {
-      if (!supabaseClient) return;
+      if(!supabaseClient) return;
       const { data } = await supabaseClient.from('empleados').select('*');
       const tbody = document.getElementById('tabla-empleados-body');
       if (!data || !data.length) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No hay personal registrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No hay personal registrado.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = data.map(e => `
         <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
-          <td class="p-2.5"><img src="${e.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-9 h-9 rounded-full object-cover border border-slate-600"></td>
+          <td class="p-2.5"><img src="${e.foto_referencia_url}" class="w-9 h-9 rounded-full object-cover border border-slate-600"></td>
           <td class="p-2.5 font-semibold text-white">${e.nombre}<br><span class="text-xs text-slate-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
           <td class="p-2.5 text-xs font-mono text-blue-400">${e.id}</td>
+          <td class="p-2.5 text-xs">${e.descriptor_facial ? '<span class="text-emerald-400 font-bold"><i class="fa-solid fa-shield-halved"></i> Activo</span>' : '<span class="text-amber-400">Pendiente</span>'}</td>
           <td class="p-2.5 text-right">
             <button type="button" onclick="eliminarPersonal('${e.id}')" class="text-xs bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-2 py-1 rounded">
               <i class="fa-solid fa-trash"></i>
@@ -504,9 +433,107 @@
     }
 
     async function eliminarPersonal(id) {
-      if (!confirm(`¿Eliminar registro del documento ${id}?`)) return;
+      if (!confirm(`¿Eliminar registro del trabajador ${id}?`)) return;
       await supabaseClient.from('empleados').delete().eq('id', id);
       cargarListaPersonal();
+    }
+
+    // COMPARACIÓN BIOMÉTRICA (KIOSCO)
+    async function abrirModalEscaner(tipo) {
+      scanTipo = tipo;
+      document.getElementById('modal-titulo').innerText = `Validación Face ID para ${tipo.toUpperCase()}...`;
+      document.getElementById('modal-escaner').classList.remove('hidden');
+      const status = document.getElementById('scan-status');
+      status.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Iniciando cámara...';
+
+      try {
+        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        document.getElementById('scan-video').srcObject = scanStream;
+        setTimeout(() => { procesarValidacionFaceID(); }, 1500);
+      } catch(err) {
+        status.innerText = "❌ Error al acceder a la cámara.";
+      }
+    }
+
+    function cerrarModalEscaner() {
+      if (scanStream) scanStream.getTracks().forEach(t => t.stop());
+      document.getElementById('modal-escaner').classList.add('hidden');
+    }
+
+    async function procesarValidacionFaceID() {
+      const status = document.getElementById('scan-status');
+      const video = document.getElementById('scan-video');
+      const canvas = document.getElementById('scan-canvas');
+
+      status.innerText = "🔍 Escaneando facciones faciales...";
+
+      const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+
+      if (!detection) {
+        status.className = "text-amber-400 font-semibold";
+        status.innerText = "⚠️ No se detectó rostro. Ubícate al centro de la cámara...";
+        setTimeout(procesarValidacionFaceID, 1200);
+        return;
+      }
+
+      const displaySize = { width: video.videoWidth, height: video.videoHeight };
+      faceapi.matchDimensions(canvas, displaySize);
+      const resizedDetections = faceapi.resizeResults(detection, displaySize);
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+      status.innerText = "⚡ Verificando coincidencia Face ID en la base de datos...";
+
+      const { data: empleados } = await supabaseClient.from('empleados').select('*');
+
+      if (!empleados || empleados.length === 0) {
+        status.innerText = "❌ No hay empleados registrados con Face ID.";
+        return;
+      }
+
+      let mejorCoincidencia = null;
+      let menorDistancia = 0.55;
+
+      empleados.forEach(emp => {
+        if (emp.descriptor_facial) {
+          const distancia = faceapi.euclideanDistance(detection.descriptor, new Float32Array(emp.descriptor_facial));
+          if (distancia < menorDistancia) {
+            menorDistancia = distancia;
+            mejorCoincidencia = emp;
+          }
+        }
+      });
+
+      if (!mejorCoincidencia) {
+        status.className = "text-rose-400 font-bold";
+        status.innerText = "❌ Rostro no reconocido. Acceso Denegado.";
+        setTimeout(() => { cerrarModalEscaner(); }, 3000);
+        return;
+      }
+
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = video.videoWidth;
+      tmpCanvas.height = video.videoHeight;
+      tmpCanvas.getContext('2d').drawImage(video, 0, 0);
+
+      tmpCanvas.toBlob(async (blob) => {
+        const fileName = `${mejorCoincidencia.id}_${scanTipo}_${Date.now()}.jpg`;
+        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
+        const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+
+        await supabaseClient.from('asistencias').insert([{
+          empleado_id: mejorCoincidencia.id,
+          tipo: scanTipo,
+          latitud: currentLat,
+          longitud: currentLng,
+          foto_marcacion_url: fotoUrl
+        }]);
+
+        status.className = "text-base font-bold text-emerald-400 animate-bounce";
+        status.innerText = `¡HOLA ${mejorCoincidencia.nombre.toUpperCase()}! ${scanTipo.toUpperCase()} REGISTRADA.`;
+
+        setTimeout(() => { cerrarModalEscaner(); }, 3000);
+      }, 'image/jpeg', 0.85);
     }
 
     async function cargarHistorialAsistencias() {
