@@ -260,24 +260,36 @@
     let currentLat = null, currentLng = null;
     let scanTipo = 'Entrada';
 
-    // Cargar Modelos de IA Facial
-    async function cargarModelosIA() {
-      const status = document.getElementById('models-status');
-      try {
-        const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-        await Promise.all([
-          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-          faceapi.nets.faceLandmark64Net.loadFromUri(MODEL_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-        ]);
-        modelsLoaded = true;
-        status.className = "text-xs text-emerald-400 pt-2 flex items-center justify-center gap-1 font-semibold";
-        status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Modelos Face ID Listos';
-      } catch (err) {
-        status.className = "text-xs text-rose-400 pt-2 flex items-center justify-center gap-1 font-semibold";
-        status.innerText = "❌ Error al cargar IA facial.";
-      }
+ // Cargar Modelos de IA Facial usando CDN rápido y confiable
+async function cargarModelosIA() {
+  const status = document.getElementById('models-status');
+  
+  // Esperar a que faceapi esté presente en el navegador
+  while (typeof faceapi === 'undefined') {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+
+  try {
+    // Usamos el CDN de jsDelivr para los modelos biométricos
+    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/cddlib/face-api.js@master/weights';
+    
+    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark64Net.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    
+    modelsLoaded = true;
+    if (status) {
+      status.className = "text-xs text-emerald-400 pt-2 flex items-center justify-center gap-1 font-semibold";
+      status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Modelos Face ID Listos';
     }
+  } catch (err) {
+    console.error("Error cargando modelos:", err);
+    if (status) {
+      status.className = "text-xs text-rose-400 pt-2 flex items-center justify-center gap-1 font-semibold";
+      status.innerText = "❌ Error al cargar IA facial.";
+    }
+  }
+}
 
     window.onload = () => {
       cargarModelosIA();
@@ -333,41 +345,54 @@
       } catch(err){}
     }
 
-    async function escaneoBiometricoRegistro() {
-      const status = document.getElementById('emp-status');
-      if (!modelsLoaded) return alert("Cargando inteligencia artificial, espera unos segundos...");
+async function escaneoBiometricoRegistro() {
+  const status = document.getElementById('emp-status');
+  
+  if (!modelsLoaded) {
+    status.className = "text-amber-400 font-semibold animate-pulse";
+    status.innerText = "⏳ Descargando modelos de IA, por favor espera un momento...";
+    return;
+  }
 
-      status.className = "text-blue-400 animate-pulse";
-      status.innerText = "🔍 Mapeando facciones faciales...";
+  status.className = "text-blue-400 animate-pulse";
+  status.innerText = "🔍 Mapeando facciones faciales...";
 
-      const video = document.getElementById('ref-video');
-      const canvas = document.getElementById('ref-canvas');
+  const video = document.getElementById('ref-video');
+  const canvas = document.getElementById('ref-canvas');
 
-      const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+  try {
+    const detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
 
-      if (!detection) {
-        status.className = "text-rose-400";
-        status.innerText = "❌ Rostro no detectado. Mira fijamente a la cámara con buena iluminación.";
-        return;
-      }
-
-      descriptorFacialGlobal = Array.from(detection.descriptor);
-
-      const displaySize = { width: video.videoWidth, height: video.videoHeight };
-      faceapi.matchDimensions(canvas, displaySize);
-      const resizedDetections = faceapi.resizeResults(detection, displaySize);
-      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-      faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = video.videoWidth;
-      tmpCanvas.height = video.videoHeight;
-      tmpCanvas.getContext('2d').drawImage(video, 0, 0);
-      tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
-
-      status.className = "text-emerald-400 font-bold";
-      status.innerText = "✅ ¡Patrón Face ID (128 puntos) generado exitosamente!";
+    if (!detection) {
+      status.className = "text-rose-400 font-semibold";
+      status.innerText = "❌ Rostro no detectado. Ubícate bien de frente con luz adecuada.";
+      return;
     }
+
+    descriptorFacialGlobal = Array.from(detection.descriptor);
+
+    const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
+    faceapi.matchDimensions(canvas, displaySize);
+    const resizedDetections = faceapi.resizeResults(detection, displaySize);
+    
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = displaySize.width;
+    tmpCanvas.height = displaySize.height;
+    tmpCanvas.getContext('2d').drawImage(video, 0, 0);
+    tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
+
+    status.className = "text-emerald-400 font-bold";
+    status.innerText = "✅ ¡Patrón Face ID (128 puntos) generado exitosamente!";
+  } catch (e) {
+    console.error(e);
+    status.className = "text-rose-400 font-semibold";
+    status.innerText = "❌ Error durante el escaneo facial.";
+  }
+}
 
     async function guardarPersonal() {
       const doc = document.getElementById('emp-doc').value.trim();
