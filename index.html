@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Biométrico FaceID - CDA MOTOS RUTA</title>
+  <title>Control Biométrico FaceID - CDA MOTOS RUTA 44</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -13,25 +13,25 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col">
+<body class="bg-zinc-950 text-slate-100 min-h-screen font-sans flex flex-col">
 
-  <!-- Navegación Superior -->
-  <nav class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-20">
+  <!-- Navegación Superior Estilo RUTA 44 -->
+  <nav class="bg-zinc-900 border-b-2 border-lime-500 px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-20 shadow-lg shadow-lime-950/20">
     <div class="flex items-center gap-3">
-      <div class="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-900/40">
-        <i class="fa-solid fa-motorcycle text-xl"></i>
+      <div class="bg-gradient-to-br from-lime-500 to-emerald-600 p-2.5 rounded-2xl text-zinc-950 font-black shadow-md shadow-lime-500/30">
+        <i class="fa-solid fa-motorcycle text-2xl"></i>
       </div>
       <div>
-        <h1 class="font-bold text-lg text-white">CDA MOTOS RUTA</h1>
-        <p class="text-xs text-slate-400">Sistema Biométrico Face ID Multi-Sede</p>
+        <h1 class="font-black text-xl text-white tracking-wider">CDA RUTA <span class="text-lime-400">44</span></h1>
+        <p class="text-xs text-zinc-400 font-medium">Sistema Biométrico Face ID Multi-Sede</p>
       </div>
     </div>
 
-    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
-      <button type="button" onclick="switchTab('kiosk')" id="tab-kiosk" class="px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow">
+    <div class="flex bg-zinc-950 p-1.5 rounded-xl border border-zinc-800">
+      <button type="button" onclick="switchTab('kiosk')" id="tab-kiosk" class="px-4 py-2 rounded-lg text-sm font-bold transition bg-lime-500 text-zinc-950 shadow-md shadow-lime-500/20">
         <i class="fa-solid fa-desktop mr-2"></i>Kiosco
       </button>
-      <button type="button" onclick="switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white">
+      <button type="button" onclick="switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-lg text-sm font-bold transition text-zinc-400 hover:text-white">
         <i class="fa-solid fa-user-shield mr-2"></i>Panel Administrativo
       </button>
     </div>
@@ -42,57 +42,59 @@
 
     <!-- KIOSCO DE MARCACIÓN -->
     <section id="view-kiosk" class="max-w-md mx-auto w-full space-y-6 text-center">
-      <div class="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl space-y-6">
-        <div class="space-y-2">
-          <div class="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
+      <div class="bg-zinc-900/90 p-8 rounded-3xl border-2 border-zinc-800 shadow-2xl space-y-6 relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl"></div>
+        
+        <div class="space-y-2 relative z-10">
+          <div class="w-16 h-16 bg-lime-500/20 text-lime-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-lime-500/40 shadow-inner">
             <i class="fa-solid fa-face-smile text-3xl"></i>
           </div>
-          <h2 class="text-2xl font-bold text-white">Marcación Biométrica Face ID</h2>
-          <p class="text-xs text-slate-400">Selecciona el tipo de registro y mira a la cámara</p>
+          <h2 class="text-2xl font-black text-white uppercase tracking-wide">Marcación Biométrica</h2>
+          <p class="text-xs text-zinc-400">Selecciona el tipo de registro y mira fijamente a la cámara</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 pt-2">
+        <div class="grid grid-cols-1 gap-4 pt-2 relative z-10">
           <div class="space-y-2">
-            <p class="text-xs font-semibold text-emerald-400 uppercase tracking-wider text-left"><i class="fa-solid fa-right-to-bracket mr-1"></i> Entradas</p>
+            <p class="text-xs font-bold text-lime-400 uppercase tracking-wider text-left"><i class="fa-solid fa-right-to-bracket mr-1"></i> Entradas</p>
             <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="abrirModalEscaner('Entrada al CDA')" class="bg-emerald-600 hover:bg-emerald-500 font-bold py-3.5 px-2 rounded-xl text-white text-xs shadow-lg transition active:scale-95">
+              <button type="button" onclick="abrirModalEscaner('Entrada al CDA')" class="bg-gradient-to-r from-lime-500 to-emerald-600 hover:from-lime-400 hover:to-emerald-500 font-black py-3.5 px-2 rounded-xl text-zinc-950 text-xs shadow-lg transition active:scale-95 uppercase tracking-wider">
                 Entrada al CDA
               </button>
-              <button type="button" onclick="abrirModalEscaner('Entrada Descanso')" class="bg-teal-600 hover:bg-teal-500 font-bold py-3.5 px-2 rounded-xl text-white text-xs shadow-lg transition active:scale-95">
+              <button type="button" onclick="abrirModalEscaner('Entrada Descanso')" class="bg-zinc-800 hover:bg-zinc-700 font-bold py-3.5 px-2 rounded-xl text-lime-400 border border-lime-500/40 text-xs shadow-lg transition active:scale-95 uppercase tracking-wider">
                 Entrada Descanso
               </button>
             </div>
           </div>
 
           <div class="space-y-2 pt-2">
-            <p class="text-xs font-semibold text-rose-400 uppercase tracking-wider text-left"><i class="fa-solid fa-right-from-bracket mr-1"></i> Salidas</p>
+            <p class="text-xs font-bold text-rose-400 uppercase tracking-wider text-left"><i class="fa-solid fa-right-from-bracket mr-1"></i> Salidas</p>
             <div class="grid grid-cols-2 gap-2">
-              <button type="button" onclick="abrirModalEscaner('Salida Descanso')" class="bg-amber-600 hover:bg-amber-500 font-bold py-3.5 px-2 rounded-xl text-white text-xs shadow-lg transition active:scale-95">
+              <button type="button" onclick="abrirModalEscaner('Salida Descanso')" class="bg-zinc-800 hover:bg-zinc-700 font-bold py-3.5 px-2 rounded-xl text-amber-400 border border-amber-500/40 text-xs shadow-lg transition active:scale-95 uppercase tracking-wider">
                 Salida Descanso
               </button>
-              <button type="button" onclick="abrirModalEscaner('Salida del CDA')" class="bg-rose-600 hover:bg-rose-500 font-bold py-3.5 px-2 rounded-xl text-white text-xs shadow-lg transition active:scale-95">
+              <button type="button" onclick="abrirModalEscaner('Salida del CDA')" class="bg-rose-600 hover:bg-rose-500 font-bold py-3.5 px-2 rounded-xl text-white text-xs shadow-lg transition active:scale-95 uppercase tracking-wider">
                 Salida del CDA
               </button>
             </div>
           </div>
         </div>
 
-        <div id="models-status" class="text-xs text-emerald-400 pt-2 flex items-center justify-center gap-1 font-semibold">
+        <div id="models-status" class="text-xs text-lime-400 pt-2 flex items-center justify-center gap-1 font-bold">
           <i class="fa-solid fa-circle-check"></i> Motor Facial Listo (Google MediaPipe)
         </div>
       </div>
     </section>
 
     <!-- MODAL ESCÁNER PARA MARCACIÓN -->
-    <div id="modal-escaner" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
-      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
-        <button type="button" onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+    <div id="modal-escaner" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+      <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
+        <button type="button" onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg">
           <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <h3 id="modal-titulo" class="text-lg font-bold text-blue-400">Escaneando Rostro...</h3>
+        <h3 id="modal-titulo" class="text-lg font-bold text-lime-400">Escaneando Rostro...</h3>
 
-        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-blue-500 shadow-inner">
+        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-lime-500 shadow-inner">
           <video id="scan-video" autoplay playsinline class="w-full h-full object-cover"></video>
           <canvas id="scan-canvas" class="absolute top-0 left-0 w-full h-full object-cover"></canvas>
         </div>
@@ -103,25 +105,25 @@
       </div>
     </div>
 
-    <!-- MODAL ESCÁNER PARA REGISTRO FACIAL DE PERSONAL -->
-    <div id="modal-registro-facial" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
-      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
-        <button type="button" onclick="cerrarModalRegistroFacial()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+    <!-- MODAL ESCÁNER PARA REGISTRO FACIAL -->
+    <div id="modal-registro-facial" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+      <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
+        <button type="button" onclick="cerrarModalRegistroFacial()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg">
           <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <h3 class="text-lg font-bold text-blue-400">Registrar Puntos Faciales</h3>
+        <h3 class="text-lg font-bold text-lime-400">Registrar Puntos Faciales</h3>
 
-        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-blue-500 shadow-inner">
+        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-lime-500 shadow-inner">
           <video id="reg-video" autoplay playsinline class="w-full h-full object-cover"></video>
           <canvas id="reg-canvas" class="absolute top-0 left-0 w-full h-full object-cover"></canvas>
         </div>
 
-        <div id="reg-status" class="text-xs font-semibold text-slate-300">
+        <div id="reg-status" class="text-xs font-semibold text-zinc-300">
           Ubícate frente a la cámara y presiona "Capturar Rostro"
         </div>
 
-        <button type="button" onclick="capturarPatronFacial()" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 rounded-xl text-white text-sm shadow-lg">
+        <button type="button" onclick="capturarPatronFacial()" class="w-full bg-lime-500 hover:bg-lime-400 font-bold py-3 rounded-xl text-zinc-950 text-sm shadow-lg">
           <i class="fa-solid fa-camera mr-2"></i> Capturar Rostro
         </button>
       </div>
@@ -131,33 +133,33 @@
     <section id="view-admin" class="hidden space-y-6">
       
       <!-- LOGIN ADMIN -->
-      <div id="admin-auth-card" class="max-w-md mx-auto bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl space-y-5">
+      <div id="admin-auth-card" class="max-w-md mx-auto bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-2xl space-y-5">
         <div class="text-center space-y-1">
-          <div class="w-12 h-12 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center mx-auto mb-2">
+          <div class="w-12 h-12 bg-lime-500/20 text-lime-400 rounded-xl flex items-center justify-center mx-auto mb-2 border border-lime-500/30">
             <i class="fa-solid fa-lock text-xl"></i>
           </div>
           <h2 class="text-xl font-bold text-white">Acceso al Sistema</h2>
-          <p class="text-xs text-slate-400">Ingresa tus credenciales correspondientes</p>
+          <p class="text-xs text-zinc-400">Ingresa tus credenciales correspondientes</p>
         </div>
 
         <div class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Usuario / Documento o NIT</label>
-            <input type="text" id="auth-user" placeholder="Documento o NIT" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white outline-none focus:border-blue-500 font-mono">
+            <label class="block text-xs font-bold text-zinc-400 mb-1 uppercase">Usuario / Documento o NIT</label>
+            <input type="text" id="auth-user" placeholder="Documento o NIT" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-white outline-none focus:border-lime-500 font-mono">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Contraseña</label>
-            <input type="password" id="auth-pass" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white outline-none focus:border-blue-500">
+            <label class="block text-xs font-bold text-zinc-400 mb-1 uppercase">Contraseña</label>
+            <input type="password" id="auth-pass" placeholder="••••••••" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5 text-white outline-none focus:border-lime-500">
           </div>
 
-          <div class="flex items-center gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/60">
-            <input type="checkbox" id="auth-is-superadmin" class="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 bg-slate-800 cursor-pointer">
-            <label for="auth-is-superadmin" class="text-xs font-medium text-slate-300 cursor-pointer select-none">
+          <div class="flex items-center gap-2 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
+            <input type="checkbox" id="auth-is-superadmin" class="w-4 h-4 rounded border-zinc-700 text-lime-500 focus:ring-lime-500 bg-zinc-900 cursor-pointer">
+            <label for="auth-is-superadmin" class="text-xs font-medium text-zinc-300 cursor-pointer select-none">
               Acceso como Admin Principal (SuperAdmin)
             </label>
           </div>
 
-          <button type="button" onclick="loginAdmin()" class="w-full bg-blue-600 hover:bg-blue-500 font-bold py-3 rounded-lg text-white transition shadow-lg shadow-blue-900/30">
+          <button type="button" onclick="loginAdmin()" class="w-full bg-lime-500 hover:bg-lime-400 font-bold py-3 rounded-lg text-zinc-950 transition shadow-lg shadow-lime-950/40">
             Ingresar al Panel
           </button>
           <div id="auth-error" class="text-xs text-rose-400 text-center min-h-[16px]"></div>
@@ -166,62 +168,62 @@
 
       <!-- DASHBOARD -->
       <div id="admin-dashboard" class="hidden space-y-6">
-        <div class="bg-slate-800 border border-slate-700 p-4 rounded-2xl flex justify-between items-center flex-wrap gap-4">
+        <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center flex-wrap gap-4">
           <div class="flex items-center gap-3">
-            <div class="p-2.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-xl">
+            <div class="p-2.5 bg-lime-500/20 text-lime-400 border border-lime-500/30 rounded-xl">
               <i class="fa-solid fa-user-gear text-xl"></i>
             </div>
             <div>
-              <p class="text-xs text-slate-400">Sesión Activa</p>
+              <p class="text-xs text-zinc-400">Sesión Activa</p>
               <h3 class="font-bold text-white text-sm" id="user-display">SuperAdmin</h3>
             </div>
           </div>
-          <button type="button" onclick="logoutAdmin()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3.5 py-2 rounded-lg text-slate-300 transition">
+          <button type="button" onclick="logoutAdmin()" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3.5 py-2 rounded-lg text-zinc-300 transition border border-zinc-700">
             <i class="fa-solid fa-right-from-bracket mr-1.5"></i> Cerrar Sesión
           </button>
         </div>
 
-        <div class="flex gap-2 border-b border-slate-700 pb-2 flex-wrap">
-          <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">
+        <div class="flex gap-2 border-b border-zinc-800 pb-2 flex-wrap">
+          <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-bold bg-lime-500 text-zinc-950">
             <i class="fa-solid fa-user-plus mr-2"></i>Registro de Personal
           </button>
-          <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+          <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
             <i class="fa-solid fa-list-check mr-2"></i>Historial de Asistencias
           </button>
-          <button type="button" onclick="switchAdminTab('horarios')" id="subtab-horarios" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+          <button type="button" onclick="switchAdminTab('horarios')" id="subtab-horarios" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
             <i class="fa-solid fa-clock mr-2"></i>Cargar Horarios Excel
           </button>
-          <button type="button" onclick="switchAdminTab('llegadas-tardes')" id="subtab-llegadas-tardes" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+          <button type="button" onclick="switchAdminTab('llegadas-tardes')" id="subtab-llegadas-tardes" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
             <i class="fa-solid fa-user-clock mr-2"></i>Control Llegadas Tardes
           </button>
-          <button type="button" onclick="switchAdminTab('horas-extras')" id="subtab-horas-extras" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+          <button type="button" onclick="switchAdminTab('horas-extras')" id="subtab-horas-extras" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
             <i class="fa-solid fa-business-time mr-2"></i>Seguimiento Horas Extra
           </button>
         </div>
 
-        <!-- MÓDULO REGISTRO PERSONAL (SIN HORARIOS) -->
+        <!-- MÓDULO REGISTRO PERSONAL -->
         <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-5 bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
-            <h3 class="font-bold text-md text-blue-400 border-b border-slate-700 pb-2 flex justify-between items-center">
+          <div class="lg:col-span-5 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
+            <h3 class="font-bold text-md text-lime-400 border-b border-zinc-800 pb-2 flex justify-between items-center">
               <span><i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Registro</span>
               <span id="edit-mode-tag" class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded hidden">Modo Edición</span>
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Documento o NIT *</label>
-                <input type="text" id="emp-doc" placeholder="Documento o NIT" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none">
+                <label class="block text-xs text-zinc-400 mb-1">Documento o NIT *</label>
+                <input type="text" id="emp-doc" placeholder="Documento o NIT" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-lime-500">
               </div>
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Nombre Completo *</label>
-                <input type="text" id="emp-nombre" placeholder="Nombre Completo" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none">
+                <label class="block text-xs text-zinc-400 mb-1">Nombre Completo *</label>
+                <input type="text" id="emp-nombre" placeholder="Nombre Completo" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-lime-500">
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Cargo en la Empresa *</label>
-                <select id="emp-cargo" onchange="validarCargoSeleccionado()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none">
+                <label class="block text-xs text-zinc-400 mb-1">Cargo en la Empresa *</label>
+                <select id="emp-cargo" onchange="validarCargoSeleccionado()" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-lime-500">
                   <option value="">-- Seleccionar Cargo --</option>
                   <option value="Auxiliar Administrativa">Auxiliar Administrativa</option>
                   <option value="Inspector de Línea">Inspector de Línea</option>
@@ -231,44 +233,39 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs text-slate-400 mb-1">Celular *</label>
-                <input type="text" id="emp-telefono" placeholder="Celular" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white outline-none">
+                <label class="block text-xs text-zinc-400 mb-1">Celular *</label>
+                <input type="text" id="emp-telefono" placeholder="Celular" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-lime-500">
               </div>
             </div>
 
             <!-- SELECCIÓN DE CDA -->
             <div id="contenedor-cda-select" class="space-y-2">
-              <label id="lbl-cda-title" class="block text-xs font-semibold text-blue-400 uppercase">Seleccionar CDA(s) de Pertenencia *</label>
+              <label id="lbl-cda-title" class="block text-xs font-bold text-lime-400 uppercase">Seleccionar CDA(s) de Pertenencia *</label>
               
-              <div id="cda-checkboxes-container" class="bg-slate-900 border border-blue-500/50 rounded-xl p-3 max-h-36 overflow-y-auto space-y-2 text-xs"></div>
+              <div id="cda-checkboxes-container" class="bg-zinc-950 border border-lime-500/40 rounded-xl p-3 max-h-36 overflow-y-auto space-y-2 text-xs"></div>
 
               <div id="cda-single-select-container" class="hidden">
-                <select id="emp-cda-single" class="w-full bg-slate-900 border border-blue-500 rounded-lg px-3 py-2 text-white outline-none text-xs"></select>
-              </div>
-
-              <div id="contenedor-agregar-nuevo-cda" class="flex gap-2 pt-1">
-                <input type="text" id="emp-cda-nuevo" placeholder="Escribir nuevo CDA si aplica" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white outline-none text-xs">
-                <button type="button" onclick="agregarNuevoCDAMultiple()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">Agregar CDA</button>
+                <select id="emp-cda-single" class="w-full bg-zinc-950 border border-lime-500 rounded-lg px-3 py-2 text-white outline-none text-xs"></select>
               </div>
             </div>
 
             <div id="contenedor-pass-admin" class="hidden">
-              <label class="block text-xs font-semibold text-amber-400 mb-1 uppercase">Asignar Contraseña de Acceso al Panel *</label>
-              <input type="password" id="emp-pass" placeholder="Crear contraseña de acceso" class="w-full bg-slate-900 border border-amber-500 rounded-lg px-3 py-2 text-white outline-none">
+              <label class="block text-xs font-bold text-amber-400 mb-1 uppercase">Asignar Contraseña de Acceso al Panel *</label>
+              <input type="password" id="emp-pass" placeholder="Crear contraseña de acceso" class="w-full bg-zinc-950 border border-amber-500 rounded-lg px-3 py-2 text-white outline-none">
             </div>
 
             <div id="contenedor-escaner-facial" class="space-y-2 pt-2">
-              <label class="block text-xs font-semibold text-slate-300">Patrón Biométrico Facial (Obligatorio para Operativos)</label>
-              <button type="button" onclick="abrirModalRegistroFacial()" class="w-full bg-slate-900 border border-blue-500 hover:bg-blue-900/30 text-blue-400 text-xs py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+              <label class="block text-xs font-semibold text-zinc-300">Patrón Biométrico Facial (Obligatorio para Operativos)</label>
+              <button type="button" onclick="abrirModalRegistroFacial()" class="w-full bg-zinc-950 border border-lime-500 hover:bg-lime-950/30 text-lime-400 text-xs py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                 <i class="fa-solid fa-face-viewfinder text-base"></i> <span id="lbl-biometrico-status">Registrar Puntos Faciales</span>
               </button>
             </div>
 
             <div class="flex gap-2">
-              <button type="button" onclick="guardarPersonal()" class="bg-emerald-600 hover:bg-emerald-500 font-bold px-4 py-3 rounded-xl text-white text-sm flex-1 transition shadow-lg shadow-emerald-900/30">
+              <button type="button" onclick="guardarPersonal()" class="bg-lime-500 hover:bg-lime-400 font-bold px-4 py-3 rounded-xl text-zinc-950 text-sm flex-1 transition shadow-lg shadow-lime-950/30">
                 <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar Registro
               </button>
-              <button type="button" onclick="limpiarFormularioPersonal()" class="bg-slate-700 hover:bg-slate-600 font-semibold px-3 py-3 rounded-xl text-slate-300 text-xs flex items-center gap-1">
+              <button type="button" onclick="limpiarFormularioPersonal()" class="bg-zinc-800 hover:bg-zinc-700 font-semibold px-3 py-3 rounded-xl text-zinc-300 text-xs flex items-center gap-1 border border-zinc-700">
                 <i class="fa-solid fa-xmark"></i> Cancelar / Nuevo
               </button>
             </div>
@@ -276,21 +273,21 @@
           </div>
 
           <!-- TABLA DE PERSONAL -->
-          <div class="lg:col-span-7 bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-2 flex-wrap gap-2">
-              <h3 class="font-bold text-md text-slate-300">
-                <i class="fa-solid fa-users mr-2"></i>Personal Registrado
+          <div class="lg:col-span-7 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2 flex-wrap gap-2">
+              <h3 class="font-bold text-md text-zinc-300">
+                <i class="fa-solid fa-users mr-2 text-lime-400"></i>Personal Registrado
               </h3>
               <div id="contenedor-filtro-cda" class="hidden">
-                <select id="filtro-cda-select" onchange="cargarListaPersonal()" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2.5 py-1 text-slate-300 outline-none">
+                <select id="filtro-cda-select" onchange="cargarListaPersonal()" class="bg-zinc-950 border border-zinc-800 text-xs rounded-lg px-2.5 py-1 text-zinc-300 outline-none">
                   <option value="TODOS">Todos los CDA</option>
                 </select>
               </div>
             </div>
 
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs text-slate-300">
-                <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
                     <th class="p-2">Foto</th>
                     <th class="p-2">Nombre / Cargo</th>
@@ -302,24 +299,24 @@
                   </tr>
                 </thead>
                 <tbody id="tabla-empleados-body">
-                  <tr><td colspan="7" class="p-4 text-center text-slate-500">Cargando personal...</td></tr>
+                  <tr><td colspan="7" class="p-4 text-center text-zinc-500">Cargando personal...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- MÓDULO CARGA DE HORARIOS Y EDICIÓN DESPLEGABLE -->
+        <!-- MÓDULO CARGA DE HORARIOS -->
         <div id="subview-horarios" class="hidden space-y-6">
-          <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
-            <div class="flex justify-between items-center flex-wrap gap-4 border-b border-slate-700 pb-3">
+          <div class="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-xl space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-4 border-b border-zinc-800 pb-3">
               <div>
-                <h3 class="font-bold text-md text-white"><i class="fa-solid fa-file-excel mr-2 text-emerald-400"></i>Cargar Horarios Semanales (Excel/CSV)</h3>
-                <p class="text-xs text-slate-400">Sube el archivo al inicio de la semana o ajusta manualmente con la lista desplegable</p>
+                <h3 class="font-bold text-md text-white"><i class="fa-solid fa-file-excel mr-2 text-lime-400"></i>Cargar Horarios Semanales (Excel/CSV)</h3>
+                <p class="text-xs text-zinc-400">Sube el archivo semanal o ajusta individualmente. Al guardar se recalculan las Llegadas Tardes.</p>
               </div>
               <div class="flex items-center gap-2">
-                <input type="file" id="excel-file-input" accept=".csv, .xlsx" class="bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
-                <button type="button" onclick="procesarArchivoExcel()" class="bg-emerald-600 hover:bg-emerald-500 font-bold px-4 py-2 rounded-lg text-white text-xs transition">
+                <input type="file" id="excel-file-input" accept=".csv, .xlsx" class="bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-lime-500 file:text-zinc-950 hover:file:bg-lime-400 cursor-pointer">
+                <button type="button" onclick="procesarArchivoExcel()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-4 py-2 rounded-lg text-xs transition">
                   Subir Excel
                 </button>
               </div>
@@ -327,87 +324,150 @@
             <div id="excel-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
 
             <div class="overflow-x-auto pt-2">
-              <table class="w-full text-left text-xs text-slate-300">
-                <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
                     <th class="p-2.5">Trabajador</th>
                     <th class="p-2.5">Documento</th>
                     <th class="p-2.5">CDA</th>
+                    <th class="p-2.5">Mes</th>
+                    <th class="p-2.5">Semana</th>
+                    <th class="p-2.5">Fecha</th>
                     <th class="p-2.5">Hora Entrada Estipulada</th>
-                    <th class="p-2.5 text-right">Guardar Cambio</th>
+                    <th class="p-2.5 text-right">Acción</th>
                   </tr>
                 </thead>
                 <tbody id="tabla-edicion-horarios-body">
-                  <tr><td colspan="5" class="p-4 text-center text-slate-500">Cargando personal...</td></tr>
+                  <tr><td colspan="8" class="p-4 text-center text-zinc-500">Cargando personal...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- HISTORIAL DE ASISTENCIAS GENERAL -->
+        <!-- PESTAÑA N° 1: HISTORIAL DE ASISTENCIAS GENERAL -->
         <div id="subview-asistencias" class="hidden space-y-4">
-          <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
-                <tr id="tr-header-asistencias"></tr>
-              </thead>
-              <tbody id="tabla-asistencias-body">
-                <tr><td colspan="12" class="p-4 text-center text-slate-500">Cargando registros...</td></tr>
-              </tbody>
-            </table>
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4">
+            
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="flt-asis-nombre" oninput="cargarHistorialAsistencias()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <select id="flt-asis-cda" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los CDA</option>
+                </select>
+                <input type="month" id="flt-asis-mes" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="week" id="flt-asis-semana" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <button type="button" onclick="limpiarFiltrosAsistencias()" class="text-zinc-400 hover:text-white px-2 py-1">Limpiar Filtros</button>
+              </div>
+
+              <button type="button" onclick="exportarExcelAsistencias()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
+                  <tr id="tr-header-asistencias"></tr>
+                </thead>
+                <tbody id="tabla-asistencias-body">
+                  <tr><td colspan="13" class="p-4 text-center text-zinc-500">Cargando registros...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- PESTAÑA N° 3: CONTROL DE LLEGADAS TARDES -->
+        <!-- PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES -->
         <div id="subview-llegadas-tardes" class="hidden space-y-4">
-          <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4 space-y-3">
-            <h3 class="font-bold text-md text-amber-400 border-b border-slate-700 pb-2">
-              <i class="fa-solid fa-user-clock mr-2"></i>Reporte Detallado de Llegadas Tardes
-            </h3>
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
-                <tr>
-                  <th class="p-2.5">Foto</th>
-                  <th class="p-2.5">Nombre Completo</th>
-                  <th class="p-2.5">Documento</th>
-                  <th class="p-2.5">CDA</th>
-                  <th class="p-2.5">Fecha</th>
-                  <th class="p-2.5">Hora Estipulada</th>
-                  <th class="p-2.5">Hora Marcación Real (hh-min-seg)</th>
-                  <th class="p-2.5">Estado / Retraso</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-llegadas-tardes-body">
-                <tr><td colspan="8" class="p-4 text-center text-slate-500">Cargando reporte de llegadas...</td></tr>
-              </tbody>
-            </table>
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4">
+            
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="flt-tardes-nombre" oninput="cargarReporteLlegadasTardes()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <select id="flt-tardes-cda" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los CDA</option>
+                </select>
+                <select id="flt-tardes-estado" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los Estados</option>
+                  <option value="TARDE">Solo Llegadas Tardes</option>
+                  <option value="A_TIEMPO">Solo A Tiempo</option>
+                </select>
+                <input type="month" id="flt-tardes-mes" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="week" id="flt-tardes-semana" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+              </div>
+
+              <button type="button" onclick="exportarExcelLlegadasTardes()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
+                  <tr>
+                    <th class="p-2.5">Foto</th>
+                    <th class="p-2.5">Nombre Completo</th>
+                    <th class="p-2.5">Documento</th>
+                    <th class="p-2.5">CDA</th>
+                    <th class="p-2.5">Mes</th>
+                    <th class="p-2.5">Semana</th>
+                    <th class="p-2.5">Fecha</th>
+                    <th class="p-2.5">Hora Estipulada</th>
+                    <th class="p-2.5">Hora Marcación Real (hh:mm:ss)</th>
+                    <th class="p-2.5">Estado / Retraso</th>
+                    <th class="p-2.5">Novedad / Soporte (Observación)</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-llegadas-tardes-body">
+                  <tr><td colspan="11" class="p-4 text-center text-zinc-500">Cargando reporte de llegadas...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- PESTAÑA N° 4: SEGUIMIENTO DE HORAS EXTRA -->
+        <!-- PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA -->
         <div id="subview-horas-extras" class="hidden space-y-4">
-          <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4 space-y-3">
-            <h3 class="font-bold text-md text-emerald-400 border-b border-slate-700 pb-2">
-              <i class="fa-solid fa-business-time mr-2"></i>Seguimiento y Registro de Horas Extra
-            </h3>
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
-                <tr>
-                  <th class="p-2.5">Trabajador</th>
-                  <th class="p-2.5">Documento</th>
-                  <th class="p-2.5">Fecha</th>
-                  <th class="p-2.5">Entrada CDA</th>
-                  <th class="p-2.5">Salida CDA</th>
-                  <th class="p-2.5">Descanso Descontado</th>
-                  <th class="p-2.5">Horas Netas Trabajadas</th>
-                  <th class="p-2.5 text-amber-400">Horas Extra (Conteo a partir de 7h)</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-horas-extras-body">
-                <tr><td colspan="8" class="p-4 text-center text-slate-500">Cargando reporte de horas extra...</td></tr>
-              </tbody>
-            </table>
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4">
+            
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="flt-extra-nombre" oninput="cargarReporteHorasExtras()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <select id="flt-extra-cda" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los CDA</option>
+                </select>
+                <input type="month" id="flt-extra-mes" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="week" id="flt-extra-semana" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+              </div>
+
+              <button type="button" onclick="exportarExcelHorasExtras()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
+                  <tr>
+                    <th class="p-2.5">Trabajador</th>
+                    <th class="p-2.5">Documento</th>
+                    <th class="p-2.5">Mes</th>
+                    <th class="p-2.5">Semana</th>
+                    <th class="p-2.5">Fecha</th>
+                    <th class="p-2.5">Entrada CDA</th>
+                    <th class="p-2.5">Salida CDA</th>
+                    <th class="p-2.5">Descanso Descontado</th>
+                    <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas</th>
+                    <th class="p-2.5 text-amber-400">Horas Extra Netas (Base 7h)</th>
+                    <th class="p-2.5">Novedad / Soporte (Observación)</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-horas-extras-body">
+                  <tr><td colspan="11" class="p-4 text-center text-zinc-500">Cargando reporte de horas extra...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -439,13 +499,17 @@
     let currentAdminCDA = null;
     let editandoDocumentoId = null;
 
-    let listaCDAProyectados = [
-      "CDA MOTOS RUTA",
+    // LISTA FIJA DE CDA (MODIFICACIÓN 1)
+    const listaCDAProyectados = [
+      "CDA MOTOS RUTA 44",
       "CDA ECOTEST",
       "CDA MOTOS SUR MOTOS",
       "CDA MOTOS SUR ITAGUI",
-      "CDA MOTOS CC FLORIDA"
+      "CDA MOTOS CC FLORIDA",
+      "MOTOS TRUCK"
     ];
+
+    const NOMBRES_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
     function initFaceMesh() {
       faceMesh = new FaceMesh({
@@ -479,42 +543,59 @@
       }
     };
 
+    function getNumeroSemana(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+      var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+      return weekNo;
+    }
+
+    function getNombreMes(d) {
+      return `${NOMBRES_MESES[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    // CONFIRMACIÓN DE CLAVE ADMIN PRINCIPAL (MODIFICACIÓN 3)
+    function solicitarClaveAdminPrincipal() {
+      const clave = prompt("🔒 ACCIÓN PROTEGIDA:\nPor favor ingresa la clave del Admin Principal (SuperAdmin) para autorizar:");
+      if (clave === 'RUTA44**') {
+        return true;
+      } else {
+        alert("❌ Clave de Admin Principal incorrecta. Acción cancelada.");
+        return false;
+      }
+    }
+
     function renderCheckboxesCDA() {
       const container = document.getElementById('cda-checkboxes-container');
       const singleSelect = document.getElementById('emp-cda-single');
-      const filtroSelect = document.getElementById('filtro-cda-select');
+      
+      const filtroGlobal = document.getElementById('filtro-cda-select');
+      const filtroAsis = document.getElementById('flt-asis-cda');
+      const filtroTardes = document.getElementById('flt-tardes-cda');
+      const filtroExtras = document.getElementById('flt-extra-cda');
 
       container.innerHTML = listaCDAProyectados.map(cda => `
-        <label class="flex items-center gap-2 text-slate-200 cursor-pointer">
-          <input type="checkbox" value="${cda}" class="chk-cda rounded text-blue-600 bg-slate-800 border-slate-700">
+        <label class="flex items-center gap-2 text-zinc-200 cursor-pointer">
+          <input type="checkbox" value="${cda}" class="chk-cda rounded text-lime-500 bg-zinc-950 border-zinc-800">
           <span>${cda}</span>
         </label>
       `).join('');
 
       singleSelect.innerHTML = `<option value="">-- Seleccionar 1 solo CDA --</option>` + listaCDAProyectados.map(cda => `<option value="${cda}">${cda}</option>`).join('');
 
-      if (filtroSelect) {
-        filtroSelect.innerHTML = `<option value="TODOS">Todos los CDA</option>` + listaCDAProyectados.map(cda => `<option value="${cda}">${cda}</option>`).join('');
-      }
-    }
-
-    function agregarNuevoCDAMultiple() {
-      if (currentAdminRole !== 'SUPERADMIN') return;
-      const input = document.getElementById('emp-cda-nuevo');
-      const val = input.value.trim().toUpperCase();
-      if (!val) return;
-      if (!listaCDAProyectados.includes(val)) {
-        listaCDAProyectados.push(val);
-        renderCheckboxesCDA();
-      }
-      input.value = "";
+      const opcionesFiltros = `<option value="TODOS">Todos los CDA</option>` + listaCDAProyectados.map(cda => `<option value="${cda}">${cda}</option>`).join('');
+      if (filtroGlobal) filtroGlobal.innerHTML = opcionesFiltros;
+      if (filtroAsis) filtroAsis.innerHTML = opcionesFiltros;
+      if (filtroTardes) filtroTardes.innerHTML = opcionesFiltros;
+      if (filtroExtras) filtroExtras.innerHTML = opcionesFiltros;
     }
 
     function switchTab(tab) {
       document.getElementById('view-kiosk').style.display = (tab === 'kiosk') ? 'block' : 'none';
       document.getElementById('view-admin').style.display = (tab === 'admin') ? 'block' : 'none';
-      document.getElementById('tab-kiosk').className = (tab === 'kiosk') ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow' : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
-      document.getElementById('tab-admin').className = (tab === 'admin') ? 'px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow' : 'px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white';
+      document.getElementById('tab-kiosk').className = (tab === 'kiosk') ? 'px-4 py-2 rounded-lg text-sm font-bold transition bg-lime-500 text-zinc-950 shadow-md shadow-lime-500/20' : 'px-4 py-2 rounded-lg text-sm font-bold transition text-zinc-400 hover:text-white';
+      document.getElementById('tab-admin').className = (tab === 'admin') ? 'px-4 py-2 rounded-lg text-sm font-bold transition bg-lime-500 text-zinc-950 shadow-md shadow-lime-500/20' : 'px-4 py-2 rounded-lg text-sm font-bold transition text-zinc-400 hover:text-white';
     }
 
     function switchAdminTab(subtab) {
@@ -527,7 +608,7 @@
       const tabs = ['empleados', 'asistencias', 'horarios', 'llegadas-tardes', 'horas-extras'];
       tabs.forEach(t => {
         const btn = document.getElementById(`subtab-${t}`);
-        if (btn) btn.className = (subtab === t) ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white' : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+        if (btn) btn.className = (subtab === t) ? 'px-4 py-2 rounded-lg text-sm font-bold bg-lime-500 text-zinc-950' : 'px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white';
       });
 
       if (subtab === 'empleados') cargarListaPersonal();
@@ -586,17 +667,14 @@
 
       const optAdminCda = document.getElementById('opt-admin-cda');
       const filtroCdaBox = document.getElementById('contenedor-filtro-cda');
-      const agregarNuevoCdaBtn = document.getElementById('contenedor-agregar-nuevo-cda');
 
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         if (optAdminCda) optAdminCda.style.display = 'none';
         filtroCdaBox.classList.add('hidden');
-        if (agregarNuevoCdaBtn) agregarNuevoCdaBtn.classList.add('hidden');
         document.getElementById('th-accion-emp').style.display = 'none';
       } else {
         if (optAdminCda) optAdminCda.style.display = 'block';
         filtroCdaBox.classList.remove('hidden');
-        if (agregarNuevoCdaBtn) agregarNuevoCdaBtn.classList.remove('hidden');
         document.getElementById('th-accion-emp').style.display = 'table-cell';
       }
 
@@ -684,7 +762,7 @@
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillStyle = '#84cc16';
 
       currentLandmarks.forEach(p => {
         ctx.beginPath();
@@ -699,7 +777,7 @@
       tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
 
       document.getElementById('lbl-biometrico-status').innerText = "✅ Biometría Capturada Exitosa";
-      document.getElementById('lbl-biometrico-status').className = "text-emerald-400 font-bold";
+      document.getElementById('lbl-biometrico-status').className = "text-lime-400 font-bold";
       
       setTimeout(() => { cerrarModalRegistroFacial(); }, 1200);
     }
@@ -755,7 +833,7 @@
         }
       }
 
-      status.className = "text-blue-400 font-semibold";
+      status.className = "text-lime-400 font-semibold";
       status.innerText = "💾 Guardando información...";
 
       let fotoUrl = null;
@@ -784,7 +862,7 @@
         status.className = "text-rose-400 font-semibold";
         status.innerText = "❌ Error al guardar datos en Supabase.";
       } else {
-        status.className = "text-emerald-400 font-bold";
+        status.className = "text-lime-400 font-bold";
         status.innerText = "✅ ¡Guardado con éxito!";
         limpiarFormularioPersonal();
         cargarListaPersonal();
@@ -827,31 +905,31 @@
       const tbody = document.getElementById('tabla-empleados-body');
       
       if (!data || !data.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No hay personal registrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-zinc-500">No hay personal registrado.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = data.map(e => `
-        <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
           <td class="p-2">
-            ${e.foto_referencia_url ? `<img src="${e.foto_referencia_url}" class="w-8 h-8 rounded-full object-cover border border-slate-600">` : `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 text-xs"><i class="fa-solid fa-user-shield"></i></div>`}
+            ${e.foto_referencia_url ? `<img src="${e.foto_referencia_url}" class="w-8 h-8 rounded-full object-cover border border-zinc-700">` : `<div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs"><i class="fa-solid fa-user-shield"></i></div>`}
           </td>
-          <td class="p-2 font-semibold text-white">${e.nombre}<br><span class="text-[10px] text-slate-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
-          <td class="p-2 font-mono text-blue-400">${e.id}</td>
-          <td class="p-2 text-slate-300">${e.telefono || 'N/A'}</td>
-          <td class="p-2 text-slate-300 font-semibold">${e.cda_nombre || 'CDA MOTOS RUTA'}</td>
+          <td class="p-2 font-semibold text-white">${e.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
+          <td class="p-2 font-mono text-lime-400">${e.id}</td>
+          <td class="p-2 text-zinc-300">${e.telefono || 'N/A'}</td>
+          <td class="p-2 text-zinc-300 font-semibold">${e.cda_nombre || 'CDA MOTOS RUTA'}</td>
           <td class="p-2">
-            ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-900/50 text-emerald-300">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-900/50 text-rose-300">Inactivo</span>`}
+            ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30">Inactivo</span>`}
           </td>
           ${currentAdminRole === 'SUPERADMIN' ? `
             <td class="p-2 text-right space-x-1">
-              <button type="button" onclick="editarPersonal('${e.id}')" title="Configurar Datos" class="text-xs bg-blue-900/40 hover:bg-blue-800 text-blue-300 px-2 py-1 rounded">
+              <button type="button" onclick="editarPersonal('${e.id}')" title="Configurar Datos" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-2 py-1 rounded border border-zinc-700">
                 <i class="fa-solid fa-gear"></i>
               </button>
-              <button type="button" onclick="toggleEstadoPersonal('${e.id}', ${e.activo !== false})" title="${e.activo !== false ? 'Deshabilitar' : 'Habilitar'}" class="text-xs ${e.activo !== false ? 'bg-amber-900/40 hover:bg-amber-800 text-amber-300' : 'bg-emerald-900/40 hover:bg-emerald-800 text-emerald-300'} px-2 py-1 rounded">
+              <button type="button" onclick="toggleEstadoPersonal('${e.id}', ${e.activo !== false})" title="${e.activo !== false ? 'Deshabilitar' : 'Habilitar'}" class="text-xs ${e.activo !== false ? 'bg-amber-950 text-amber-400 border border-amber-500/30' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'} px-2 py-1 rounded">
                 <i class="fa-solid ${e.activo !== false ? 'fa-user-slash' : 'fa-user-check'}"></i>
               </button>
-              <button type="button" onclick="eliminarPersonal('${e.id}')" title="Eliminar" class="text-xs bg-rose-900/40 hover:bg-rose-800 text-rose-300 px-2 py-1 rounded">
+              <button type="button" onclick="eliminarPersonal('${e.id}')" title="Eliminar" class="text-xs bg-rose-950 text-rose-400 border border-rose-500/30 px-2 py-1 rounded hover:bg-rose-900">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </td>
@@ -860,7 +938,10 @@
       `).join('');
     }
 
+    // EDICIÓN DE PERSONAL (PIDE CLAVE ADMIN PRINCIPAL)
     async function editarPersonal(id) {
+      if (!solicitarClaveAdminPrincipal()) return;
+
       const { data: e } = await supabaseClient.from('empleados').select('*').eq('id', id).single();
       if (!e) return;
 
@@ -885,19 +966,19 @@
     }
 
     async function toggleEstadoPersonal(id, estadoActual) {
-      if (currentAdminRole !== 'SUPERADMIN') return;
+      if (!solicitarClaveAdminPrincipal()) return;
       await supabaseClient.from('empleados').update({ activo: !estadoActual }).eq('id', id);
       cargarListaPersonal();
     }
 
+    // ELIMINAR PERSONAL (PIDE CLAVE ADMIN PRINCIPAL)
     async function eliminarPersonal(id) {
-      if (currentAdminRole !== 'SUPERADMIN') return;
-      if (!confirm(`¿Eliminar al usuario ${id}?`)) return;
+      if (!solicitarClaveAdminPrincipal()) return;
       await supabaseClient.from('empleados').delete().eq('id', id);
       cargarListaPersonal();
     }
 
-    // PESTAÑA CARGA EXCEL Y EDICIÓN CON LISTA DESPLEGABLE DE HORAS
+    // PESTAÑA CARGA EXCEL Y EDICIÓN DE HORARIOS
     async function cargarTablaEdicionHorarios() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -908,7 +989,7 @@
       const tbody = document.getElementById('tabla-edicion-horarios-body');
 
       if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No hay trabajadores operativos.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-500">No hay trabajadores operativos.</td></tr>`;
         return;
       }
 
@@ -917,19 +998,27 @@
         "09:00", "09:30", "10:00", "10:30", "11:00", "12:00"
       ];
 
+      const hoy = new Date();
+      const mesStr = getNombreMes(hoy);
+      const semStr = `Semana ${getNumeroSemana(hoy)}`;
+      const fechaStr = hoy.toLocaleDateString('es-CO');
+
       tbody.innerHTML = empleados.map(e => `
-        <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
           <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
-          <td class="p-2.5 font-mono text-blue-400">${e.id}</td>
-          <td class="p-2.5 text-slate-300">${e.cda_nombre || ''}</td>
+          <td class="p-2.5 font-mono text-lime-400">${e.id}</td>
+          <td class="p-2.5 text-zinc-300">${e.cda_nombre || ''}</td>
+          <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
+          <td class="p-2.5 font-mono text-lime-400 font-semibold">${semStr}</td>
+          <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
           <td class="p-2.5">
-            <select id="sel-hora-${e.id}" class="bg-slate-900 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none">
+            <select id="sel-hora-${e.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none">
               ${opcionesHoras.map(h => `<option value="${h}" ${e.hora_entrada_estipulada === h ? 'selected' : ''}>${h} AM</option>`).join('')}
             </select>
           </td>
           <td class="p-2.5 text-right">
-            <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-semibold">
-              <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar
+            <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1 rounded text-xs shadow">
+              <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar y Sincronizar
             </button>
           </td>
         </tr>
@@ -939,7 +1028,8 @@
     async function guardarHoraIndividual(id) {
       const horaSel = document.getElementById(`sel-hora-${id}`).value;
       await supabaseClient.from('empleados').update({ hora_entrada_estipulada: horaSel }).eq('id', id);
-      alert(`✅ Hora de entrada actualizada a las ${horaSel} AM para el usuario ${id}`);
+      alert(`✅ Hora de entrada actualizada a las ${horaSel} AM. Sincronizando con Llegadas Tardes...`);
+      cargarReporteLlegadasTardes();
     }
 
     function procesarArchivoExcel() {
@@ -950,7 +1040,7 @@
         return alert("Por favor selecciona un archivo CSV o Excel.");
       }
 
-      status.className = "text-blue-400 font-semibold";
+      status.className = "text-lime-400 font-semibold";
       status.innerText = "⏳ Procesando archivo...";
 
       Papa.parse(fileInput.files[0], {
@@ -973,14 +1063,15 @@
             }
           }
 
-          status.className = "text-emerald-400 font-bold";
-          status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros.`;
+          status.className = "text-lime-400 font-bold";
+          status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros. Recalculando...`;
           cargarTablaEdicionHorarios();
+          cargarReporteLlegadasTardes();
         }
       });
     }
 
-    // KIOSCO
+    // KIOSCO Y REGLAS DE SECUENCIA BIOMÉTRICA (MODIFICACIÓN 2)
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
       document.getElementById('modal-titulo').innerText = `Validación Face ID para ${tipo.toUpperCase()}...`;
@@ -1033,7 +1124,7 @@
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillStyle = '#84cc16';
       currentLandmarks.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x * canvas.width, p.y * canvas.height, 1.5, 0, 2 * Math.PI);
@@ -1073,7 +1164,7 @@
         return;
       }
 
-      // SECUENCIA
+      // REGLAS ESTRICTAS DE SECUENCIA BIOMÉTRICA (MODIFICACIÓN 2)
       const hoyInicio = new Date();
       hoyInicio.setHours(0,0,0,0);
 
@@ -1085,19 +1176,38 @@
 
       const yaEntroCDA = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada al CDA') : false;
       const yaSalioDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Salida Descanso') : false;
+      const yaEntroDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada Descanso') : false;
 
-      if (scanTipo === 'Salida Descanso' || scanTipo === 'Entrada Descanso' || scanTipo === 'Salida del CDA') {
-        if (!yaEntroCDA) {
+      // REGLA 1: No permitir 'Salida Descanso' si no ha registrado 'Entrada al CDA' o 'Entrada Descanso'
+      if (scanTipo === 'Salida Descanso') {
+        if (!yaEntroCDA && !yaEntroDescanso) {
           status.className = "text-sm font-bold text-rose-400";
-          status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR [${scanTipo.toUpperCase()}] SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
+          status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
           setTimeout(() => { cerrarModalEscaner(); }, 4000);
           return;
         }
       }
 
+      // REGLA 2: No permitir 'Salida CDA' si no ha registrado 'Entrada al CDA'
+      if (scanTipo === 'Salida del CDA' && !yaEntroCDA) {
+        status.className = "text-sm font-bold text-rose-400";
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DEL CDA" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
+        setTimeout(() => { cerrarModalEscaner(); }, 4000);
+        return;
+      }
+
+      // REGLA 3: Si marcó 'Entrada Descanso', exige haber marcado 'Salida Descanso' previamente
       if (scanTipo === 'Entrada Descanso' && !yaSalioDescanso) {
         status.className = "text-sm font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO "SALIDA DESCANSO".`;
+        setTimeout(() => { cerrarModalEscaner(); }, 4000);
+        return;
+      }
+
+      // REGLA 4: Si marcó 'Salida Descanso', no permitir 'Salida del CDA' sin antes registrar 'Entrada Descanso'
+      if (scanTipo === 'Salida del CDA' && yaSalioDescanso && !yaEntroDescanso) {
+        status.className = "text-sm font-bold text-rose-400";
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: ESTÁS EN TIEMPO DE DESCANSO. DEBES REGISTRAR "ENTRADA DESCANSO" ANTES DE LA "SALIDA DEL CDA".`;
         setTimeout(() => { cerrarModalEscaner(); }, 4000);
         return;
       }
@@ -1111,7 +1221,6 @@
         return;
       }
 
-      // GUARDAR
       const tmpCanvas = document.createElement('canvas');
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = canvas.height;
@@ -1130,14 +1239,14 @@
           foto_marcacion_url: fotoUrl
         }]);
 
-        status.className = "text-base font-bold text-emerald-400 animate-bounce";
+        status.className = "text-base font-bold text-lime-400 animate-bounce";
         status.innerText = `¡HOLA ${mejorCoincidencia.nombre.toUpperCase()}! MARCACIÓN: [${scanTipo.toUpperCase()}] REGISTRADA EXITOSAMENTE.`;
 
         setTimeout(() => { cerrarModalEscaner(); }, 3000);
       }, 'image/jpeg', 0.85);
     }
 
-    // PESTAÑA HISTORIAL GENERAL DE ASISTENCIAS
+    // PESTAÑA N° 1: HISTORIAL GENERAL DE ASISTENCIAS
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
@@ -1148,15 +1257,17 @@
         <th class="p-2">Foto</th>
         <th class="p-2">Nombre Completo</th>
         <th class="p-2">Documento</th>
+        <th class="p-2">Mes</th>
+        <th class="p-2">Semana</th>
         <th class="p-2">Fecha</th>
         <th class="p-2">Entrada CDA</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Entrada</th>` : ''}
+        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Entrada</th>` : ''}
         <th class="p-2">Salida Descanso</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Sal. Desc.</th>` : ''}
+        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Sal. Desc.</th>` : ''}
         <th class="p-2">Entrada Descanso</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Ent. Desc.</th>` : ''}
+        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Ent. Desc.</th>` : ''}
         <th class="p-2">Salida CDA</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Salida</th>` : ''}
+        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Salida</th>` : ''}
         ${isSuper ? `<th class="p-2 text-right">Acción</th>` : ''}
       `;
 
@@ -1172,19 +1283,28 @@
       const tbody = document.getElementById('tabla-asistencias-body');
       
       if (!todosEmpleados || !todosEmpleados.length) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-slate-500">No hay trabajadores operativos registrados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-500">No hay trabajadores operativos registrados.</td></tr>`;
         return;
       }
+
+      const fltNombre = document.getElementById('flt-asis-nombre').value.toLowerCase().trim();
+      const fltCDA = document.getElementById('flt-asis-cda').value;
+      const fltMes = document.getElementById('flt-asis-mes').value;
+      const fltSemana = document.getElementById('flt-asis-semana').value;
 
       let mapaAsistencias = {};
 
       todosEmpleados.forEach(emp => {
+        const hoy = new Date();
         mapaAsistencias[emp.id] = {
           nombre: emp.nombre,
           doc: emp.id,
           foto: emp.foto_referencia_url,
           cda: emp.cda_nombre,
-          fecha: new Date().toLocaleDateString('es-CO'),
+          mes: getNombreMes(hoy),
+          numSemana: getNumeroSemana(hoy),
+          fecha: hoy.toLocaleDateString('es-CO'),
+          fechaRaw: hoy,
           entradaCDA: 'Sin Marcación', gpsEntradaCDA: '-',
           salidaDescanso: 'Sin Marcación', gpsSalidaDescanso: '-',
           entradaDescanso: 'Sin Marcación', gpsEntradaDescanso: '-',
@@ -1199,9 +1319,13 @@
             const fechaObj = new Date(m.fecha_hora);
             const fechaStr = fechaObj.toLocaleDateString('es-CO');
             const horaStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-            const gpsLink = m.latitud ? `<a href="https://maps.google.com/?q=${m.latitud},${m.longitud}" target="_blank" class="text-blue-400 underline font-semibold">Mapas</a>` : 'N/A';
+            const gpsLink = m.latitud ? `<a href="https://maps.google.com/?q=${m.latitud},${m.longitud}" target="_blank" class="text-lime-400 underline font-semibold">Mapas</a>` : 'N/A';
             
             mapaAsistencias[m.empleado_id].fecha = fechaStr;
+            mapaAsistencias[m.empleado_id].fechaRaw = fechaObj;
+            mapaAsistencias[m.empleado_id].mes = getNombreMes(fechaObj);
+            mapaAsistencias[m.empleado_id].numSemana = getNumeroSemana(fechaObj);
+
             if (m.foto_marcacion_url) mapaAsistencias[m.empleado_id].fotoMarcacion = m.foto_marcacion_url;
 
             if (m.tipo === 'Entrada al CDA') {
@@ -1218,31 +1342,50 @@
             }
             if (m.tipo === 'Salida del CDA') {
               mapaAsistencias[m.empleado_id].salidaCDA = horaStr;
-              mapaAsistencias[m.empleado_id].gpsSalidaCDA = gpsLink;
+              mapaAsistencias[m.empleado_id].gpsSalidaDescanso = gpsLink;
             }
           }
         });
       }
 
-      tbody.innerHTML = Object.values(mapaAsistencias).map(a => `
-        <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+      let listaFiltrada = Object.values(mapaAsistencias).filter(item => {
+        if (fltNombre && !item.nombre.toLowerCase().includes(fltNombre) && !item.doc.includes(fltNombre)) return false;
+        if (fltCDA !== 'TODOS' && (!item.cda || !item.cda.includes(fltCDA))) return false;
+        
+        if (fltMes) {
+          const yyyyMm = item.fechaRaw.toISOString().substring(0,7);
+          if (yyyyMm !== fltMes) return false;
+        }
+
+        if (fltSemana) {
+          const numSemSelected = parseInt(fltSemana.split('-W')[1]);
+          if (item.numSemana !== numSemSelected) return false;
+        }
+
+        return true;
+      });
+
+      tbody.innerHTML = listaFiltrada.map(a => `
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
           <td class="p-2">
-            <img src="${a.fotoMarcacion || a.foto || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-lg object-cover border border-slate-600">
+            <img src="${a.fotoMarcacion || a.foto || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-lg object-cover border border-zinc-700">
           </td>
-          <td class="p-2 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-slate-400 font-normal">${a.cda || ''}</span></td>
-          <td class="p-2 font-mono text-blue-400">${a.doc}</td>
-          <td class="p-2 text-slate-300 font-mono text-[11px]">${a.fecha}</td>
+          <td class="p-2 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${a.cda || ''}</span></td>
+          <td class="p-2 font-mono text-lime-400">${a.doc}</td>
+          <td class="p-2 text-zinc-300 font-mono text-[11px]">${a.mes}</td>
+          <td class="p-2 font-mono text-lime-400 font-semibold text-[11px]">Semana ${a.numSemana}</td>
+          <td class="p-2 text-zinc-300 font-mono text-[11px]">${a.fecha}</td>
           
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-emerald-900/50 text-emerald-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.entradaCDA}</span></td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-lime-950 text-lime-400 border border-lime-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaCDA}</span></td>
           ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsEntradaCDA}</td>` : ''}
 
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-900/50 text-amber-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.salidaDescanso}</span></td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-950 text-amber-400 border border-amber-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaDescanso}</span></td>
           ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
 
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-900/50 text-teal-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.entradaDescanso}</span></td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-950 text-teal-400 border border-teal-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaDescanso}</span></td>
           ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsEntradaDescanso}</td>` : ''}
 
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-900/50 text-rose-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.salidaCDA}</span></td>
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-950 text-rose-400 border border-rose-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaCDA}</span></td>
           ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsSalidaCDA}</td>` : ''}
 
           ${isSuper ? `
@@ -1252,7 +1395,39 @@
       `).join('');
     }
 
-    // PESTAÑA N° 3: REPORTE DE LLEGADAS TARDES (HH-MIN-SEG)
+    function limpiarFiltrosAsistencias() {
+      document.getElementById('flt-asis-nombre').value = "";
+      document.getElementById('flt-asis-cda').value = "TODOS";
+      document.getElementById('flt-asis-mes').value = "";
+      document.getElementById('flt-asis-semana').value = "";
+      cargarHistorialAsistencias();
+    }
+
+    function exportarExcelAsistencias() {
+      const tbody = document.getElementById('tabla-asistencias-body');
+      let csv = "Nombre,Documento,Mes,Semana,Fecha,Entrada_CDA,Salida_Descanso,Entrada_Descanso,Salida_CDA\n";
+
+      tbody.querySelectorAll('tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= 8) {
+          const nombre = tds[1].innerText.replace(/\n/g, ' ');
+          const doc = tds[2].innerText;
+          const mes = tds[3].innerText;
+          const semana = tds[4].innerText;
+          const fecha = tds[5].innerText;
+          const entCDA = tds[6].innerText;
+          const salDesc = tds[7].innerText;
+          const entDesc = tds[8].innerText;
+          const salCDA = tds[9] ? tds[9].innerText : '';
+
+          csv += `"${nombre}","${doc}","${mes}","${semana}","${fecha}","${entCDA}","${salDesc}","${entDesc}","${salCDA}"\n`;
+        }
+      });
+
+      descargarCSVFile(csv, "Historial_Asistencias.csv");
+    }
+
+    // PESTAÑA N° 2: REPORTE DE LLEGADAS TARDES
     async function cargarReporteLlegadasTardes() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1265,71 +1440,150 @@
       const tbody = document.getElementById('tabla-llegadas-tardes-body');
 
       if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">No hay personal operativo.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal operativo.</td></tr>`;
         return;
       }
+
+      const fltNombre = document.getElementById('flt-tardes-nombre').value.toLowerCase().trim();
+      const fltCDA = document.getElementById('flt-tardes-cda').value;
+      const fltEstado = document.getElementById('flt-tardes-estado').value;
+      const fltMes = document.getElementById('flt-tardes-mes').value;
+      const fltSemana = document.getElementById('flt-tardes-semana').value;
 
       let filasHtml = "";
 
       empleados.forEach(emp => {
         const hEstipulada = emp.hora_entrada_estipulada || "08:00";
         const marcacion = marcaciones ? marcaciones.find(m => m.empleado_id === emp.id) : null;
+        const fechaObj = marcacion ? new Date(marcacion.fecha_hora) : new Date();
+        
+        const mesStr = getNombreMes(fechaObj);
+        const numSem = getNumeroSemana(fechaObj);
+
+        if (fltNombre && !emp.nombre.toLowerCase().includes(fltNombre) && !emp.id.includes(fltNombre)) return;
+        if (fltCDA !== 'TODOS' && (!emp.cda_nombre || !emp.cda_nombre.includes(fltCDA))) return;
+
+        if (fltMes) {
+          const yyyyMm = fechaObj.toISOString().substring(0,7);
+          if (yyyyMm !== fltMes) return;
+        }
+
+        if (fltSemana) {
+          const numSemSelected = parseInt(fltSemana.split('-W')[1]);
+          if (numSem !== numSemSelected) return;
+        }
 
         if (marcacion) {
-          const fechaObj = new Date(marcacion.fecha_hora);
           const fechaStr = fechaObj.toLocaleDateString('es-CO');
           
-          // FORMATO hh-min-seg
           const h = String(fechaObj.getHours()).padStart(2, '0');
           const m = String(fechaObj.getMinutes()).padStart(2, '0');
           const s = String(fechaObj.getSeconds()).padStart(2, '0');
           const horaFmt = `${h}:${m}:${s}`;
 
-          // COMPARAR RETRASO
           const [hEst, mEst] = hEstipulada.split(':').map(Number);
           const limite = new Date(fechaObj);
           limite.setHours(hEst, mEst, 0, 0);
 
+          let esTarde = false;
           let estadoTag = "";
+
           if (fechaObj > limite) {
-            const diffMin = Math.ceil((fechaObj - limite) / (1000 * 60));
-            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-rose-900/60 text-rose-300 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Llegada Tarde (${diffMin} min)</span>`;
+            esTarde = true;
+            const diffMs = fechaObj - limite;
+            const diffTotalMin = Math.floor(diffMs / (1000 * 60));
+            const hrsRetraso = Math.floor(diffTotalMin / 60);
+            const minRetraso = diffTotalMin % 60;
+
+            let textoTiempo = "";
+            if (hrsRetraso > 0) {
+              textoTiempo = `${hrsRetraso} ${hrsRetraso === 1 ? 'hora' : 'horas'} y ${minRetraso} min de retraso`;
+            } else {
+              textoTiempo = `${minRetraso} min de retraso`;
+            }
+
+            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-rose-950 text-rose-400 border border-rose-500/30 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Llegada Tarde (${textoTiempo})</span>`;
           } else {
-            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-emerald-900/60 text-emerald-300 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Ingreso A Tiempo</span>`;
+            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-lime-950 text-lime-400 border border-lime-500/30 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Llegada a Tiempo</span>`;
           }
 
+          if (fltEstado === 'TARDE' && !esTarde) return;
+          if (fltEstado === 'A_TIEMPO' && esTarde) return;
+
+          const obsActual = marcacion.novedad || '';
+
           filasHtml += `
-            <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
-              <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-slate-600"></td>
+            <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
+              <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-zinc-700"></td>
               <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
-              <td class="p-2.5 font-mono text-blue-400">${emp.id}</td>
-              <td class="p-2.5 text-slate-300">${emp.cda_nombre || ''}</td>
-              <td class="p-2.5 font-mono text-slate-300">${fechaStr}</td>
+              <td class="p-2.5 font-mono text-lime-400">${emp.id}</td>
+              <td class="p-2.5 text-zinc-300">${emp.cda_nombre || ''}</td>
+              <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
+              <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${numSem}</td>
+              <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
               <td class="p-2.5 font-mono text-amber-300 font-bold">${hEstipulada} AM</td>
-              <td class="p-2.5 font-mono text-white font-bold text-sm bg-slate-900/40 rounded px-2">${horaFmt}</td>
+              <td class="p-2.5 font-mono text-white font-bold text-sm bg-zinc-950 rounded px-2 border border-zinc-800">${horaFmt}</td>
               <td class="p-2.5">${estadoTag}</td>
-            </tr>
-          `;
-        } else {
-          filasHtml += `
-            <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
-              <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-slate-600"></td>
-              <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
-              <td class="p-2.5 font-mono text-blue-400">${emp.id}</td>
-              <td class="p-2.5 text-slate-300">${emp.cda_nombre || ''}</td>
-              <td class="p-2.5 text-slate-500">${new Date().toLocaleDateString('es-CO')}</td>
-              <td class="p-2.5 font-mono text-amber-300">${hEstipulada} AM</td>
-              <td class="p-2.5 text-slate-500 font-mono">Sin Marcación</td>
-              <td class="p-2.5"><span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-500 font-semibold">Pendiente</span></td>
+              <td class="p-2.5">
+                <div class="flex items-center gap-1">
+                  <input type="text" id="obs-m-${marcacion.id}" value="${obsActual}" placeholder="Escribir observación..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 outline-none focus:border-lime-500 w-48">
+                  <button type="button" onclick="guardarNovedadMarcacion(${marcacion.id})" title="Guardar Observación" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 p-1.5 rounded font-bold">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                  </button>
+                </div>
+              </td>
             </tr>
           `;
         }
       });
 
-      tbody.innerHTML = filasHtml;
+      tbody.innerHTML = filasHtml || `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay registros coincidentes.</td></tr>`;
     }
 
-    // PESTAÑA N° 4: SEGUIMIENTO DE HORAS EXTRA (A PARTIR DE 7 HORAS)
+    async function guardarNovedadMarcacion(asistenciaId) {
+      const input = document.getElementById(`obs-m-${asistenciaId}`);
+      if (!input) return;
+      const obs = input.value.trim();
+
+      const { error } = await supabaseClient
+        .from('asistencias')
+        .update({ novedad: obs })
+        .eq('id', asistenciaId);
+
+      if (error) {
+        alert("❌ Error al guardar la observación en la base de datos.");
+      } else {
+        alert("✅ Novedad / Soporte guardado con éxito.");
+      }
+    }
+
+    function exportarExcelLlegadasTardes() {
+      const tbody = document.getElementById('tabla-llegadas-tardes-body');
+      let csv = "Nombre,Documento,CDA,Mes,Semana,Fecha,Hora_Estipulada,Hora_Real,Estado,Novedad_Observacion\n";
+
+      tbody.querySelectorAll('tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= 11) {
+          const nombre = tds[1].innerText;
+          const doc = tds[2].innerText;
+          const cda = tds[3].innerText;
+          const mes = tds[4].innerText;
+          const semana = tds[5].innerText;
+          const fecha = tds[6].innerText;
+          const hEst = tds[7].innerText;
+          const hReal = tds[8].innerText;
+          const estado = tds[9].innerText;
+          const obsInput = tds[10].querySelector('input');
+          const obs = obsInput ? obsInput.value : '';
+
+          csv += `"${nombre}","${doc}","${cda}","${mes}","${semana}","${fecha}","${hEst}","${hReal}","${estado}","${obs}"\n`;
+        }
+      });
+
+      descargarCSVFile(csv, "Reporte_Llegadas_Tardes.csv");
+    }
+
+    // PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA Y HORAS LABORADAS
     async function cargarReporteHorasExtras() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1342,20 +1596,30 @@
       const tbody = document.getElementById('tabla-horas-extras-body');
 
       if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">No hay personal operativo.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal operativo.</td></tr>`;
         return;
       }
+
+      const fltNombre = document.getElementById('flt-extra-nombre').value.toLowerCase().trim();
+      const fltCDA = document.getElementById('flt-extra-cda').value;
+      const fltMes = document.getElementById('flt-extra-mes').value;
+      const fltSemana = document.getElementById('flt-extra-semana').value;
 
       let mapaExtra = {};
 
       empleados.forEach(emp => {
+        const hoy = new Date();
         mapaExtra[emp.id] = {
           nombre: emp.nombre,
           doc: emp.id,
           cda: emp.cda_nombre,
-          fecha: new Date().toLocaleDateString('es-CO'),
+          mes: getNombreMes(hoy),
+          numSem: getNumeroSemana(hoy),
+          fecha: hoy.toLocaleDateString('es-CO'),
           fEntradaCDA: null, fSalidaCDA: null,
-          fSalidaDescanso: null, fEntradaDescanso: null
+          fSalidaDescanso: null, fEntradaDescanso: null,
+          asistenciaIdSalida: null,
+          novedadSalida: ''
         };
       });
 
@@ -1364,16 +1628,38 @@
           if (mapaExtra[m.empleado_id]) {
             const fObj = new Date(m.fecha_hora);
             mapaExtra[m.empleado_id].fecha = fObj.toLocaleDateString('es-CO');
+            mapaExtra[m.empleado_id].mes = getNombreMes(fObj);
+            mapaExtra[m.empleado_id].numSem = getNumeroSemana(fObj);
 
             if (m.tipo === 'Entrada al CDA') mapaExtra[m.empleado_id].fEntradaCDA = fObj;
-            if (m.tipo === 'Salida del CDA') mapaExtra[m.empleado_id].fSalidaCDA = fObj;
+            if (m.tipo === 'Salida del CDA') {
+              mapaExtra[m.empleado_id].fSalidaCDA = fObj;
+              mapaExtra[m.empleado_id].asistenciaIdSalida = m.id;
+              mapaExtra[m.empleado_id].novedadSalida = m.novedad || '';
+            }
             if (m.tipo === 'Salida Descanso') mapaExtra[m.empleado_id].fSalidaDescanso = fObj;
             if (m.tipo === 'Entrada Descanso') mapaExtra[m.empleado_id].fEntradaDescanso = fObj;
           }
         });
       }
 
-      tbody.innerHTML = Object.values(mapaExtra).map(e => {
+      tbody.innerHTML = Object.values(mapaExtra).filter(e => {
+        if (fltNombre && !e.nombre.toLowerCase().includes(fltNombre) && !e.doc.includes(fltNombre)) return false;
+        if (fltCDA !== 'TODOS' && (!e.cda || !e.cda.includes(fltCDA))) return false;
+
+        const refFecha = e.fEntradaCDA || new Date();
+        if (fltMes) {
+          const yyyyMm = refFecha.toISOString().substring(0,7);
+          if (yyyyMm !== fltMes) return false;
+        }
+
+        if (fltSemana) {
+          const numSemSelected = parseInt(fltSemana.split('-W')[1]);
+          if (e.numSem !== numSemSelected) return false;
+        }
+
+        return true;
+      }).map(e => {
         const entStr = e.fEntradaCDA ? e.fEntradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
         const salStr = e.fSalidaCDA ? e.fSalidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
 
@@ -1382,44 +1668,113 @@
           descansoMin = Math.max(0, Math.round((e.fEntradaDescanso - e.fSalidaDescanso) / (1000 * 60)));
         }
 
-        let horasNetasStr = "Incompleto";
-        let horasExtraTag = `<span class="text-slate-500 font-semibold">Sin Registro Completo</span>`;
+        let horasLaboradasTexto = "Incompleto";
+        let horasExtraTag = `<span class="text-zinc-500 font-semibold">Sin Registro Completo</span>`;
 
         if (e.fEntradaCDA && e.fSalidaCDA) {
           let msTotales = e.fSalidaCDA - e.fEntradaCDA;
           if (descansoMin > 0) msTotales -= (descansoMin * 60 * 1000);
 
-          const hrsNetas = msTotales / (1000 * 60 * 60);
-          horasNetasStr = `${hrsNetas.toFixed(1)} Horas`;
+          const totalMinLaborados = Math.floor(msTotales / (1000 * 60));
+
+          if (totalMinLaborados < 60) {
+            horasLaboradasTexto = `${totalMinLaborados} minutos laborados`;
+          } else {
+            const hLab = Math.floor(totalMinLaborados / 60);
+            const mLab = totalMinLaborados % 60;
+            horasLaboradasTexto = `${hLab} ${hLab === 1 ? 'hora' : 'horas'} y ${mLab} minutos laboradas`;
+          }
+
+          const hrsNetas = totalMinLaborados / 60;
 
           if (hrsNetas > 7) {
             const extraNetas = hrsNetas - 7;
-            const hExtra = Math.floor(extraNetas);
-            const mExtra = Math.round((extraNetas - hExtra) * 60);
-            horasExtraTag = `<span class="px-2 py-1 rounded text-xs bg-amber-900/60 text-amber-300 font-bold"><i class="fa-solid fa-clock mr-1"></i>+${hExtra}h ${mExtra}m Horas Extra</span>`;
+            const extraTotalMin = Math.round(extraNetas * 60);
+
+            let textoExtra = "";
+            if (extraTotalMin < 60) {
+              textoExtra = `${extraTotalMin} min extra`;
+            } else {
+              const hEx = Math.floor(extraTotalMin / 60);
+              const mEx = extraTotalMin % 60;
+              textoExtra = `${hEx} ${hEx === 1 ? 'hora' : 'horas'} y ${mEx} min extra`;
+            }
+
+            horasExtraTag = `<span class="px-2 py-1 rounded text-xs bg-amber-950 text-amber-400 border border-amber-500/30 font-bold"><i class="fa-solid fa-clock mr-1"></i>+${textoExtra}</span>`;
           } else {
-            horasExtraTag = `<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 font-semibold">Jornada Regular (<= 7h)</span>`;
+            horasExtraTag = `<span class="px-2 py-0.5 rounded text-xs bg-zinc-950 text-zinc-400 font-semibold">Jornada Regular (<= 7h)</span>`;
           }
         }
 
         return `
-          <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+          <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
             <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
-            <td class="p-2.5 font-mono text-blue-400">${e.doc}</td>
-            <td class="p-2.5 text-slate-300 font-mono">${e.fecha}</td>
-            <td class="p-2.5 font-semibold text-emerald-400">${entStr}</td>
+            <td class="p-2.5 font-mono text-lime-400">${e.doc}</td>
+            <td class="p-2.5 text-zinc-300 font-mono">${e.mes}</td>
+            <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${e.numSem}</td>
+            <td class="p-2.5 text-zinc-300 font-mono">${e.fecha}</td>
+            <td class="p-2.5 font-semibold text-lime-400">${entStr}</td>
             <td class="p-2.5 font-semibold text-rose-400">${salStr}</td>
-            <td class="p-2.5 text-slate-300">${descansoMin > 0 ? `${descansoMin} min` : 'No registró'}</td>
-            <td class="p-2.5 font-bold text-white">${horasNetasStr}</td>
+            <td class="p-2.5 text-zinc-300">${descansoMin > 0 ? `${descansoMin} min` : 'No registró'}</td>
+            <td class="p-2.5 font-bold text-lime-400">${horasLaboradasTexto}</td>
             <td class="p-2.5">${horasExtraTag}</td>
+            <td class="p-2.5">
+              ${e.asistenciaIdSalida ? `
+                <div class="flex items-center gap-1">
+                  <input type="text" id="obs-he-${e.asistenciaIdSalida}" value="${e.novedadSalida}" placeholder="Observación horas extra..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 outline-none focus:border-lime-500 w-48">
+                  <button type="button" onclick="guardarNovedadMarcacion(${e.asistenciaIdSalida})" title="Guardar Observación" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 p-1.5 rounded font-bold">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                  </button>
+                </div>
+              ` : `<span class="text-zinc-600 text-[10px]">Sin marcación de salida</span>`}
+            </td>
           </tr>
         `;
       }).join('');
     }
 
+    function exportarExcelHorasExtras() {
+      const tbody = document.getElementById('tabla-horas-extras-body');
+      let csv = "Trabajador,Documento,Mes,Semana,Fecha,Entrada_CDA,Salida_CDA,Descanso_Min,Horas_Laboradas,Horas_Extra,Novedad_Observacion\n";
+
+      tbody.querySelectorAll('tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= 11) {
+          const nombre = tds[0].innerText;
+          const doc = tds[1].innerText;
+          const mes = tds[2].innerText;
+          const semana = tds[3].innerText;
+          const fecha = tds[4].innerText;
+          const entCDA = tds[5].innerText;
+          const salCDA = tds[6].innerText;
+          const desc = tds[7].innerText;
+          const laboradas = tds[8].innerText;
+          const extra = tds[9].innerText;
+          const obsInput = tds[10].querySelector('input');
+          const obs = obsInput ? obsInput.value : '';
+
+          csv += `"${nombre}","${doc}","${mes}","${semana}","${fecha}","${entCDA}","${salCDA}","${desc}","${laboradas}","${extra}","${obs}"\n`;
+        }
+      });
+
+      descargarCSVFile(csv, "Reporte_Horas_Extras.csv");
+    }
+
+    function descargarCSVFile(csvContent, fileName) {
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", fileName);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ELIMINAR ASISTENCIA (PIDE CLAVE ADMIN PRINCIPAL)
     async function limpiarRegistrosAsistencia(empId) {
-      if (currentAdminRole !== 'SUPERADMIN') return;
-      if (!confirm("¿Borrar marcaciones de este trabajador?")) return;
+      if (!solicitarClaveAdminPrincipal()) return;
       await supabaseClient.from('asistencias').delete().eq('empleado_id', empId);
       cargarHistorialAsistencias();
     }
