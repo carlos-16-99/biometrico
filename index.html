@@ -149,7 +149,6 @@
             <input type="password" id="auth-pass" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white outline-none focus:border-blue-500">
           </div>
 
-          <!-- CHECKBOX SUPERADMIN -->
           <div class="flex items-center gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/60">
             <input type="checkbox" id="auth-is-superadmin" class="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 bg-slate-800 cursor-pointer">
             <label for="auth-is-superadmin" class="text-xs font-medium text-slate-300 cursor-pointer select-none">
@@ -231,32 +230,23 @@
             <div id="contenedor-cda-select" class="space-y-2">
               <label id="lbl-cda-title" class="block text-xs font-semibold text-blue-400 uppercase">Seleccionar CDA(s) de Pertenencia *</label>
               
-              <!-- VISTA PARA OPERATIVOS (CHECKBOXES MULTI-CDA O UNICO SEGÚN ROL) -->
-              <div id="cda-checkboxes-container" class="bg-slate-900 border border-blue-500/50 rounded-xl p-3 max-h-36 overflow-y-auto space-y-2 text-xs">
-                <!-- Checkboxes dinámicos -->
-              </div>
+              <div id="cda-checkboxes-container" class="bg-slate-900 border border-blue-500/50 rounded-xl p-3 max-h-36 overflow-y-auto space-y-2 text-xs"></div>
 
-              <!-- VISTA EXCLUSIVA PARA ADMINISTRADOR DE CDA (SELECT ÚNICO) -->
               <div id="cda-single-select-container" class="hidden">
-                <select id="emp-cda-single" class="w-full bg-slate-900 border border-blue-500 rounded-lg px-3 py-2 text-white outline-none text-xs">
-                  <!-- Opciones dinámicas -->
-                </select>
+                <select id="emp-cda-single" class="w-full bg-slate-900 border border-blue-500 rounded-lg px-3 py-2 text-white outline-none text-xs"></select>
               </div>
 
-              <!-- NUEVO CDA (SOLO SUPERADMIN) -->
               <div id="contenedor-agregar-nuevo-cda" class="flex gap-2 pt-1">
                 <input type="text" id="emp-cda-nuevo" placeholder="Escribir nuevo CDA si aplica" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white outline-none text-xs">
                 <button type="button" onclick="agregarNuevoCDAMultiple()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">Agregar CDA</button>
               </div>
             </div>
 
-            <!-- CONTRASEÑA SOLO PARA ADMIN SECUNDARIO -->
             <div id="contenedor-pass-admin" class="hidden">
               <label class="block text-xs font-semibold text-amber-400 mb-1 uppercase">Asignar Contraseña de Acceso al Panel *</label>
               <input type="password" id="emp-pass" placeholder="Crear contraseña de acceso" class="w-full bg-slate-900 border border-amber-500 rounded-lg px-3 py-2 text-white outline-none">
             </div>
 
-            <!-- BOTÓN MODAL PARA REGISTRO FACIAL -->
             <div id="contenedor-escaner-facial" class="space-y-2 pt-2">
               <label class="block text-xs font-semibold text-slate-300">Patrón Biométrico Facial (Obligatorio para Operativos)</label>
               <button type="button" onclick="abrirModalRegistroFacial()" class="w-full bg-slate-900 border border-blue-500 hover:bg-blue-900/30 text-blue-400 text-xs py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
@@ -264,12 +254,13 @@
               </button>
             </div>
 
+            <!-- BOTONES CON OPCIÓN DE CANCELAR EDICIÓN -->
             <div class="flex gap-2">
               <button type="button" onclick="guardarPersonal()" class="bg-emerald-600 hover:bg-emerald-500 font-bold px-4 py-3 rounded-xl text-white text-sm flex-1 transition shadow-lg shadow-emerald-900/30">
                 <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar Registro
               </button>
-              <button type="button" onclick="limpiarFormularioPersonal()" class="bg-slate-700 hover:bg-slate-600 font-semibold px-3 py-3 rounded-xl text-slate-300 text-xs">
-                Cancelar
+              <button type="button" onclick="limpiarFormularioPersonal()" class="bg-slate-700 hover:bg-slate-600 font-semibold px-3 py-3 rounded-xl text-slate-300 text-xs flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Cancelar / Nuevo
               </button>
             </div>
             <div id="emp-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
@@ -281,7 +272,6 @@
               <h3 class="font-bold text-md text-slate-300">
                 <i class="fa-solid fa-users mr-2"></i>Personal Registrado
               </h3>
-              <!-- FILTRO POR CDA -->
               <div id="contenedor-filtro-cda" class="hidden">
                 <select id="filtro-cda-select" onchange="cargarListaPersonal()" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2.5 py-1 text-slate-300 outline-none">
                   <option value="TODOS">Todos los CDA</option>
@@ -310,26 +300,17 @@
           </div>
         </div>
 
-        <!-- HISTORIAL DE ASISTENCIAS (EXCLUYE ADMINISTRADORES, CON FECHA Y GPS) -->
+        <!-- HISTORIAL DE ASISTENCIAS -->
         <div id="subview-asistencias" class="hidden space-y-4">
           <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
-                <tr>
-                  <th class="p-2.5">Foto Captura</th>
-                  <th class="p-2.5">Nombre Completo</th>
-                  <th class="p-2.5">Documento</th>
-                  <th class="p-2.5">Fecha</th>
-                  <th class="p-2.5">Entrada CDA</th>
-                  <th class="p-2.5">Entrada Descanso</th>
-                  <th class="p-2.5">Salida Descanso</th>
-                  <th class="p-2.5">Salida CDA</th>
-                  <th class="p-2.5">Ubicación GPS</th>
-                  <th id="th-accion-asis" class="p-2.5 text-right">Acción</th>
+                <tr id="tr-header-asistencias">
+                  <!-- Renderizado dinámico -->
                 </tr>
               </thead>
               <tbody id="tabla-asistencias-body">
-                <tr><td colspan="10" class="p-4 text-center text-slate-500">Cargando registros...</td></tr>
+                <tr><td colspan="12" class="p-4 text-center text-slate-500">Cargando registros...</td></tr>
               </tbody>
             </table>
           </div>
@@ -506,13 +487,11 @@
         filtroCdaBox.classList.add('hidden');
         if (agregarNuevoCdaBtn) agregarNuevoCdaBtn.classList.add('hidden');
         document.getElementById('th-accion-emp').style.display = 'none';
-        document.getElementById('th-accion-asis').style.display = 'none';
       } else {
         if (optAdminCda) optAdminCda.style.display = 'block';
         filtroCdaBox.classList.remove('hidden');
         if (agregarNuevoCdaBtn) agregarNuevoCdaBtn.classList.remove('hidden');
         document.getElementById('th-accion-emp').style.display = 'table-cell';
-        document.getElementById('th-accion-asis').style.display = 'table-cell';
       }
 
       cargarListaPersonal();
@@ -539,8 +518,6 @@
       if (cargo === 'Administrador de CDA') {
         passBox.classList.remove('hidden');
         escanerBox.classList.add('hidden');
-        
-        // REGLA 1: Solo 1 CDA para Administrador de CDA
         multiCdaBox.classList.add('hidden');
         singleCdaBox.classList.remove('hidden');
         lblCda.innerText = "Seleccionar CDA Único *";
@@ -549,7 +526,6 @@
         escanerBox.classList.remove('hidden');
 
         if (currentAdminRole === 'ADMIN_SECUNDARIO') {
-          // Admin Secundario: CDA Fijo Predeterminado
           multiCdaBox.classList.remove('hidden');
           singleCdaBox.classList.add('hidden');
           lblCda.innerText = `CDA de Pertenencia (${currentAdminCDA})`;
@@ -558,7 +534,6 @@
             cb.disabled = true;
           });
         } else {
-          // SuperAdmin para Operativos: Multi-CDA permitido
           multiCdaBox.classList.remove('hidden');
           singleCdaBox.classList.add('hidden');
           lblCda.innerText = "Seleccionar CDA(s) de Pertenencia *";
@@ -710,6 +685,7 @@
       }
     }
 
+    // OPCIÓN 1: DESHABILITAR EDICIÓN / LIMPIAR FORMULARIO PARA REGISTRO NUEVO
     function limpiarFormularioPersonal() {
       document.getElementById('emp-doc').value = "";
       document.getElementById('emp-nombre').value = "";
@@ -725,6 +701,7 @@
       document.getElementById('edit-mode-tag').classList.add('hidden');
       document.getElementById('lbl-biometrico-status').innerText = "Registrar Puntos Faciales";
       document.getElementById('lbl-biometrico-status').className = "";
+      document.getElementById('emp-status').innerText = "";
       validarCargoSeleccionado();
     }
 
@@ -815,7 +792,7 @@
       cargarListaPersonal();
     }
 
-    // KIOSCO Y VALIDACIÓN DE REGISTRO ÚNICO DIARIO
+    // KIOSCO
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
       document.getElementById('modal-titulo').innerText = `Validación Face ID para ${tipo.toUpperCase()}...`;
@@ -877,7 +854,6 @@
 
       status.innerText = "⚡ Buscando coincidencia...";
 
-      // Excluir administradores de la marcación biométrica
       const { data: empleados } = await supabaseClient
         .from('empleados')
         .select('*')
@@ -909,26 +885,46 @@
         return;
       }
 
-      // REGLA 4: REVISAR SI YA REALIZÓ ESTE REGISTRO EN EL DÍA ACTUAL
+      // REGLA 2: SECUENCIA OBLIGATORIA DE MARCACIÓN
       const hoyInicio = new Date();
       hoyInicio.setHours(0,0,0,0);
 
-      const { data: marcacionPrev } = await supabaseClient
+      const { data: marcacionesHoy } = await supabaseClient
         .from('asistencias')
-        .select('*')
+        .select('tipo, fecha_hora')
         .eq('empleado_id', mejorCoincidencia.id)
-        .eq('tipo', scanTipo)
         .gte('fecha_hora', hoyInicio.toISOString());
 
-      if (marcacionPrev && marcacionPrev.length > 0) {
-        const horaReg = new Date(marcacionPrev[0].fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+      const yaEntroCDA = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada al CDA') : false;
+      const yaSalioDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Salida Descanso') : false;
+
+      if (scanTipo === 'Salida Descanso' || scanTipo === 'Entrada Descanso' || scanTipo === 'Salida del CDA') {
+        if (!yaEntroCDA) {
+          status.className = "text-sm font-bold text-rose-400";
+          status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR [${scanTipo.toUpperCase()}] SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
+          setTimeout(() => { cerrarModalEscaner(); }, 4000);
+          return;
+        }
+      }
+
+      if (scanTipo === 'Entrada Descanso' && !yaSalioDescanso) {
+        status.className = "text-sm font-bold text-rose-400";
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO "SALIDA DESCANSO".`;
+        setTimeout(() => { cerrarModalEscaner(); }, 4000);
+        return;
+      }
+
+      // REVISAR SI YA REALIZÓ ESTE REGISTRO
+      const yaExisteEsteRegistro = marcacionesHoy ? marcacionesHoy.find(m => m.tipo === scanTipo) : null;
+      if (yaExisteEsteRegistro) {
+        const horaReg = new Date(yaExisteEsteRegistro.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
         status.className = "text-sm font-bold text-amber-400";
         status.innerText = `⚠️ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: YA REALIZASTE TU REGISTRO DE [${scanTipo.toUpperCase()}] HOY A LAS ${horaReg}.`;
         setTimeout(() => { cerrarModalEscaner(); }, 4000);
         return;
       }
 
-      // REGISTRAR NUEVA MARCACIÓN
+      // GUARDAR REGISTRO
       const tmpCanvas = document.createElement('canvas');
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = canvas.height;
@@ -954,11 +950,30 @@
       }, 'image/jpeg', 0.85);
     }
 
-    // CARGAR HISTORIAL (SOLO OPERATIVOS, CON FECHA Y GPS)
+    // CARGAR HISTORIAL DE ASISTENCIAS (UBICACIONES EXCLUSIVAS PARA SUPERADMIN EN COLUMNAS SEPARADAS)
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
-      // REGLA 2: EXCLUIR ADMINISTRADORES DE CDA DEL HISTORIAL
+      const isSuper = (currentAdminRole === 'SUPERADMIN');
+
+      // Renderizar encabezo de tabla dinámicamente
+      const trHeader = document.getElementById('tr-header-asistencias');
+      trHeader.innerHTML = `
+        <th class="p-2">Foto</th>
+        <th class="p-2">Nombre Completo</th>
+        <th class="p-2">Documento</th>
+        <th class="p-2">Fecha</th>
+        <th class="p-2">Entrada CDA</th>
+        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Entrada</th>` : ''}
+        <th class="p-2">Salida Descanso</th>
+        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Sal. Desc.</th>` : ''}
+        <th class="p-2">Entrada Descanso</th>
+        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Ent. Desc.</th>` : ''}
+        <th class="p-2">Salida CDA</th>
+        ${isSuper ? `<th class="p-2 text-[10px] text-blue-400">GPS Salida</th>` : ''}
+        ${isSuper ? `<th class="p-2 text-right">Acción</th>` : ''}
+      `;
+
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
 
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -971,7 +986,7 @@
       const tbody = document.getElementById('tabla-asistencias-body');
       
       if (!todosEmpleados || !todosEmpleados.length) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-500">No hay trabajadores operativos registrados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-slate-500">No hay trabajadores operativos registrados.</td></tr>`;
         return;
       }
 
@@ -984,12 +999,11 @@
           foto: emp.foto_referencia_url,
           cda: emp.cda_nombre,
           fecha: new Date().toLocaleDateString('es-CO'),
-          entradaCDA: 'Sin Marcación',
-          entradaDescanso: 'Sin Marcación',
-          salidaDescanso: 'Sin Marcación',
-          salidaCDA: 'Sin Marcación',
-          fotoMarcacion: null,
-          gps: 'N/A'
+          entradaCDA: 'Sin Marcación', gpsEntradaCDA: '-',
+          salidaDescanso: 'Sin Marcación', gpsSalidaDescanso: '-',
+          entradaDescanso: 'Sin Marcación', gpsEntradaDescanso: '-',
+          salidaCDA: 'Sin Marcación', gpsSalidaCDA: '-',
+          fotoMarcacion: null
         };
       });
 
@@ -998,34 +1012,54 @@
           if (mapaAsistencias[m.empleado_id]) {
             const fechaStr = new Date(m.fecha_hora).toLocaleDateString('es-CO');
             const horaStr = new Date(m.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            const gpsLink = m.latitud ? `<a href="https://maps.google.com/?q=${m.latitud},${m.longitud}" target="_blank" class="text-blue-400 underline font-semibold">Mapas</a>` : 'N/A';
             
             mapaAsistencias[m.empleado_id].fecha = fechaStr;
             if (m.foto_marcacion_url) mapaAsistencias[m.empleado_id].fotoMarcacion = m.foto_marcacion_url;
-            if (m.latitud) mapaAsistencias[m.empleado_id].gps = `<a href="https://maps.google.com/?q=${m.latitud},${m.longitud}" target="_blank" class="text-blue-400 underline font-semibold">Ver Mapas</a>`;
 
-            if (m.tipo === 'Entrada al CDA') mapaAsistencias[m.empleado_id].entradaCDA = horaStr;
-            if (m.tipo === 'Entrada Descanso') mapaAsistencias[m.empleado_id].entradaDescanso = horaStr;
-            if (m.tipo === 'Salida Descanso') mapaAsistencias[m.empleado_id].salidaDescanso = horaStr;
-            if (m.tipo === 'Salida del CDA') mapaAsistencias[m.empleado_id].salidaCDA = horaStr;
+            if (m.tipo === 'Entrada al CDA') {
+              mapaAsistencias[m.empleado_id].entradaCDA = horaStr;
+              mapaAsistencias[m.empleado_id].gpsEntradaCDA = gpsLink;
+            }
+            if (m.tipo === 'Salida Descanso') {
+              mapaAsistencias[m.empleado_id].salidaDescanso = horaStr;
+              mapaAsistencias[m.empleado_id].gpsSalidaDescanso = gpsLink;
+            }
+            if (m.tipo === 'Entrada Descanso') {
+              mapaAsistencias[m.empleado_id].entradaDescanso = horaStr;
+              mapaAsistencias[m.empleado_id].gpsEntradaDescanso = gpsLink;
+            }
+            if (m.tipo === 'Salida del CDA') {
+              mapaAsistencias[m.empleado_id].salidaCDA = horaStr;
+              mapaAsistencias[m.empleado_id].gpsSalidaCDA = gpsLink;
+            }
           }
         });
       }
 
       tbody.innerHTML = Object.values(mapaAsistencias).map(a => `
         <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
-          <td class="p-2.5">
-            <img src="${a.fotoMarcacion || a.foto || 'https://via.placeholder.com/40'}" class="w-9 h-9 rounded-lg object-cover border border-slate-600">
+          <td class="p-2">
+            <img src="${a.fotoMarcacion || a.foto || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-lg object-cover border border-slate-600">
           </td>
-          <td class="p-2.5 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-slate-400 font-normal">${a.cda || ''}</span></td>
-          <td class="p-2.5 font-mono text-blue-400">${a.doc}</td>
-          <td class="p-2.5 text-slate-300 font-mono text-[11px]">${a.fecha}</td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-emerald-900/50 text-emerald-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.entradaCDA}</span></td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-900/50 text-teal-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.entradaDescanso}</span></td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-900/50 text-amber-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.salidaDescanso}</span></td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-900/50 text-rose-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.salidaCDA}</span></td>
-          <td class="p-2.5 text-xs">${a.gps}</td>
-          ${currentAdminRole === 'SUPERADMIN' ? `
-            <td class="p-2.5 text-right"><button type="button" onclick="limpiarRegistrosAsistencia('${a.doc}')" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button></td>
+          <td class="p-2 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-slate-400 font-normal">${a.cda || ''}</span></td>
+          <td class="p-2 font-mono text-blue-400">${a.doc}</td>
+          <td class="p-2 text-slate-300 font-mono text-[11px]">${a.fecha}</td>
+          
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-emerald-900/50 text-emerald-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.entradaCDA}</span></td>
+          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsEntradaCDA}</td>` : ''}
+
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-900/50 text-amber-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.salidaDescanso}</span></td>
+          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
+
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-900/50 text-teal-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.entradaDescanso}</span></td>
+          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsEntradaDescanso}</td>` : ''}
+
+          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-900/50 text-rose-300 font-bold' : 'bg-slate-800 text-slate-500'}">${a.salidaCDA}</span></td>
+          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsSalidaCDA}</td>` : ''}
+
+          ${isSuper ? `
+            <td class="p-2 text-right"><button type="button" onclick="limpiarRegistrosAsistencia('${a.doc}')" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button></td>
           ` : ''}
         </tr>
       `).join('');
