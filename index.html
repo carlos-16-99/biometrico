@@ -6,6 +6,7 @@
   <title>Control Biométrico FaceID - CDA MOTOS RUTA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- MediaPipe Face Mesh de Google -->
@@ -180,16 +181,25 @@
           </button>
         </div>
 
-        <div class="flex gap-2 border-b border-slate-700 pb-2">
+        <div class="flex gap-2 border-b border-slate-700 pb-2 flex-wrap">
           <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">
             <i class="fa-solid fa-user-plus mr-2"></i>Registro de Personal
           </button>
           <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
             <i class="fa-solid fa-list-check mr-2"></i>Historial de Asistencias
           </button>
+          <button type="button" onclick="switchAdminTab('horarios')" id="subtab-horarios" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+            <i class="fa-solid fa-clock mr-2"></i>Cargar Horarios Excel
+          </button>
+          <button type="button" onclick="switchAdminTab('llegadas-tardes')" id="subtab-llegadas-tardes" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+            <i class="fa-solid fa-user-clock mr-2"></i>Control Llegadas Tardes
+          </button>
+          <button type="button" onclick="switchAdminTab('horas-extras')" id="subtab-horas-extras" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
+            <i class="fa-solid fa-business-time mr-2"></i>Seguimiento Horas Extra
+          </button>
         </div>
 
-        <!-- MÓDULO REGISTRO PERSONAL -->
+        <!-- MÓDULO REGISTRO PERSONAL (SIN HORARIOS) -->
         <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-5 bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
             <h3 class="font-bold text-md text-blue-400 border-b border-slate-700 pb-2 flex justify-between items-center">
@@ -226,7 +236,7 @@
               </div>
             </div>
 
-            <!-- CONTENEDOR DE SELECCIÓN DE CDA -->
+            <!-- SELECCIÓN DE CDA -->
             <div id="contenedor-cda-select" class="space-y-2">
               <label id="lbl-cda-title" class="block text-xs font-semibold text-blue-400 uppercase">Seleccionar CDA(s) de Pertenencia *</label>
               
@@ -254,7 +264,6 @@
               </button>
             </div>
 
-            <!-- BOTONES CON OPCIÓN DE CANCELAR EDICIÓN -->
             <div class="flex gap-2">
               <button type="button" onclick="guardarPersonal()" class="bg-emerald-600 hover:bg-emerald-500 font-bold px-4 py-3 rounded-xl text-white text-sm flex-1 transition shadow-lg shadow-emerald-900/30">
                 <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar Registro
@@ -300,17 +309,103 @@
           </div>
         </div>
 
-        <!-- HISTORIAL DE ASISTENCIAS -->
+        <!-- MÓDULO CARGA DE HORARIOS Y EDICIÓN DESPLEGABLE -->
+        <div id="subview-horarios" class="hidden space-y-6">
+          <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-4 border-b border-slate-700 pb-3">
+              <div>
+                <h3 class="font-bold text-md text-white"><i class="fa-solid fa-file-excel mr-2 text-emerald-400"></i>Cargar Horarios Semanales (Excel/CSV)</h3>
+                <p class="text-xs text-slate-400">Sube el archivo al inicio de la semana o ajusta manualmente con la lista desplegable</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="file" id="excel-file-input" accept=".csv, .xlsx" class="bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                <button type="button" onclick="procesarArchivoExcel()" class="bg-emerald-600 hover:bg-emerald-500 font-bold px-4 py-2 rounded-lg text-white text-xs transition">
+                  Subir Excel
+                </button>
+              </div>
+            </div>
+            <div id="excel-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
+
+            <div class="overflow-x-auto pt-2">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
+                  <tr>
+                    <th class="p-2.5">Trabajador</th>
+                    <th class="p-2.5">Documento</th>
+                    <th class="p-2.5">CDA</th>
+                    <th class="p-2.5">Hora Entrada Estipulada</th>
+                    <th class="p-2.5 text-right">Guardar Cambio</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-edicion-horarios-body">
+                  <tr><td colspan="5" class="p-4 text-center text-slate-500">Cargando personal...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORIAL DE ASISTENCIAS GENERAL -->
         <div id="subview-asistencias" class="hidden space-y-4">
           <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
-                <tr id="tr-header-asistencias">
-                  <!-- Renderizado dinámico -->
-                </tr>
+                <tr id="tr-header-asistencias"></tr>
               </thead>
               <tbody id="tabla-asistencias-body">
                 <tr><td colspan="12" class="p-4 text-center text-slate-500">Cargando registros...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PESTAÑA N° 3: CONTROL DE LLEGADAS TARDES -->
+        <div id="subview-llegadas-tardes" class="hidden space-y-4">
+          <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4 space-y-3">
+            <h3 class="font-bold text-md text-amber-400 border-b border-slate-700 pb-2">
+              <i class="fa-solid fa-user-clock mr-2"></i>Reporte Detallado de Llegadas Tardes
+            </h3>
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5">Foto</th>
+                  <th class="p-2.5">Nombre Completo</th>
+                  <th class="p-2.5">Documento</th>
+                  <th class="p-2.5">CDA</th>
+                  <th class="p-2.5">Fecha</th>
+                  <th class="p-2.5">Hora Estipulada</th>
+                  <th class="p-2.5">Hora Marcación Real (hh-min-seg)</th>
+                  <th class="p-2.5">Estado / Retraso</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-llegadas-tardes-body">
+                <tr><td colspan="8" class="p-4 text-center text-slate-500">Cargando reporte de llegadas...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PESTAÑA N° 4: SEGUIMIENTO DE HORAS EXTRA -->
+        <div id="subview-horas-extras" class="hidden space-y-4">
+          <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-x-auto p-4 space-y-3">
+            <h3 class="font-bold text-md text-emerald-400 border-b border-slate-700 pb-2">
+              <i class="fa-solid fa-business-time mr-2"></i>Seguimiento y Registro de Horas Extra
+            </h3>
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900 uppercase text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="p-2.5">Trabajador</th>
+                  <th class="p-2.5">Documento</th>
+                  <th class="p-2.5">Fecha</th>
+                  <th class="p-2.5">Entrada CDA</th>
+                  <th class="p-2.5">Salida CDA</th>
+                  <th class="p-2.5">Descanso Descontado</th>
+                  <th class="p-2.5">Horas Netas Trabajadas</th>
+                  <th class="p-2.5 text-amber-400">Horas Extra (Conteo a partir de 7h)</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-horas-extras-body">
+                <tr><td colspan="8" class="p-4 text-center text-slate-500">Cargando reporte de horas extra...</td></tr>
               </tbody>
             </table>
           </div>
@@ -425,10 +520,21 @@
     function switchAdminTab(subtab) {
       document.getElementById('subview-empleados').style.display = (subtab === 'empleados') ? 'grid' : 'none';
       document.getElementById('subview-asistencias').style.display = (subtab === 'asistencias') ? 'block' : 'none';
-      document.getElementById('subtab-empleados').className = (subtab === 'empleados') ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white' : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
-      document.getElementById('subtab-asistencias').className = (subtab === 'asistencias') ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white' : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+      document.getElementById('subview-horarios').style.display = (subtab === 'horarios') ? 'block' : 'none';
+      document.getElementById('subview-llegadas-tardes').style.display = (subtab === 'llegadas-tardes') ? 'block' : 'none';
+      document.getElementById('subview-horas-extras').style.display = (subtab === 'horas-extras') ? 'block' : 'none';
+
+      const tabs = ['empleados', 'asistencias', 'horarios', 'llegadas-tardes', 'horas-extras'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`subtab-${t}`);
+        if (btn) btn.className = (subtab === t) ? 'px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white' : 'px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white';
+      });
+
       if (subtab === 'empleados') cargarListaPersonal();
       if (subtab === 'asistencias') cargarHistorialAsistencias();
+      if (subtab === 'horarios') cargarTablaEdicionHorarios();
+      if (subtab === 'llegadas-tardes') cargarReporteLlegadasTardes();
+      if (subtab === 'horas-extras') cargarReporteHorasExtras();
     }
 
     async function loginAdmin() {
@@ -685,7 +791,6 @@
       }
     }
 
-    // OPCIÓN 1: DESHABILITAR EDICIÓN / LIMPIAR FORMULARIO PARA REGISTRO NUEVO
     function limpiarFormularioPersonal() {
       document.getElementById('emp-doc').value = "";
       document.getElementById('emp-nombre').value = "";
@@ -792,6 +897,89 @@
       cargarListaPersonal();
     }
 
+    // PESTAÑA CARGA EXCEL Y EDICIÓN CON LISTA DESPLEGABLE DE HORAS
+    async function cargarTablaEdicionHorarios() {
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
+        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
+      }
+
+      const { data: empleados } = await queryEmp;
+      const tbody = document.getElementById('tabla-edicion-horarios-body');
+
+      if (!empleados || !empleados.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No hay trabajadores operativos.</td></tr>`;
+        return;
+      }
+
+      const opcionesHoras = [
+        "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", 
+        "09:00", "09:30", "10:00", "10:30", "11:00", "12:00"
+      ];
+
+      tbody.innerHTML = empleados.map(e => `
+        <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+          <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
+          <td class="p-2.5 font-mono text-blue-400">${e.id}</td>
+          <td class="p-2.5 text-slate-300">${e.cda_nombre || ''}</td>
+          <td class="p-2.5">
+            <select id="sel-hora-${e.id}" class="bg-slate-900 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none">
+              ${opcionesHoras.map(h => `<option value="${h}" ${e.hora_entrada_estipulada === h ? 'selected' : ''}>${h} AM</option>`).join('')}
+            </select>
+          </td>
+          <td class="p-2.5 text-right">
+            <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-semibold">
+              <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function guardarHoraIndividual(id) {
+      const horaSel = document.getElementById(`sel-hora-${id}`).value;
+      await supabaseClient.from('empleados').update({ hora_entrada_estipulada: horaSel }).eq('id', id);
+      alert(`✅ Hora de entrada actualizada a las ${horaSel} AM para el usuario ${id}`);
+    }
+
+    function procesarArchivoExcel() {
+      const fileInput = document.getElementById('excel-file-input');
+      const status = document.getElementById('excel-status');
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        return alert("Por favor selecciona un archivo CSV o Excel.");
+      }
+
+      status.className = "text-blue-400 font-semibold";
+      status.innerText = "⏳ Procesando archivo...";
+
+      Papa.parse(fileInput.files[0], {
+        header: true,
+        skipEmptyLines: true,
+        complete: async function(results) {
+          const filas = results.data;
+          let actualizados = 0;
+
+          for (let row of filas) {
+            const doc = row.cedula || row.documento || row.id;
+            const hIn = row.hora_entrada || row.entrada;
+
+            if (doc && hIn) {
+              await supabaseClient
+                .from('empleados')
+                .update({ hora_entrada_estipulada: hIn.trim() })
+                .eq('id', doc.toString().trim());
+              actualizados++;
+            }
+          }
+
+          status.className = "text-emerald-400 font-bold";
+          status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros.`;
+          cargarTablaEdicionHorarios();
+        }
+      });
+    }
+
     // KIOSCO
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
@@ -885,7 +1073,7 @@
         return;
       }
 
-      // REGLA 2: SECUENCIA OBLIGATORIA DE MARCACIÓN
+      // SECUENCIA
       const hoyInicio = new Date();
       hoyInicio.setHours(0,0,0,0);
 
@@ -914,7 +1102,6 @@
         return;
       }
 
-      // REVISAR SI YA REALIZÓ ESTE REGISTRO
       const yaExisteEsteRegistro = marcacionesHoy ? marcacionesHoy.find(m => m.tipo === scanTipo) : null;
       if (yaExisteEsteRegistro) {
         const horaReg = new Date(yaExisteEsteRegistro.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
@@ -924,7 +1111,7 @@
         return;
       }
 
-      // GUARDAR REGISTRO
+      // GUARDAR
       const tmpCanvas = document.createElement('canvas');
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = canvas.height;
@@ -950,13 +1137,12 @@
       }, 'image/jpeg', 0.85);
     }
 
-    // CARGAR HISTORIAL DE ASISTENCIAS (UBICACIONES EXCLUSIVAS PARA SUPERADMIN EN COLUMNAS SEPARADAS)
+    // PESTAÑA HISTORIAL GENERAL DE ASISTENCIAS
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
       const isSuper = (currentAdminRole === 'SUPERADMIN');
 
-      // Renderizar encabezo de tabla dinámicamente
       const trHeader = document.getElementById('tr-header-asistencias');
       trHeader.innerHTML = `
         <th class="p-2">Foto</th>
@@ -1010,8 +1196,9 @@
       if (marcaciones && marcaciones.length > 0) {
         marcaciones.forEach(m => {
           if (mapaAsistencias[m.empleado_id]) {
-            const fechaStr = new Date(m.fecha_hora).toLocaleDateString('es-CO');
-            const horaStr = new Date(m.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            const fechaObj = new Date(m.fecha_hora);
+            const fechaStr = fechaObj.toLocaleDateString('es-CO');
+            const horaStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
             const gpsLink = m.latitud ? `<a href="https://maps.google.com/?q=${m.latitud},${m.longitud}" target="_blank" class="text-blue-400 underline font-semibold">Mapas</a>` : 'N/A';
             
             mapaAsistencias[m.empleado_id].fecha = fechaStr;
@@ -1063,6 +1250,171 @@
           ` : ''}
         </tr>
       `).join('');
+    }
+
+    // PESTAÑA N° 3: REPORTE DE LLEGADAS TARDES (HH-MIN-SEG)
+    async function cargarReporteLlegadasTardes() {
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
+        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
+      }
+
+      const { data: empleados } = await queryEmp;
+      const { data: marcaciones } = await supabaseClient.from('asistencias').select('*').eq('tipo', 'Entrada al CDA').order('fecha_hora', { ascending: false });
+
+      const tbody = document.getElementById('tabla-llegadas-tardes-body');
+
+      if (!empleados || !empleados.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">No hay personal operativo.</td></tr>`;
+        return;
+      }
+
+      let filasHtml = "";
+
+      empleados.forEach(emp => {
+        const hEstipulada = emp.hora_entrada_estipulada || "08:00";
+        const marcacion = marcaciones ? marcaciones.find(m => m.empleado_id === emp.id) : null;
+
+        if (marcacion) {
+          const fechaObj = new Date(marcacion.fecha_hora);
+          const fechaStr = fechaObj.toLocaleDateString('es-CO');
+          
+          // FORMATO hh-min-seg
+          const h = String(fechaObj.getHours()).padStart(2, '0');
+          const m = String(fechaObj.getMinutes()).padStart(2, '0');
+          const s = String(fechaObj.getSeconds()).padStart(2, '0');
+          const horaFmt = `${h}:${m}:${s}`;
+
+          // COMPARAR RETRASO
+          const [hEst, mEst] = hEstipulada.split(':').map(Number);
+          const limite = new Date(fechaObj);
+          limite.setHours(hEst, mEst, 0, 0);
+
+          let estadoTag = "";
+          if (fechaObj > limite) {
+            const diffMin = Math.ceil((fechaObj - limite) / (1000 * 60));
+            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-rose-900/60 text-rose-300 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Llegada Tarde (${diffMin} min)</span>`;
+          } else {
+            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-emerald-900/60 text-emerald-300 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Ingreso A Tiempo</span>`;
+          }
+
+          filasHtml += `
+            <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+              <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-slate-600"></td>
+              <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
+              <td class="p-2.5 font-mono text-blue-400">${emp.id}</td>
+              <td class="p-2.5 text-slate-300">${emp.cda_nombre || ''}</td>
+              <td class="p-2.5 font-mono text-slate-300">${fechaStr}</td>
+              <td class="p-2.5 font-mono text-amber-300 font-bold">${hEstipulada} AM</td>
+              <td class="p-2.5 font-mono text-white font-bold text-sm bg-slate-900/40 rounded px-2">${horaFmt}</td>
+              <td class="p-2.5">${estadoTag}</td>
+            </tr>
+          `;
+        } else {
+          filasHtml += `
+            <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+              <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-slate-600"></td>
+              <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
+              <td class="p-2.5 font-mono text-blue-400">${emp.id}</td>
+              <td class="p-2.5 text-slate-300">${emp.cda_nombre || ''}</td>
+              <td class="p-2.5 text-slate-500">${new Date().toLocaleDateString('es-CO')}</td>
+              <td class="p-2.5 font-mono text-amber-300">${hEstipulada} AM</td>
+              <td class="p-2.5 text-slate-500 font-mono">Sin Marcación</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-500 font-semibold">Pendiente</span></td>
+            </tr>
+          `;
+        }
+      });
+
+      tbody.innerHTML = filasHtml;
+    }
+
+    // PESTAÑA N° 4: SEGUIMIENTO DE HORAS EXTRA (A PARTIR DE 7 HORAS)
+    async function cargarReporteHorasExtras() {
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
+        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
+      }
+
+      const { data: empleados } = await queryEmp;
+      const { data: marcaciones } = await supabaseClient.from('asistencias').select('*').order('fecha_hora', { ascending: true });
+
+      const tbody = document.getElementById('tabla-horas-extras-body');
+
+      if (!empleados || !empleados.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">No hay personal operativo.</td></tr>`;
+        return;
+      }
+
+      let mapaExtra = {};
+
+      empleados.forEach(emp => {
+        mapaExtra[emp.id] = {
+          nombre: emp.nombre,
+          doc: emp.id,
+          cda: emp.cda_nombre,
+          fecha: new Date().toLocaleDateString('es-CO'),
+          fEntradaCDA: null, fSalidaCDA: null,
+          fSalidaDescanso: null, fEntradaDescanso: null
+        };
+      });
+
+      if (marcaciones && marcaciones.length > 0) {
+        marcaciones.forEach(m => {
+          if (mapaExtra[m.empleado_id]) {
+            const fObj = new Date(m.fecha_hora);
+            mapaExtra[m.empleado_id].fecha = fObj.toLocaleDateString('es-CO');
+
+            if (m.tipo === 'Entrada al CDA') mapaExtra[m.empleado_id].fEntradaCDA = fObj;
+            if (m.tipo === 'Salida del CDA') mapaExtra[m.empleado_id].fSalidaCDA = fObj;
+            if (m.tipo === 'Salida Descanso') mapaExtra[m.empleado_id].fSalidaDescanso = fObj;
+            if (m.tipo === 'Entrada Descanso') mapaExtra[m.empleado_id].fEntradaDescanso = fObj;
+          }
+        });
+      }
+
+      tbody.innerHTML = Object.values(mapaExtra).map(e => {
+        const entStr = e.fEntradaCDA ? e.fEntradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
+        const salStr = e.fSalidaCDA ? e.fSalidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
+
+        let descansoMin = 0;
+        if (e.fSalidaDescanso && e.fEntradaDescanso) {
+          descansoMin = Math.max(0, Math.round((e.fEntradaDescanso - e.fSalidaDescanso) / (1000 * 60)));
+        }
+
+        let horasNetasStr = "Incompleto";
+        let horasExtraTag = `<span class="text-slate-500 font-semibold">Sin Registro Completo</span>`;
+
+        if (e.fEntradaCDA && e.fSalidaCDA) {
+          let msTotales = e.fSalidaCDA - e.fEntradaCDA;
+          if (descansoMin > 0) msTotales -= (descansoMin * 60 * 1000);
+
+          const hrsNetas = msTotales / (1000 * 60 * 60);
+          horasNetasStr = `${hrsNetas.toFixed(1)} Horas`;
+
+          if (hrsNetas > 7) {
+            const extraNetas = hrsNetas - 7;
+            const hExtra = Math.floor(extraNetas);
+            const mExtra = Math.round((extraNetas - hExtra) * 60);
+            horasExtraTag = `<span class="px-2 py-1 rounded text-xs bg-amber-900/60 text-amber-300 font-bold"><i class="fa-solid fa-clock mr-1"></i>+${hExtra}h ${mExtra}m Horas Extra</span>`;
+          } else {
+            horasExtraTag = `<span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 font-semibold">Jornada Regular (<= 7h)</span>`;
+          }
+        }
+
+        return `
+          <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
+            <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
+            <td class="p-2.5 font-mono text-blue-400">${e.doc}</td>
+            <td class="p-2.5 text-slate-300 font-mono">${e.fecha}</td>
+            <td class="p-2.5 font-semibold text-emerald-400">${entStr}</td>
+            <td class="p-2.5 font-semibold text-rose-400">${salStr}</td>
+            <td class="p-2.5 text-slate-300">${descansoMin > 0 ? `${descansoMin} min` : 'No registró'}</td>
+            <td class="p-2.5 font-bold text-white">${horasNetasStr}</td>
+            <td class="p-2.5">${horasExtraTag}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
     async function limpiarRegistrosAsistencia(empId) {
