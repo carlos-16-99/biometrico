@@ -108,7 +108,7 @@
             <input type="password" id="auth-pass" placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-white outline-none focus:border-blue-500">
           </div>
 
-          <!-- CUADRO PEQUEÑO / CHECKBOX PARA SUPERADMIN -->
+          <!-- CHECKBOX SUPERADMIN -->
           <div class="flex items-center gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-700/60">
             <input type="checkbox" id="auth-is-superadmin" class="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 bg-slate-800 cursor-pointer">
             <label for="auth-is-superadmin" class="text-xs font-medium text-slate-300 cursor-pointer select-none">
@@ -142,7 +142,7 @@
 
         <div class="flex gap-2 border-b border-slate-700 pb-2">
           <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">
-            <i class="fa-solid fa-user-plus mr-2"></i>Registro Biométrico Face ID
+            <i class="fa-solid fa-user-plus mr-2"></i>Registro de Personal y Usuarios
           </button>
           <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white">
             <i class="fa-solid fa-list-check mr-2"></i>Historial de Asistencias
@@ -153,7 +153,7 @@
         <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
             <h3 class="font-bold text-md text-blue-400 border-b border-slate-700 pb-2">
-              <i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Registro Biométrico
+              <i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Registro
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -185,27 +185,34 @@
               </div>
             </div>
 
-            <!-- CAMPO DINÁMICO: LISTA DE CDA (SOLO APARECE SI SE SELECCIONA "Administrador de CDA") -->
-            <div id="contenedor-cda-select" class="hidden">
-              <label class="block text-xs font-semibold text-blue-400 mb-1 uppercase">Seleccionar CDA *</label>
-              <select id="emp-cda" class="w-full bg-slate-900 border border-blue-500 rounded-lg px-3 py-2 text-white outline-none">
+            <!-- CAMPO DINÁMICO: LISTA DE CDA -->
+            <div id="contenedor-cda-select" class="hidden space-y-2">
+              <label class="block text-xs font-semibold text-blue-400 uppercase">Seleccionar CDA *</label>
+              <select id="emp-cda" onchange="validarCdaSeleccionado()" class="w-full bg-slate-900 border border-blue-500 rounded-lg px-3 py-2 text-white outline-none">
                 <option value="">-- Seleccionar Sede CDA --</option>
                 <option value="CDA MOTOS RUTA">CDA MOTOS RUTA</option>
                 <option value="CDA ECOTEST">CDA ECOTEST</option>
                 <option value="CDA MOTOS SUR MOTOS">CDA MOTOS SUR MOTOS</option>
                 <option value="CDA MOTOS SUR ITAGUI">CDA MOTOS SUR ITAGUI</option>
                 <option value="CDA MOTOS CC FLORIDA">CDA MOTOS CC FLORIDA</option>
+                <option value="OTRO">Otro...</option>
               </select>
+
+              <!-- CAMPO ADICIONAL SI SELECCIONA "OTRO..." -->
+              <div id="contenedor-cda-otro" class="hidden pt-1">
+                <input type="text" id="emp-cda-nuevo" placeholder="Escribe el nombre del nuevo CDA" class="w-full bg-slate-900 border border-amber-500 rounded-lg px-3 py-2 text-white outline-none text-xs">
+              </div>
             </div>
 
-            <!-- CONTRASEÑA DE ACCESO EN CASO DE CREAR UN ADMIN SECUNDARIO -->
+            <!-- CONTRASEÑA PARA ADMIN SECUNDARIO -->
             <div id="contenedor-pass-admin" class="hidden">
               <label class="block text-xs font-semibold text-amber-400 mb-1 uppercase">Asignar Contraseña de Acceso al Panel *</label>
               <input type="password" id="emp-pass" placeholder="Crear contraseña para este admin secundario" class="w-full bg-slate-900 border border-amber-500 rounded-lg px-3 py-2 text-white outline-none">
             </div>
 
-            <div class="space-y-2 pt-2">
-              <label class="block text-xs font-semibold text-slate-300">Escáner Biométrico de Rostro</label>
+            <!-- CONTENEDOR DE ESCÁNER FACIAL (SE OCULTA SI ES ADMINISTRADOR DE CDA) -->
+            <div id="contenedor-escaner-facial" class="space-y-2 pt-2">
+              <label class="block text-xs font-semibold text-slate-300">Escáner Biométrico de Rostro (Para Marcación Kiosco)</label>
               <div class="relative aspect-video bg-black rounded-xl overflow-hidden border border-slate-700 shadow-inner">
                 <video id="ref-video" autoplay playsinline class="w-full h-full object-cover"></video>
                 <canvas id="ref-canvas" class="absolute top-0 left-0 w-full h-full object-cover"></canvas>
@@ -224,7 +231,7 @@
 
           <div class="lg:col-span-6 bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4 shadow-xl">
             <h3 class="font-bold text-md text-slate-300 border-b border-slate-700 pb-2">
-              <i class="fa-solid fa-users mr-2"></i>Personal Registrado
+              <i class="fa-solid fa-users mr-2"></i>Personal y Usuarios Registrados
             </h3>
 
             <div class="overflow-x-auto">
@@ -292,9 +299,8 @@
     let faceMesh = null;
     let currentLandmarks = null;
     
-    // VARIABLES DE SESIÓN ADMIN
-    let currentAdminRole = null; // 'SUPERADMIN' o 'ADMIN_SECT'
-    let currentAdminCDA = null;  // Nombre del CDA si es Admin Secundario
+    let currentAdminRole = null;
+    let currentAdminCDA = null;
 
     function initFaceMesh() {
       faceMesh = new FaceMesh({
@@ -343,14 +349,12 @@
       if (subtab === 'asistencias') cargarHistorialAsistencias();
     }
 
-    // AUTENTICACIÓN CON CHECKBOX O ADMINISTRADORES SECUNDARIOS
     async function loginAdmin() {
       const user = document.getElementById('auth-user').value.trim();
       const pass = document.getElementById('auth-pass').value.trim();
       const isSuperAdminChecked = document.getElementById('auth-is-superadmin').checked;
       const err = document.getElementById('auth-error');
 
-      // CASO 1: SUPERADMIN PRINCIPAL (Requiere marcar la casilla)
       if (isSuperAdminChecked) {
         if (user === 'CDAMOTOSRUTA' && pass === 'RUTA44**') {
           currentAdminRole = 'SUPERADMIN';
@@ -363,13 +367,12 @@
         }
       }
 
-      // CASO 2: ADMIN SECUNDARIO (Sin marcar la casilla)
       if (!user || !pass) {
-        err.innerText = "❌ Por favor ingresa tu usuario/cédula y contraseña.";
+        err.innerText = "❌ Ingresa tu usuario/cédula y contraseña.";
         return;
       }
 
-      err.innerText = "🔍 Verificando credenciales de Admin Secundario...";
+      err.innerText = "🔍 Verificando credenciales...";
 
       const { data, error } = await supabaseClient
         .from('empleados')
@@ -406,18 +409,31 @@
       if (refStream) refStream.getTracks().forEach(t => t.stop());
     }
 
-    // MOSTRAR U OCULTAR SELECCIÓN DE CDA Y CONTRASEÑA SEGÚN EL CARGO
+    // MOSTRAR/OCULTAR CAMPOS Y ESCÁNER FACIAL SEGÚN EL CARGO
     function validarCargoSeleccionado() {
       const cargo = document.getElementById('emp-cargo').value;
       const cdaBox = document.getElementById('contenedor-cda-select');
       const passBox = document.getElementById('contenedor-pass-admin');
+      const escanerBox = document.getElementById('contenedor-escaner-facial');
 
       if (cargo === 'Administrador de CDA') {
         cdaBox.classList.remove('hidden');
         passBox.classList.remove('hidden');
+        escanerBox.classList.add('hidden'); // OMITIR ESCÁNER FACIAL
       } else {
         cdaBox.classList.add('hidden');
         passBox.classList.add('hidden');
+        escanerBox.classList.remove('hidden'); // REQUERIR ESCÁNER FACIAL
+      }
+    }
+
+    function validarCdaSeleccionado() {
+      const cdaVal = document.getElementById('emp-cda').value;
+      const otroBox = document.getElementById('contenedor-cda-otro');
+      if (cdaVal === 'OTRO') {
+        otroBox.classList.remove('hidden');
+      } else {
+        otroBox.classList.add('hidden');
       }
     }
 
@@ -472,26 +488,38 @@
       const doc = document.getElementById('emp-doc').value.trim();
       const nombre = document.getElementById('emp-nombre').value.trim();
       const cargo = document.getElementById('emp-cargo').value;
-      const cda = document.getElementById('emp-cda').value;
+      let cda = document.getElementById('emp-cda').value;
+      const cdaNuevo = document.getElementById('emp-cda-nuevo').value.trim();
       const pass = document.getElementById('emp-pass').value.trim();
       const status = document.getElementById('emp-status');
 
       if (!doc || !nombre || !cargo) return alert("Por favor ingresa NIT/CC, Nombre y Cargo.");
-      
-      if (cargo === 'Administrador de CDA' && (!cda || !pass)) {
-        return alert("Para el Administrador de CDA debes seleccionar el CDA y asignarle una contraseña.");
-      }
 
-      if (!descriptorFacialGlobal || !fotoRefBlob) {
-        return alert("Debes hacer clic en 'Escanear Puntos Faciales' antes de guardar.");
+      // LÓGICA PARA NUEVO CDA
+      if (cargo === 'Administrador de CDA') {
+        if (!cda) return alert("Selecciona el CDA correspondientes.");
+        if (cda === 'OTRO') {
+          if (!cdaNuevo) return alert("Por favor escribe el nombre del nuevo CDA.");
+          cda = cdaNuevo.toUpperCase();
+          agregarNuevoCdaALista(cda);
+        }
+        if (!pass) return alert("Asigna una contraseña para este Administrador de CDA.");
+      } else {
+        // SI ES TRABAJADOR OPERATIVO, SE REQUIERE ESCANEO FACIAL
+        if (!descriptorFacialGlobal || !fotoRefBlob) {
+          return alert("Debes hacer clic en 'Escanear Puntos Faciales' antes de guardar a un trabajador operativo.");
+        }
       }
 
       status.className = "text-blue-400 font-semibold";
-      status.innerText = "💾 Guardando usuario y patrón biométrico...";
+      status.innerText = "💾 Guardando datos del usuario en el sistema...";
 
-      const fileName = `ref_${doc}.jpg`;
-      await supabaseClient.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
-      const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+      let fotoUrl = null;
+      if (fotoRefBlob) {
+        const fileName = `ref_${doc}.jpg`;
+        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
+        fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+      }
 
       const datosEmpleado = {
         id: doc,
@@ -510,16 +538,29 @@
         status.innerText = "❌ Error al guardar datos en Supabase.";
       } else {
         status.className = "text-emerald-400 font-bold";
-        status.innerText = "✅ ¡Usuario / Trabajador guardado con éxito!";
+        status.innerText = "✅ ¡Usuario registrado exitosamente!";
         document.getElementById('emp-doc').value = "";
         document.getElementById('emp-nombre').value = "";
         document.getElementById('emp-cargo').value = "";
         document.getElementById('emp-cda').value = "";
+        document.getElementById('emp-cda-nuevo').value = "";
         document.getElementById('emp-pass').value = "";
         validarCargoSeleccionado();
+        validarCdaSeleccionado();
         descriptorFacialGlobal = null;
         fotoRefBlob = null;
         cargarListaPersonal();
+      }
+    }
+
+    function agregarNuevoCdaALista(nuevoNombre) {
+      const select = document.getElementById('emp-cda');
+      const existe = Array.from(select.options).some(opt => opt.value === nuevoNombre);
+      if (!existe) {
+        const opt = document.createElement('option');
+        opt.value = nuevoNombre;
+        opt.innerText = nuevoNombre;
+        select.insertBefore(opt, select.options[select.options.length - 1]);
       }
     }
 
@@ -527,7 +568,6 @@
       if(!supabaseClient) return;
       let query = supabaseClient.from('empleados').select('*');
 
-      // Si es Admin Secundario, filtra únicamente el personal de su CDA
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         query = query.eq('cda_nombre', currentAdminCDA);
       }
@@ -540,9 +580,14 @@
         return;
       }
 
+      // AGREGAR AUTOMÁTICAMENTE CDAS EXISTENTES A LA LISTA DESPLEGABLE
+      data.forEach(e => {
+        if (e.cda_nombre) agregarNuevoCdaALista(e.cda_nombre);
+      });
+
       tbody.innerHTML = data.map(e => `
         <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
-          <td class="p-2.5"><img src="${e.foto_referencia_url}" class="w-9 h-9 rounded-full object-cover border border-slate-600"></td>
+          <td class="p-2.5"><img src="${e.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-9 h-9 rounded-full object-cover border border-slate-600"></td>
           <td class="p-2.5 font-semibold text-white">${e.nombre}<br><span class="text-xs text-slate-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
           <td class="p-2.5 text-xs font-mono text-blue-400">${e.id}</td>
           <td class="p-2.5 text-xs text-slate-300 font-semibold">${e.cda_nombre || 'CDA MOTOS RUTA'}</td>
