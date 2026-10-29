@@ -718,6 +718,31 @@
       document.getElementById('modal-registro-facial').classList.add('hidden');
     }
 
+    // EXTRAE Y NORMALIZA VECTOR FACIAL BASADO EN LA CENTROIDE Y ANCHO DEL ROSTRO
+    function extraerVectorFacialNormalizado(landmarks) {
+      const pNose = landmarks[1];
+      const pLeftEye = landmarks[33];
+      const pRightEye = landmarks[263];
+
+      const widthRef = Math.hypot(pRightEye.x - pLeftEye.x, pRightEye.y - pLeftEye.y) || 1.0;
+
+      // Índices clave de ojos, cejas, nariz, boca y contornos para reducir falsos positivos
+      const indicesClave = [
+        1, 4, 33, 61, 133, 159, 145, 263, 291, 362, 386, 374, 
+        0, 17, 61, 291, 13, 14, 78, 308, 10, 152, 234, 454
+      ];
+
+      const vector = [];
+      indicesClave.forEach(idx => {
+        const p = landmarks[idx];
+        vector.push((p.x - pNose.x) / widthRef);
+        vector.push((p.y - pNose.y) / widthRef);
+        vector.push((p.z - pNose.z) / widthRef);
+      });
+
+      return vector;
+    }
+
     async function capturarPatronFacial() {
       const status = document.getElementById('reg-status');
       const video = document.getElementById('reg-video');
@@ -732,7 +757,7 @@
         return;
       }
 
-      descriptorFacialGlobal = currentLandmarks.map(p => [p.x, p.y, p.z]).flat();
+      descriptorFacialGlobal = extraerVectorFacialNormalizado(currentLandmarks);
 
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth || 640;
@@ -999,7 +1024,7 @@
         return;
       }
 
-      const vecActual = currentLandmarks.map(p => [p.x, p.y, p.z]).flat();
+      const vecActual = extraerVectorFacialNormalizado(currentLandmarks);
 
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth || 640;
@@ -1026,7 +1051,8 @@
       }
 
       let mejorCoincidencia = null;
-      let menorDistancia = 2.5;
+      // AJUSTE DE PRECISIÓN: Umbral reducido a 0.28 con vector normalizado de facciones clave
+      let menorDistancia = 0.28;
 
       empleados.forEach(emp => {
         if (emp.descriptor_facial) {
