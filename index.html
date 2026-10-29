@@ -492,6 +492,7 @@
     
     let currentAdminRole = null;
     let currentAdminCDA = null;
+    let currentAdminUser = null;
     let editandoDocumentoId = null;
 
     const listaCDAProyectados = [
@@ -564,14 +565,26 @@
       return `${NOMBRES_MESES[d.getMonth()]} ${d.getFullYear()}`;
     }
 
-    function solicitarClaveAdminPrincipal() {
-      const clave = prompt("🔒 ACCIÓN PROTEGIDA:\nPor favor ingresa la clave del Admin Principal (SuperAdmin) para autorizar:");
-      if (clave === 'RUTA44**') {
-        return true;
-      } else {
-        alert("❌ Clave de Admin Principal incorrecta. Acción cancelada.");
-        return false;
+    // AUTENTICACIÓN SEGÚN EL ROL DE SESIÓN (SUPERADMIN O ADMIN SECUNDARIO DE CDA)
+    async function solicitarAutorizacion() {
+      if (currentAdminRole === 'SUPERADMIN') {
+        const clave = prompt("🔒 AUTORIZACIÓN DE SUPERADMIN:\nIngresa la contraseña del Admin Principal para continuar:");
+        if (clave === 'RUTA44**') {
+          return true;
+        } else {
+          alert("❌ Contraseña de SuperAdmin incorrecta.");
+          return false;
+        }
+      } else if (currentAdminRole === 'ADMIN_SECUNDARIO') {
+        const clave = prompt(`🔒 CONFIRMACIÓN DE SEGURIDAD (${currentAdminUser.nombre}):\nIngresa tu contraseña de acceso para autorizar esta acción:`);
+        if (clave && clave === currentAdminUser.password) {
+          return true;
+        } else {
+          alert("❌ Contraseña incorrecta. Acción cancelada.");
+          return false;
+        }
       }
+      return false;
     }
 
     function renderCheckboxesCDA() {
@@ -633,6 +646,7 @@
         if (user === 'CDAMOTOSRUTA' && pass === 'RUTA44**') {
           currentAdminRole = 'SUPERADMIN';
           currentAdminCDA = 'GLOBAL';
+          currentAdminUser = { id: 'SUPERADMIN', nombre: 'SuperAdmin' };
           iniciarSesionDashboard("CDAMOTOSRUTA (Admin Principal)");
           return;
         } else {
@@ -660,6 +674,7 @@
       } else {
         currentAdminRole = 'ADMIN_SECUNDARIO';
         currentAdminCDA = data.cda_nombre || 'CDA MOTOS RUTA';
+        currentAdminUser = data;
         iniciarSesionDashboard(`${data.nombre} (${currentAdminCDA})`);
       }
     }
@@ -676,13 +691,12 @@
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         if (optAdminCda) optAdminCda.style.display = 'none';
         filtroCdaBox.classList.add('hidden');
-        document.getElementById('th-accion-emp').style.display = 'none';
       } else {
         if (optAdminCda) optAdminCda.style.display = 'block';
         filtroCdaBox.classList.remove('hidden');
-        document.getElementById('th-accion-emp').style.display = 'table-cell';
       }
 
+      document.getElementById('th-accion-emp').style.display = 'table-cell';
       cargarListaPersonal();
     }
 
@@ -693,6 +707,7 @@
       document.getElementById('auth-is-superadmin').checked = false;
       currentAdminRole = null;
       currentAdminCDA = null;
+      currentAdminUser = null;
       limpiarFormularioPersonal();
     }
 
@@ -731,7 +746,6 @@
       }
     }
 
-    // VALIDACIÓN ESTRICTA DE CENTRADO Y DISTANCIA DEL ROSTRO RESPECTO AL CROQUIS
     function validarPosicionRostroEnCroquis(landmarks) {
       const nariz = landmarks[1];
       const ojoIzquierdo = landmarks[33];
@@ -739,25 +753,20 @@
       const menton = landmarks[152];
       const frente = landmarks[10];
 
-      // Centro del rostro (esperado en ~0.50 X y ~0.50 Y)
       const centroX = nariz.x;
       const centroY = nariz.y;
 
-      // Ancho del rostro (Distancia entre ojos) y alto del rostro
       const anchoRostro = Math.hypot(ojoDerecho.x - ojoIzquierdo.x, ojoDerecho.y - ojoIzquierdo.y);
       const altoRostro = Math.hypot(menton.x - frente.x, menton.y - frente.y);
 
-      // Regla 1: Debe estar horizontalmente centrado (Tol: 0.38 - 0.62)
       if (centroX < 0.38 || centroX > 0.62) {
         return { ok: false, msg: "⚠️ Centra tu rostro horizontalmente en el croquis" };
       }
 
-      // Regla 2: Debe estar verticalmente centrado (Tol: 0.38 - 0.62)
       if (centroY < 0.38 || centroY > 0.62) {
         return { ok: false, msg: "⚠️ Ajusta la altura de tu rostro dentro del croquis" };
       }
 
-      // Regla 3: Distancia/Tamaño (Si está muy lejos o muy cerca)
       if (anchoRostro < 0.18 || altoRostro < 0.30) {
         return { ok: false, msg: "⚠️ Acércate un poco más al croquis" };
       }
@@ -825,7 +834,6 @@
         return;
       }
 
-      // VALIDAR POSICIÓN RIGUROSA DENTRO DEL CROQUIS
       const validacion = validarPosicionRostroEnCroquis(currentLandmarks);
 
       if (!validacion.ok) {
@@ -1006,25 +1014,27 @@
           <td class="p-2.5">
             ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30">Inactivo</span>`}
           </td>
-          ${currentAdminRole === 'SUPERADMIN' ? `
-            <td class="p-2.5 text-right space-x-1">
-              <button type="button" onclick="editarPersonal('${e.id}')" title="Configurar Datos" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-2 py-1 rounded border border-zinc-700">
-                <i class="fa-solid fa-gear"></i>
-              </button>
-              <button type="button" onclick="toggleEstadoPersonal('${e.id}', ${e.activo !== false})" title="${e.activo !== false ? 'Deshabilitar' : 'Habilitar'}" class="text-xs ${e.activo !== false ? 'bg-amber-950 text-amber-400 border border-amber-500/30' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'} px-2 py-1 rounded">
-                <i class="fa-solid ${e.activo !== false ? 'fa-user-slash' : 'fa-user-check'}"></i>
-              </button>
-              <button type="button" onclick="eliminarPersonal('${e.id}')" title="Eliminar" class="text-xs bg-rose-950 text-rose-400 border border-rose-500/30 px-2 py-1 rounded hover:bg-rose-900">
+          <td class="p-2.5 text-right space-x-1">
+            <button type="button" onclick="editarPersonal('${e.id}')" title="Editar Datos" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-2 py-1 rounded border border-zinc-700">
+              <i class="fa-solid fa-gear"></i>
+            </button>
+            <button type="button" onclick="toggleEstadoPersonal('${e.id}', ${e.activo !== false})" title="${e.activo !== false ? 'Deshabilitar' : 'Habilitar'}" class="text-xs ${e.activo !== false ? 'bg-amber-950 text-amber-400 border border-amber-500/30' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'} px-2 py-1 rounded">
+              <i class="fa-solid ${e.activo !== false ? 'fa-user-slash' : 'fa-user-check'}"></i>
+            </button>
+            ${currentAdminRole === 'SUPERADMIN' ? `
+              <button type="button" onclick="eliminarPersonal('${e.id}')" title="Eliminar Definitivamente" class="text-xs bg-rose-950 text-rose-400 border border-rose-500/30 px-2 py-1 rounded hover:bg-rose-900">
                 <i class="fa-solid fa-trash"></i>
               </button>
-            </td>
-          ` : ''}
+            ` : ''}
+          </td>
         </tr>
       `).join('');
     }
 
+    // ACCIÓN PERMITIDA A ADMIN DE CDA (REQUIERE SU CONTRASEÑA)
     async function editarPersonal(id) {
-      if (!solicitarClaveAdminPrincipal()) return;
+      const autorizado = await solicitarAutorizacion();
+      if (!autorizado) return;
 
       const { data: e } = await supabaseClient.from('empleados').select('*').eq('id', id).single();
       if (!e) return;
@@ -1049,14 +1059,24 @@
       }
     }
 
+    // ACCIÓN PERMITIDA A ADMIN DE CDA (REQUIERE SU CONTRASEÑA)
     async function toggleEstadoPersonal(id, estadoActual) {
-      if (!solicitarClaveAdminPrincipal()) return;
+      const autorizado = await solicitarAutorizacion();
+      if (!autorizado) return;
+
       await supabaseClient.from('empleados').update({ activo: !estadoActual }).eq('id', id);
       cargarListaPersonal();
     }
 
+    // EXCLUSIVO DE SUPERADMIN
     async function eliminarPersonal(id) {
-      if (!solicitarClaveAdminPrincipal()) return;
+      if (currentAdminRole !== 'SUPERADMIN') {
+        alert("⛔ Esta acción de eliminación permanente solo está permitida para el SuperAdmin.");
+        return;
+      }
+      const autorizado = await solicitarAutorizacion();
+      if (!autorizado) return;
+
       await supabaseClient.from('empleados').delete().eq('id', id);
       cargarListaPersonal();
     }
@@ -1091,7 +1111,6 @@
       return Math.sqrt(suma);
     }
 
-    // PROCESO DE VALIDACIÓN BIOMÉTRICA Y REGLAS DE NEGOCIO CORREGIDAS
     async function procesarValidacionFaceID() {
       const status = document.getElementById('scan-status');
       const video = document.getElementById('scan-video');
@@ -1111,7 +1130,6 @@
         return;
       }
 
-      // VALIDACIÓN DE CROQUIS
       const validacionCroquis = validarPosicionRostroEnCroquis(currentLandmarks);
 
       if (!validacionCroquis.ok) {
@@ -1172,7 +1190,6 @@
         return;
       }
 
-      // REVISIÓN DE REGLAS DE NEGOCIO CORREGIDAS
       const hoyInicio = new Date();
       hoyInicio.setHours(0,0,0,0);
 
@@ -1186,7 +1203,6 @@
       const yaSalioDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Salida Descanso') : false;
       const yaEntroDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada Descanso') : false;
 
-      // REGLA 1 y 2: Entrada Descanso no se deja registrar si no ha hecho ENTRADA AL CDA
       if (scanTipo === 'Entrada Descanso' && !yaEntroCDA) {
         status.className = "text-xs font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
@@ -1194,7 +1210,6 @@
         return;
       }
 
-      // REGLA 3: Salida descanso no se deja registrar si no ha hecho registro de ENTRADA DESCANSO
       if (scanTipo === 'Salida Descanso' && !yaEntroDescanso) {
         status.className = "text-xs font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA DESCANSO".`;
@@ -1202,7 +1217,6 @@
         return;
       }
 
-      // REGLA 4: Salida del CDA no se deja registrar si no ha hecho ENTRADA AL CDA
       if (scanTipo === 'Salida del CDA' && !yaEntroCDA) {
         status.className = "text-xs font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DEL CDA" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
@@ -1210,7 +1224,6 @@
         return;
       }
 
-      // REGLA 4 (Continuación): Si registró Entrada Descanso, no deje registrar Salida CDA hasta que haya hecho el registro Salida Descanso
       if (scanTipo === 'Salida del CDA' && yaEntroDescanso && !yaSalioDescanso) {
         status.className = "text-xs font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: REGISTRASTE ENTRADA A DESCANSO. DEBES REGISTRAR "SALIDA DESCANSO" ANTES DE TU SALIDA DEL CDA.`;
@@ -1218,7 +1231,6 @@
         return;
       }
 
-      // VALIDACIÓN DE DUPLICADO DE MISMO REGISTRO EN EL DÍA
       const yaExisteEsteRegistro = marcacionesHoy ? marcacionesHoy.find(m => m.tipo === scanTipo) : null;
       if (yaExisteEsteRegistro) {
         const horaReg = new Date(yaExisteEsteRegistro.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
@@ -1228,7 +1240,6 @@
         return;
       }
 
-      // SI TODO ESTÁ CORRECTO, MARCAR ASISTENCIA
       const tmpCanvas = document.createElement('canvas');
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = canvas.height;
@@ -1811,7 +1822,8 @@
     }
 
     async function limpiarRegistrosAsistencia(empId) {
-      if (!solicitarClaveAdminPrincipal()) return;
+      const autorizado = await solicitarAutorizacion();
+      if (!autorizado) return;
       await supabaseClient.from('asistencias').delete().eq('empleado_id', empId);
       cargarHistorialAsistencias();
     }
