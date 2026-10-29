@@ -190,9 +190,6 @@
           <button type="button" onclick="switchAdminTab('asistencias')" id="subtab-asistencias" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
             <i class="fa-solid fa-list-check mr-2"></i>Historial de Asistencias
           </button>
-          <button type="button" onclick="switchAdminTab('horarios')" id="subtab-horarios" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
-            <i class="fa-solid fa-clock mr-2"></i>Cargar Horarios Excel
-          </button>
           <button type="button" onclick="switchAdminTab('llegadas-tardes')" id="subtab-llegadas-tardes" class="px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white">
             <i class="fa-solid fa-user-clock mr-2"></i>Control Llegadas Tardes
           </button>
@@ -306,45 +303,6 @@
           </div>
         </div>
 
-        <!-- MÓDULO CARGA DE HORARIOS -->
-        <div id="subview-horarios" class="hidden space-y-6 w-full">
-          <div class="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-xl space-y-4 w-full">
-            <div class="flex justify-between items-center flex-wrap gap-4 border-b border-zinc-800 pb-3">
-              <div>
-                <h3 class="font-bold text-md text-white"><i class="fa-solid fa-file-excel mr-2 text-lime-400"></i>Cargar Horarios Semanales (Excel/CSV)</h3>
-                <p class="text-xs text-zinc-400">Sube el archivo semanal o ajusta el horario individual por colaborador. Al guardar se sincronizan las Llegadas Tardes.</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <input type="file" id="excel-file-input" accept=".csv, .xlsx" class="bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-lime-500 file:text-zinc-950 hover:file:bg-lime-400 cursor-pointer">
-                <button type="button" onclick="procesarArchivoExcel()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-4 py-2 rounded-lg text-xs transition">
-                  Subir Excel
-                </button>
-              </div>
-            </div>
-            <div id="excel-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
-
-            <div class="overflow-x-auto pt-2 w-full">
-              <table class="w-full text-left text-xs text-zinc-300">
-                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
-                  <tr>
-                    <th class="p-3">Trabajador</th>
-                    <th class="p-3">Documento</th>
-                    <th class="p-3">CDA</th>
-                    <th class="p-3">Mes</th>
-                    <th class="p-3">Semana Actual</th>
-                    <th class="p-3">Rango de Fechas</th>
-                    <th class="p-3">Hora Entrada Estipulada</th>
-                    <th class="p-3 text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-edicion-horarios-body">
-                  <tr><td colspan="8" class="p-4 text-center text-zinc-500">Cargando lista de colaboradores...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <!-- PESTAÑA N° 1: HISTORIAL DE ASISTENCIAS GENERAL -->
         <div id="subview-asistencias" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
@@ -378,7 +336,7 @@
           </div>
         </div>
 
-        <!-- PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES -->
+        <!-- PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES (CON EDICIÓN DE HORA Y DETALLE POR FECHA) -->
         <div id="subview-llegadas-tardes" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             
@@ -413,7 +371,7 @@
                     <th class="p-2.5">Mes</th>
                     <th class="p-2.5">Semana</th>
                     <th class="p-2.5">Fecha</th>
-                    <th class="p-2.5">Hora Estipulada</th>
+                    <th class="p-2.5">Hora Estipulada (Editar)</th>
                     <th class="p-2.5">Hora Marcación Real (HH:MM:SS)</th>
                     <th class="p-2.5">Estado / Retraso</th>
                     <th class="p-2.5">Novedad / Soporte (Observación)</th>
@@ -510,7 +468,7 @@
 
     const NOMBRES_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-    // GENERADOR COMPLETO DE HORAS (00:00 HASTA 23:30 EN PASOS DE 30 MIN)
+    // GENERADOR DE OPCIONES DE HORA (00:00 A 23:30 PASOS DE 30 MIN)
     function generarOpcionesHoras24h() {
       const opciones = [];
       for (let h = 0; h < 24; h++) {
@@ -523,27 +481,13 @@
           if (h12 === 0) h12 = 12;
           const hh12 = String(h12).padStart(2, '0');
 
-          const valor24 = `${hh24}:${mm}`;
+          const valor24 = `${hh24}:${mm}:00`;
           const label12 = `${hh12}:${mm} ${periodo}`;
 
           opciones.push({ valor: valor24, label: label12 });
         }
       }
       return opciones;
-    }
-
-    // OBTENER RANGO DE FECHAS DE LA SEMANA ACTUAL (LUNES A DOMINGO)
-    function getRangoSemanaActual(d = new Date()) {
-      const fecha = new Date(d);
-      const day = fecha.getDay();
-      const diffLunes = fecha.getDate() - day + (day === 0 ? -6 : 1);
-      
-      const lunes = new Date(fecha.setDate(diffLunes));
-      const domingo = new Date(lunes);
-      domingo.setDate(lunes.getDate() + 6);
-
-      const op = { day: 'numeric', month: 'short' };
-      return `${lunes.toLocaleDateString('es-CO', op)} - ${domingo.toLocaleDateString('es-CO', op)}`;
     }
 
     function initFaceMesh() {
@@ -635,11 +579,10 @@
     function switchAdminTab(subtab) {
       document.getElementById('subview-empleados').style.display = (subtab === 'empleados') ? 'grid' : 'none';
       document.getElementById('subview-asistencias').style.display = (subtab === 'asistencias') ? 'block' : 'none';
-      document.getElementById('subview-horarios').style.display = (subtab === 'horarios') ? 'block' : 'none';
       document.getElementById('subview-llegadas-tardes').style.display = (subtab === 'llegadas-tardes') ? 'block' : 'none';
       document.getElementById('subview-horas-extras').style.display = (subtab === 'horas-extras') ? 'block' : 'none';
 
-      const tabs = ['empleados', 'asistencias', 'horarios', 'llegadas-tardes', 'horas-extras'];
+      const tabs = ['empleados', 'asistencias', 'llegadas-tardes', 'horas-extras'];
       tabs.forEach(t => {
         const btn = document.getElementById(`subtab-${t}`);
         if (btn) btn.className = (subtab === t) ? 'px-4 py-2 rounded-lg text-sm font-bold bg-lime-500 text-zinc-950' : 'px-4 py-2 rounded-lg text-sm font-bold text-zinc-400 hover:text-white';
@@ -647,7 +590,6 @@
 
       if (subtab === 'empleados') cargarListaPersonal();
       if (subtab === 'asistencias') cargarHistorialAsistencias();
-      if (subtab === 'horarios') cargarTablaEdicionHorarios();
       if (subtab === 'llegadas-tardes') cargarReporteLlegadasTardes();
       if (subtab === 'horas-extras') cargarReporteHorasExtras();
     }
@@ -1009,120 +951,6 @@
       cargarListaPersonal();
     }
 
-    // CARGA DE HORARIOS SEMANALES PARA TODOS LOS COLABORADORES
-    async function cargarTablaEdicionHorarios() {
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
-      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
-        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
-      }
-
-      const { data: empleados } = await queryEmp;
-      const tbody = document.getElementById('tabla-edicion-horarios-body');
-
-      if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-500">No hay trabajadores operativos registrados.</td></tr>`;
-        return;
-      }
-
-      const opcionesHoras = generarOpcionesHoras24h();
-      const hoy = new Date();
-      const mesStr = getNombreMes(hoy);
-      const numSemana = getNumeroSemana(hoy);
-      const semStr = `Semana ${numSemana}`;
-      const rangoSemanaStr = getRangoSemanaActual(hoy);
-
-      tbody.innerHTML = empleados.map(e => {
-        let horaGuardada = e.hora_entrada_estipulada || "08:00";
-        if (horaGuardada.length === 5) horaGuardada = horaGuardada + ":00";
-
-        return `
-          <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-            <td class="p-3 font-semibold text-white">${e.nombre}</td>
-            <td class="p-3 font-mono text-lime-400">${e.id}</td>
-            <td class="p-3 text-zinc-300">${e.cda_nombre || ''}</td>
-            <td class="p-3 font-mono text-zinc-300">${mesStr}</td>
-            <td class="p-3 font-mono text-lime-400 font-semibold">${semStr}</td>
-            <td class="p-3 font-mono text-amber-400 font-medium">${rangoSemanaStr}</td>
-            <td class="p-3">
-              <select id="sel-hora-${e.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2.5 py-1.5 text-xs text-amber-300 font-bold outline-none focus:border-lime-500">
-                ${opcionesHoras.map(h => {
-                  const valFmt = h.valor.length === 5 ? h.valor + ":00" : h.valor;
-                  return `<option value="${valFmt}" ${horaGuardada === valFmt ? 'selected' : ''}>${h.label}</option>`;
-                }).join('')}
-              </select>
-            </td>
-            <td class="p-3 text-right">
-              <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3.5 py-1.5 rounded-lg text-xs shadow transition">
-                <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar y Sincronizar
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    // GUARDAR HORA DE ENTRADA Y SINCRONIZAR A LLEGADAS TARDES
-    async function guardarHoraIndividual(id) {
-      const horaSel = document.getElementById(`sel-hora-${id}`).value;
-      
-      const { error } = await supabaseClient
-        .from('empleados')
-        .update({ hora_entrada_estipulada: horaSel })
-        .eq('id', id);
-      
-      if (error) {
-        console.error("Error al actualizar Supabase:", error);
-        alert("❌ Error al guardar la hora de entrada estipulada.");
-        return;
-      }
-
-      alert(`✅ Hora estipulada sincronizada a las ${horaSel}. Redirigiendo a Control Llegadas Tardes...`);
-      switchAdminTab('llegadas-tardes');
-    }
-
-    // PROCESAMIENTO DE ARCHIVO EXCEL/CSV
-    function procesarArchivoExcel() {
-      const fileInput = document.getElementById('excel-file-input');
-      const status = document.getElementById('excel-status');
-
-      if (!fileInput.files || fileInput.files.length === 0) {
-        return alert("Por favor selecciona un archivo CSV o Excel.");
-      }
-
-      status.className = "text-lime-400 font-semibold";
-      status.innerText = "⏳ Procesando archivo...";
-
-      Papa.parse(fileInput.files[0], {
-        header: true,
-        skipEmptyLines: true,
-        complete: async function(results) {
-          const filas = results.data;
-          let actualizados = 0;
-
-          for (let row of filas) {
-            const doc = row.cedula || row.documento || row.id;
-            let hIn = row.hora_entrada || row.entrada;
-
-            if (doc && hIn) {
-              hIn = hIn.trim();
-              if (hIn.length === 5) hIn = hIn + ":00";
-
-              await supabaseClient
-                .from('empleados')
-                .update({ hora_entrada_estipulada: hIn })
-                .eq('id', doc.toString().trim());
-              actualizados++;
-            }
-          }
-
-          status.className = "text-lime-400 font-bold";
-          status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros. Sincronizando...`;
-          cargarTablaEdicionHorarios();
-          switchAdminTab('llegadas-tardes');
-        }
-      });
-    }
-
     // KIOSCO Y MARCACIÓN BIOMÉTRICA
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
@@ -1474,7 +1302,7 @@
       descargarCSVFile(csv, "Historial_Asistencias.csv");
     }
 
-    // PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES
+    // PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES (ACTUALIZADO: EDICIÓN DIRECTA Y FILAS POR FECHA)
     async function cargarReporteLlegadasTardes() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1497,20 +1325,27 @@
       const fltMes = document.getElementById('flt-tardes-mes').value;
       const fltSemana = document.getElementById('flt-tardes-semana').value;
 
+      const opcionesHoras = generarOpcionesHoras24h();
+      let mapaEmpleados = {};
+      empleados.forEach(e => mapaEmpleados[e.id] = e);
+
       let filasHtml = "";
 
-      empleados.forEach(emp => {
-        let hEstipulada = emp.hora_entrada_estipulada || "08:00:00";
-        if (hEstipulada.length === 5) hEstipulada = hEstipulada + ":00";
+      if (!marcaciones || marcaciones.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay marcaciones de entrada registradas en el historial.</td></tr>`;
+        return;
+      }
 
-        const marcacion = marcaciones ? marcaciones.find(m => m.empleado_id === emp.id) : null;
-        const fechaObj = marcacion ? new Date(marcacion.fecha_hora) : new Date();
-        
-        const mesStr = getNombreMes(fechaObj);
-        const numSem = getNumeroSemana(fechaObj);
+      marcaciones.forEach(marcacion => {
+        const emp = mapaEmpleados[marcacion.empleado_id];
+        if (!emp) return;
 
         if (fltNombre && !emp.nombre.toLowerCase().includes(fltNombre) && !emp.id.includes(fltNombre)) return;
         if (fltCDA !== 'TODOS' && (!emp.cda_nombre || !emp.cda_nombre.includes(fltCDA))) return;
+
+        const fechaObj = new Date(marcacion.fecha_hora);
+        const mesStr = getNombreMes(fechaObj);
+        const numSem = getNumeroSemana(fechaObj);
 
         if (fltMes) {
           const yyyyMm = fechaObj.toISOString().substring(0,7);
@@ -1522,80 +1357,94 @@
           if (numSem !== numSemSelected) return;
         }
 
-        if (marcacion) {
-          const fechaStr = fechaObj.toLocaleDateString('es-CO');
-          
-          const h = String(fechaObj.getHours()).padStart(2, '0');
-          const m = String(fechaObj.getMinutes()).padStart(2, '0');
-          const s = String(fechaObj.getSeconds()).padStart(2, '0');
-          const horaFmt = `${h}:${m}:${s}`;
+        let hEstipulada = emp.hora_entrada_estipulada || "08:00:00";
+        if (hEstipulada.length === 5) hEstipulada = hEstipulada + ":00";
 
-          // CALCULADOR DE RETRASO
-          const partesEst = hEstipulada.split(':');
-          const hEst = parseInt(partesEst[0]);
-          const mEst = parseInt(partesEst[1]);
+        const fechaStr = fechaObj.toLocaleDateString('es-CO');
+        const h = String(fechaObj.getHours()).padStart(2, '0');
+        const m = String(fechaObj.getMinutes()).padStart(2, '0');
+        const s = String(fechaObj.getSeconds()).padStart(2, '0');
+        const horaFmt = `${h}:${m}:${s}`;
 
-          const limite = new Date(fechaObj);
-          limite.setHours(hEst, mEst, 0, 0);
+        const partesEst = hEstipulada.split(':');
+        const hEst = parseInt(partesEst[0]);
+        const mEst = parseInt(partesEst[1]);
 
-          const pEst = hEst >= 12 ? 'PM' : 'AM';
-          let h12 = hEst % 12;
-          if (h12 === 0) h12 = 12;
-          const labelEstipuladaFmt = `${String(h12).padStart(2, '0')}:${String(mEst).padStart(2, '0')} ${pEst}`;
+        const limite = new Date(fechaObj);
+        limite.setHours(hEst, mEst, 0, 0);
 
-          let esTarde = false;
-          let estadoTag = "";
+        let esTarde = false;
+        let estadoTag = "";
 
-          if (fechaObj > limite) {
-            esTarde = true;
-            const diffMs = fechaObj - limite;
-            const diffTotalMin = Math.floor(diffMs / (1000 * 60));
-            const hrsRetraso = Math.floor(diffTotalMin / 60);
-            const minRetraso = diffTotalMin % 60;
+        if (fechaObj > limite) {
+          esTarde = true;
+          const diffMs = fechaObj - limite;
+          const diffTotalMin = Math.floor(diffMs / (1000 * 60));
+          const hrsRetraso = Math.floor(diffTotalMin / 60);
+          const minRetraso = diffTotalMin % 60;
 
-            let textoTiempo = "";
-            if (hrsRetraso > 0) {
-              textoTiempo = `${hrsRetraso} h y ${minRetraso} min de retraso`;
-            } else {
-              textoTiempo = `${minRetraso} min de retraso`;
-            }
-
-            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-rose-950 text-rose-400 border border-rose-500/30 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Llegada Tarde (${textoTiempo})</span>`;
-          } else {
-            estadoTag = `<span class="px-2 py-1 rounded text-xs bg-lime-950 text-lime-400 border border-lime-500/30 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Llegada a Tiempo</span>`;
-          }
-
-          if (fltEstado === 'TARDE' && !esTarde) return;
-          if (fltEstado === 'A_TIEMPO' && esTarde) return;
-
-          const obsActual = marcacion.novedad || '';
-
-          filasHtml += `
-            <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-              <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-zinc-700"></td>
-              <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
-              <td class="p-2.5 font-mono text-lime-400">${emp.id}</td>
-              <td class="p-2.5 text-zinc-300">${emp.cda_nombre || ''}</td>
-              <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
-              <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${numSem}</td>
-              <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
-              <td class="p-2.5 font-mono text-amber-300 font-bold">${labelEstipuladaFmt}</td>
-              <td class="p-2.5 font-mono text-white font-bold text-sm bg-zinc-950 rounded px-2 border border-zinc-800">${horaFmt}</td>
-              <td class="p-2.5">${estadoTag}</td>
-              <td class="p-2.5">
-                <div class="flex items-center gap-1">
-                  <input type="text" id="obs-m-${marcacion.id}" value="${obsActual}" placeholder="Escribir observación..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 outline-none focus:border-lime-500 w-48">
-                  <button type="button" onclick="guardarNovedadMarcacion(${marcacion.id})" title="Guardar Observación" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 p-1.5 rounded font-bold">
-                    <i class="fa-solid fa-floppy-disk text-xs"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `;
+          let textoTiempo = hrsRetraso > 0 ? `${hrsRetraso} h y ${minRetraso} min` : `${minRetraso} min`;
+          estadoTag = `<span class="px-2 py-1 rounded text-xs bg-rose-950 text-rose-400 border border-rose-500/30 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Llegada Tarde (${textoTiempo})</span>`;
+        } else {
+          estadoTag = `<span class="px-2 py-1 rounded text-xs bg-lime-950 text-lime-400 border border-lime-500/30 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Llegada a Tiempo</span>`;
         }
+
+        if (fltEstado === 'TARDE' && !esTarde) return;
+        if (fltEstado === 'A_TIEMPO' && esTarde) return;
+
+        const obsActual = marcacion.novedad || '';
+
+        filasHtml += `
+          <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
+            <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-zinc-700"></td>
+            <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
+            <td class="p-2.5 font-mono text-lime-400">${emp.id}</td>
+            <td class="p-2.5 text-zinc-300">${emp.cda_nombre || ''}</td>
+            <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
+            <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${numSem}</td>
+            <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
+            <td class="p-2.5">
+              <div class="flex items-center gap-1">
+                <select id="sel-hora-tarde-${emp.id}-${marcacion.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none focus:border-lime-500">
+                  ${opcionesHoras.map(opt => `<option value="${opt.valor}" ${hEstipulada === opt.valor ? 'selected' : ''}>${opt.label}</option>`).join('')}
+                </select>
+                <button type="button" onclick="guardarHoraEstipuladaDirecta('${emp.id}', 'sel-hora-tarde-${emp.id}-${marcacion.id}')" title="Sincronizar Hora" class="bg-amber-500 hover:bg-amber-400 text-zinc-950 p-1 rounded font-bold text-xs">
+                  <i class="fa-solid fa-rotate"></i>
+                </button>
+              </div>
+            </td>
+            <td class="p-2.5 font-mono text-white font-bold text-sm bg-zinc-950 rounded px-2 border border-zinc-800">${horaFmt}</td>
+            <td class="p-2.5">${estadoTag}</td>
+            <td class="p-2.5">
+              <div class="flex items-center gap-1">
+                <input type="text" id="obs-m-${marcacion.id}" value="${obsActual}" placeholder="Escribir observación..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 outline-none focus:border-lime-500 w-44">
+                <button type="button" onclick="guardarNovedadMarcacion(${marcacion.id})" title="Guardar Observación" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 p-1.5 rounded font-bold">
+                  <i class="fa-solid fa-floppy-disk text-xs"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
       });
 
       tbody.innerHTML = filasHtml || `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay registros coincidentes.</td></tr>`;
+    }
+
+    // ACTUALIZA HORA DE ENTRADA DESDE LA PESTAÑA CONTROL LLEGADAS TARDES
+    async function guardarHoraEstipuladaDirecta(empId, selectElementId) {
+      const nuevaHora = document.getElementById(selectElementId).value;
+
+      const { error } = await supabaseClient
+        .from('empleados')
+        .update({ hora_entrada_estipulada: nuevaHora })
+        .eq('id', empId);
+
+      if (error) {
+        alert("❌ Error al actualizar la hora estipulada.");
+      } else {
+        alert("✅ Hora estipulada actualizada exitosamente.");
+        cargarReporteLlegadasTardes();
+      }
     }
 
     async function guardarNovedadMarcacion(asistenciaId) {
@@ -1628,7 +1477,8 @@
           const mes = tds[4].innerText;
           const semana = tds[5].innerText;
           const fecha = tds[6].innerText;
-          const hEst = tds[7].innerText;
+          const hEstSelect = tds[7].querySelector('select');
+          const hEst = hEstSelect ? hEstSelect.options[hEstSelect.selectedIndex].text : '';
           const hReal = tds[8].innerText;
           const estado = tds[9].innerText.replace(/\n/g, ' ');
           const obsInput = tds[10].querySelector('input');
