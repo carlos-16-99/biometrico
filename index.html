@@ -37,11 +37,11 @@
     </div>
   </nav>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col justify-center">
+  <!-- CONTENIDO PRINCIPAL EXPANDIDO A ANCHO COMPLETO -->
+  <main class="flex-1 py-6 w-full px-4 md:px-10 mx-auto flex flex-col">
 
     <!-- KIOSCO DE MARCACIÓN -->
-    <section id="view-kiosk" class="max-w-md mx-auto w-full space-y-6 text-center">
+    <section id="view-kiosk" class="max-w-md mx-auto w-full space-y-6 text-center my-auto">
       <div class="bg-zinc-900/90 p-8 rounded-3xl border-2 border-zinc-800 shadow-2xl space-y-6 relative overflow-hidden">
         <div class="absolute -top-12 -right-12 w-32 h-32 bg-lime-500/10 rounded-full blur-2xl"></div>
         
@@ -129,11 +129,11 @@
       </div>
     </div>
 
-    <!-- PANEL ADMIN -->
-    <section id="view-admin" class="hidden space-y-6">
+    <!-- PANEL ADMIN (EXPANDIDO) -->
+    <section id="view-admin" class="hidden w-full space-y-6">
       
       <!-- LOGIN ADMIN -->
-      <div id="admin-auth-card" class="max-w-md mx-auto bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-2xl space-y-5">
+      <div id="admin-auth-card" class="max-w-md mx-auto bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-2xl space-y-5 my-12">
         <div class="text-center space-y-1">
           <div class="w-12 h-12 bg-lime-500/20 text-lime-400 rounded-xl flex items-center justify-center mx-auto mb-2 border border-lime-500/30">
             <i class="fa-solid fa-lock text-xl"></i>
@@ -166,9 +166,9 @@
         </div>
       </div>
 
-      <!-- DASHBOARD -->
-      <div id="admin-dashboard" class="hidden space-y-6">
-        <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center flex-wrap gap-4">
+      <!-- DASHBOARD ANCHO COMPLETO -->
+      <div id="admin-dashboard" class="hidden space-y-6 w-full">
+        <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center flex-wrap gap-4 w-full">
           <div class="flex items-center gap-3">
             <div class="p-2.5 bg-lime-500/20 text-lime-400 border border-lime-500/30 rounded-xl">
               <i class="fa-solid fa-user-gear text-xl"></i>
@@ -183,7 +183,7 @@
           </button>
         </div>
 
-        <div class="flex gap-2 border-b border-zinc-800 pb-2 flex-wrap">
+        <div class="flex gap-2 border-b border-zinc-800 pb-2 flex-wrap w-full">
           <button type="button" onclick="switchAdminTab('empleados')" id="subtab-empleados" class="px-4 py-2 rounded-lg text-sm font-bold bg-lime-500 text-zinc-950">
             <i class="fa-solid fa-user-plus mr-2"></i>Registro de Personal
           </button>
@@ -202,8 +202,8 @@
         </div>
 
         <!-- MÓDULO REGISTRO PERSONAL -->
-        <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-5 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
+        <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+          <div class="lg:col-span-4 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
             <h3 class="font-bold text-md text-lime-400 border-b border-zinc-800 pb-2 flex justify-between items-center">
               <span><i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Registro</span>
               <span id="edit-mode-tag" class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded hidden">Modo Edición</span>
@@ -273,7 +273,7 @@
           </div>
 
           <!-- TABLA DE PERSONAL -->
-          <div class="lg:col-span-7 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
+          <div class="lg:col-span-8 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-2 flex-wrap gap-2">
               <h3 class="font-bold text-md text-zinc-300">
                 <i class="fa-solid fa-users mr-2 text-lime-400"></i>Personal Registrado
@@ -289,13 +289,13 @@
               <table class="w-full text-left text-xs text-zinc-300">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
-                    <th class="p-2">Foto</th>
-                    <th class="p-2">Nombre / Cargo</th>
-                    <th class="p-2">Documento / NIT</th>
-                    <th class="p-2">Celular</th>
-                    <th class="p-2">CDA(s)</th>
-                    <th class="p-2">Estado</th>
-                    <th id="th-accion-emp" class="p-2 text-right">Acción</th>
+                    <th class="p-2.5">Foto</th>
+                    <th class="p-2.5">Nombre / Cargo</th>
+                    <th class="p-2.5">Documento / NIT</th>
+                    <th class="p-2.5">Celular</th>
+                    <th class="p-2.5">CDA(s)</th>
+                    <th class="p-2.5">Estado</th>
+                    <th id="th-accion-emp" class="p-2.5 text-right">Acción</th>
                   </tr>
                 </thead>
                 <tbody id="tabla-empleados-body">
@@ -307,12 +307,12 @@
         </div>
 
         <!-- MÓDULO CARGA DE HORARIOS -->
-        <div id="subview-horarios" class="hidden space-y-6">
-          <div class="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-xl space-y-4">
+        <div id="subview-horarios" class="hidden space-y-6 w-full">
+          <div class="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-xl space-y-4 w-full">
             <div class="flex justify-between items-center flex-wrap gap-4 border-b border-zinc-800 pb-3">
               <div>
                 <h3 class="font-bold text-md text-white"><i class="fa-solid fa-file-excel mr-2 text-lime-400"></i>Cargar Horarios Semanales (Excel/CSV)</h3>
-                <p class="text-xs text-zinc-400">Sube el archivo semanal o ajusta individualmente. Al guardar se recalculan las Llegadas Tardes.</p>
+                <p class="text-xs text-zinc-400">Sube el archivo semanal o ajusta el horario individual por colaborador. Al guardar se sincronizan las Llegadas Tardes.</p>
               </div>
               <div class="flex items-center gap-2">
                 <input type="file" id="excel-file-input" accept=".csv, .xlsx" class="bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-300 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-lime-500 file:text-zinc-950 hover:file:bg-lime-400 cursor-pointer">
@@ -323,22 +323,22 @@
             </div>
             <div id="excel-status" class="text-xs text-center font-semibold min-h-[16px]"></div>
 
-            <div class="overflow-x-auto pt-2">
+            <div class="overflow-x-auto pt-2 w-full">
               <table class="w-full text-left text-xs text-zinc-300">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
-                    <th class="p-2.5">Trabajador</th>
-                    <th class="p-2.5">Documento</th>
-                    <th class="p-2.5">CDA</th>
-                    <th class="p-2.5">Mes</th>
-                    <th class="p-2.5">Semana</th>
-                    <th class="p-2.5">Fecha</th>
-                    <th class="p-2.5">Hora Entrada Estipulada</th>
-                    <th class="p-2.5 text-right">Acción</th>
+                    <th class="p-3">Trabajador</th>
+                    <th class="p-3">Documento</th>
+                    <th class="p-3">CDA</th>
+                    <th class="p-3">Mes</th>
+                    <th class="p-3">Semana Actual</th>
+                    <th class="p-3">Rango de Fechas</th>
+                    <th class="p-3">Hora Entrada Estipulada</th>
+                    <th class="p-3 text-right">Acción</th>
                   </tr>
                 </thead>
                 <tbody id="tabla-edicion-horarios-body">
-                  <tr><td colspan="8" class="p-4 text-center text-zinc-500">Cargando personal...</td></tr>
+                  <tr><td colspan="8" class="p-4 text-center text-zinc-500">Cargando lista de colaboradores...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -346,8 +346,8 @@
         </div>
 
         <!-- PESTAÑA N° 1: HISTORIAL DE ASISTENCIAS GENERAL -->
-        <div id="subview-asistencias" class="hidden space-y-4">
-          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4">
+        <div id="subview-asistencias" class="hidden space-y-4 w-full">
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
@@ -365,7 +365,7 @@
               </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
               <table class="w-full text-left text-xs text-zinc-300">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr id="tr-header-asistencias"></tr>
@@ -379,8 +379,8 @@
         </div>
 
         <!-- PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES -->
-        <div id="subview-llegadas-tardes" class="hidden space-y-4">
-          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4">
+        <div id="subview-llegadas-tardes" class="hidden space-y-4 w-full">
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
@@ -402,7 +402,7 @@
               </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
               <table class="w-full text-left text-xs text-zinc-300">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
@@ -414,7 +414,7 @@
                     <th class="p-2.5">Semana</th>
                     <th class="p-2.5">Fecha</th>
                     <th class="p-2.5">Hora Estipulada</th>
-                    <th class="p-2.5">Hora Marcación Real (hh:mm:ss)</th>
+                    <th class="p-2.5">Hora Marcación Real (HH:MM:SS)</th>
                     <th class="p-2.5">Estado / Retraso</th>
                     <th class="p-2.5">Novedad / Soporte (Observación)</th>
                   </tr>
@@ -428,8 +428,8 @@
         </div>
 
         <!-- PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA -->
-        <div id="subview-horas-extras" class="hidden space-y-4">
-          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4">
+        <div id="subview-horas-extras" class="hidden space-y-4 w-full">
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
@@ -446,7 +446,7 @@
               </button>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
               <table class="w-full text-left text-xs text-zinc-300">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
@@ -509,7 +509,7 @@
 
     const NOMBRES_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-    // GENERADOR COMPLETO 24H (48 OPCIONES DE 00:00 A 23:30)
+    // GENERADOR COMPLETO DE HORAS (00:00 HASTA 23:30 EN PASOS DE 30 MIN)
     function generarOpcionesHoras24h() {
       const opciones = [];
       for (let h = 0; h < 24; h++) {
@@ -529,6 +529,20 @@
         }
       }
       return opciones;
+    }
+
+    // OBTENER RANGO DE FECHAS DE LA SEMANA ACTUAL (LUNES A DOMINGO)
+    function getRangoSemanaActual(d = new Date()) {
+      const fecha = new Date(d);
+      const day = fecha.getDay();
+      const diffLunes = fecha.getDate() - day + (day === 0 ? -6 : 1);
+      
+      const lunes = new Date(fecha.setDate(diffLunes));
+      const domingo = new Date(lunes);
+      domingo.setDate(lunes.getDate() + 6);
+
+      const op = { day: 'numeric', month: 'short' };
+      return `${lunes.toLocaleDateString('es-CO', op)} - ${domingo.toLocaleDateString('es-CO', op)}`;
     }
 
     function initFaceMesh() {
@@ -929,18 +943,18 @@
 
       tbody.innerHTML = data.map(e => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-          <td class="p-2">
+          <td class="p-2.5">
             ${e.foto_referencia_url ? `<img src="${e.foto_referencia_url}" class="w-8 h-8 rounded-full object-cover border border-zinc-700">` : `<div class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-xs"><i class="fa-solid fa-user-shield"></i></div>`}
           </td>
-          <td class="p-2 font-semibold text-white">${e.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
-          <td class="p-2 font-mono text-lime-400">${e.id}</td>
-          <td class="p-2 text-zinc-300">${e.telefono || 'N/A'}</td>
-          <td class="p-2 text-zinc-300 font-semibold">${e.cda_nombre || 'CDA MOTOS RUTA'}</td>
-          <td class="p-2">
+          <td class="p-2.5 font-semibold text-white">${e.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
+          <td class="p-2.5 font-mono text-lime-400">${e.id}</td>
+          <td class="p-2.5 text-zinc-300">${e.telefono || 'N/A'}</td>
+          <td class="p-2.5 text-zinc-300 font-semibold">${e.cda_nombre || 'CDA MOTOS RUTA'}</td>
+          <td class="p-2.5">
             ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30">Inactivo</span>`}
           </td>
           ${currentAdminRole === 'SUPERADMIN' ? `
-            <td class="p-2 text-right space-x-1">
+            <td class="p-2.5 text-right space-x-1">
               <button type="button" onclick="editarPersonal('${e.id}')" title="Configurar Datos" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-2 py-1 rounded border border-zinc-700">
                 <i class="fa-solid fa-gear"></i>
               </button>
@@ -994,7 +1008,7 @@
       cargarListaPersonal();
     }
 
-    // PESTAÑA CARGA EXCEL Y EDICIÓN DE HORARIOS CON LISTA COMPLETA 00:00 - 23:30
+    // CARGA DE HORARIOS SEMANALES PARA TODOS LOS COLABORADORES
     async function cargarTablaEdicionHorarios() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1005,35 +1019,39 @@
       const tbody = document.getElementById('tabla-edicion-horarios-body');
 
       if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-500">No hay trabajadores operativos.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-500">No hay trabajadores operativos registrados.</td></tr>`;
         return;
       }
 
       const opcionesHoras = generarOpcionesHoras24h();
-
       const hoy = new Date();
       const mesStr = getNombreMes(hoy);
-      const semStr = `Semana ${getNumeroSemana(hoy)}`;
-      const fechaStr = hoy.toLocaleDateString('es-CO');
+      const numSemana = getNumeroSemana(hoy);
+      const semStr = `Semana ${numSemana}`;
+      const rangoSemanaStr = getRangoSemanaActual(hoy);
 
       tbody.innerHTML = empleados.map(e => {
-        const horaGuardada = e.hora_entrada_estipulada || "08:00";
+        let horaGuardada = e.hora_entrada_estipulada || "08:00";
+        if (horaGuardada.length === 5) horaGuardada = horaGuardada + ":00";
 
         return `
           <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-            <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
-            <td class="p-2.5 font-mono text-lime-400">${e.id}</td>
-            <td class="p-2.5 text-zinc-300">${e.cda_nombre || ''}</td>
-            <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
-            <td class="p-2.5 font-mono text-lime-400 font-semibold">${semStr}</td>
-            <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
-            <td class="p-2.5">
-              <select id="sel-hora-${e.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none focus:border-lime-500">
-                ${opcionesHoras.map(h => `<option value="${h.valor}" ${horaGuardada === h.valor ? 'selected' : ''}>${h.label}</option>`).join('')}
+            <td class="p-3 font-semibold text-white">${e.nombre}</td>
+            <td class="p-3 font-mono text-lime-400">${e.id}</td>
+            <td class="p-3 text-zinc-300">${e.cda_nombre || ''}</td>
+            <td class="p-3 font-mono text-zinc-300">${mesStr}</td>
+            <td class="p-3 font-mono text-lime-400 font-semibold">${semStr}</td>
+            <td class="p-3 font-mono text-amber-400 font-medium">${rangoSemanaStr}</td>
+            <td class="p-3">
+              <select id="sel-hora-${e.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2.5 py-1.5 text-xs text-amber-300 font-bold outline-none focus:border-lime-500">
+                ${opcionesHoras.map(h => {
+                  const valFmt = h.valor.length === 5 ? h.valor + ":00" : h.valor;
+                  return `<option value="${valFmt}" ${horaGuardada === valFmt ? 'selected' : ''}>${h.label}</option>`;
+                }).join('')}
               </select>
             </td>
-            <td class="p-2.5 text-right">
-              <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1 rounded text-xs shadow">
+            <td class="p-3 text-right">
+              <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3.5 py-1.5 rounded-lg text-xs shadow transition">
                 <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar y Sincronizar
               </button>
             </td>
@@ -1042,22 +1060,26 @@
       }).join('');
     }
 
-    // ACTUALIZACIÓN Y REDIRECCIÓN AUTOMÁTICA
+    // GUARDAR HORA DE ENTRADA Y SINCRONIZAR A LLEGADAS TARDES
     async function guardarHoraIndividual(id) {
       const horaSel = document.getElementById(`sel-hora-${id}`).value;
-      const { error } = await supabaseClient.from('empleados').update({ hora_entrada_estipulada: horaSel }).eq('id', id);
+      
+      const { error } = await supabaseClient
+        .from('empleados')
+        .update({ hora_entrada_estipulada: horaSel })
+        .eq('id', id);
       
       if (error) {
+        console.error("Error al actualizar Supabase:", error);
         alert("❌ Error al guardar la hora de entrada estipulada.");
         return;
       }
 
-      alert(`✅ Hora estipulada actualizada a las ${horaSel}. Sincronizando con Llegadas Tardes...`);
-      
-      // Redirige automáticamente y fuerza la recarga de llegadas tardes
+      alert(`✅ Hora estipulada sincronizada a las ${horaSel}. Redirigiendo a Control Llegadas Tardes...`);
       switchAdminTab('llegadas-tardes');
     }
 
+    // PROCESAMIENTO DE ARCHIVO EXCEL/CSV
     function procesarArchivoExcel() {
       const fileInput = document.getElementById('excel-file-input');
       const status = document.getElementById('excel-status');
@@ -1078,26 +1100,29 @@
 
           for (let row of filas) {
             const doc = row.cedula || row.documento || row.id;
-            const hIn = row.hora_entrada || row.entrada;
+            let hIn = row.hora_entrada || row.entrada;
 
             if (doc && hIn) {
+              hIn = hIn.trim();
+              if (hIn.length === 5) hIn = hIn + ":00";
+
               await supabaseClient
                 .from('empleados')
-                .update({ hora_entrada_estipulada: hIn.trim() })
+                .update({ hora_entrada_estipulada: hIn })
                 .eq('id', doc.toString().trim());
               actualizados++;
             }
           }
 
           status.className = "text-lime-400 font-bold";
-          status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros. Recalculando...`;
+          status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros. Sincronizando...`;
           cargarTablaEdicionHorarios();
           switchAdminTab('llegadas-tardes');
         }
       });
     }
 
-    // KIOSCO Y MARCACIÓN
+    // KIOSCO Y MARCACIÓN BIOMÉTRICA
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
       document.getElementById('modal-titulo').innerText = `Validación Face ID para ${tipo.toUpperCase()}...`;
@@ -1275,21 +1300,21 @@
 
       const trHeader = document.getElementById('tr-header-asistencias');
       trHeader.innerHTML = `
-        <th class="p-2">Foto</th>
-        <th class="p-2">Nombre Completo</th>
-        <th class="p-2">Documento</th>
-        <th class="p-2">Mes</th>
-        <th class="p-2">Semana</th>
-        <th class="p-2">Fecha</th>
-        <th class="p-2">Entrada CDA</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Entrada</th>` : ''}
-        <th class="p-2">Salida Descanso</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Sal. Desc.</th>` : ''}
-        <th class="p-2">Entrada Descanso</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Ent. Desc.</th>` : ''}
-        <th class="p-2">Salida CDA</th>
-        ${isSuper ? `<th class="p-2 text-[10px] text-lime-400">GPS Salida</th>` : ''}
-        ${isSuper ? `<th class="p-2 text-right">Acción</th>` : ''}
+        <th class="p-2.5">Foto</th>
+        <th class="p-2.5">Nombre Completo</th>
+        <th class="p-2.5">Documento</th>
+        <th class="p-2.5">Mes</th>
+        <th class="p-2.5">Semana</th>
+        <th class="p-2.5">Fecha</th>
+        <th class="p-2.5">Entrada CDA</th>
+        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Entrada</th>` : ''}
+        <th class="p-2.5">Salida Descanso</th>
+        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Sal. Desc.</th>` : ''}
+        <th class="p-2.5">Entrada Descanso</th>
+        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Ent. Desc.</th>` : ''}
+        <th class="p-2.5">Salida CDA</th>
+        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Salida</th>` : ''}
+        ${isSuper ? `<th class="p-2.5 text-right">Acción</th>` : ''}
       `;
 
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
@@ -1388,29 +1413,29 @@
 
       tbody.innerHTML = listaFiltrada.map(a => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-          <td class="p-2">
+          <td class="p-2.5">
             <img src="${a.fotoMarcacion || a.foto || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-lg object-cover border border-zinc-700">
           </td>
-          <td class="p-2 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${a.cda || ''}</span></td>
-          <td class="p-2 font-mono text-lime-400">${a.doc}</td>
-          <td class="p-2 text-zinc-300 font-mono text-[11px]">${a.mes}</td>
-          <td class="p-2 font-mono text-lime-400 font-semibold text-[11px]">Semana ${a.numSemana}</td>
-          <td class="p-2 text-zinc-300 font-mono text-[11px]">${a.fecha}</td>
+          <td class="p-2.5 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${a.cda || ''}</span></td>
+          <td class="p-2.5 font-mono text-lime-400">${a.doc}</td>
+          <td class="p-2.5 text-zinc-300 font-mono text-[11px]">${a.mes}</td>
+          <td class="p-2.5 font-mono text-lime-400 font-semibold text-[11px]">Semana ${a.numSemana}</td>
+          <td class="p-2.5 text-zinc-300 font-mono text-[11px]">${a.fecha}</td>
           
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-lime-950 text-lime-400 border border-lime-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaCDA}</span></td>
-          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsEntradaCDA}</td>` : ''}
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-lime-950 text-lime-400 border border-lime-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaCDA}</span></td>
+          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsEntradaCDA}</td>` : ''}
 
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-950 text-amber-400 border border-amber-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaDescanso}</span></td>
-          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-950 text-amber-400 border border-amber-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaDescanso}</span></td>
+          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
 
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-950 text-teal-400 border border-teal-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaDescanso}</span></td>
-          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsEntradaDescanso}</td>` : ''}
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-950 text-teal-400 border border-teal-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaDescanso}</span></td>
+          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsEntradaDescanso}</td>` : ''}
 
-          <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-950 text-rose-400 border border-rose-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaCDA}</span></td>
-          ${isSuper ? `<td class="p-2 text-[10px]">${a.gpsSalidaCDA}</td>` : ''}
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-950 text-rose-400 border border-rose-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaCDA}</span></td>
+          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaCDA}</td>` : ''}
 
           ${isSuper ? `
-            <td class="p-2 text-right"><button type="button" onclick="limpiarRegistrosAsistencia('${a.doc}')" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button></td>
+            <td class="p-2.5 text-right"><button type="button" onclick="limpiarRegistrosAsistencia('${a.doc}')" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button></td>
           ` : ''}
         </tr>
       `).join('');
@@ -1426,29 +1451,29 @@
 
     function exportarExcelAsistencias() {
       const tbody = document.getElementById('tabla-asistencias-body');
-      let csv = "Nombre,Documento,Mes,Semana,Fecha,Entrada_CDA,Salida_Descanso,Entrada_Descanso,Salida_CDA\n";
+      let csv = "Nombre Completo,Documento,CDA,Mes,Semana,Fecha,Entrada CDA,Salida Descanso,Entrada Descanso,Salida CDA\n";
 
       tbody.querySelectorAll('tr').forEach(tr => {
         const tds = tr.querySelectorAll('td');
-        if (tds.length >= 8) {
+        if (tds.length >= 7) {
           const nombre = tds[1].innerText.replace(/\n/g, ' ');
           const doc = tds[2].innerText;
           const mes = tds[3].innerText;
           const semana = tds[4].innerText;
           const fecha = tds[5].innerText;
           const entCDA = tds[6].innerText;
-          const salDesc = tds[7].innerText;
-          const entDesc = tds[8].innerText;
+          const salDesc = tds[7] ? tds[7].innerText : '';
+          const entDesc = tds[8] ? tds[8].innerText : '';
           const salCDA = tds[9] ? tds[9].innerText : '';
 
-          csv += `"${nombre}","${doc}","${mes}","${semana}","${fecha}","${entCDA}","${salDesc}","${entDesc}","${salCDA}"\n`;
+          csv += `"${nombre}","${doc}","","${mes}","${semana}","${fecha}","${entCDA}","${salDesc}","${entDesc}","${salCDA}"\n`;
         }
       });
 
       descargarCSVFile(csv, "Historial_Asistencias.csv");
     }
 
-    // PESTAÑA N° 2: REPORTE DE LLEGADAS TARDES CON COMPARACIÓN DINÁMICA DE HORAS
+    // PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES
     async function cargarReporteLlegadasTardes() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1461,7 +1486,7 @@
       const tbody = document.getElementById('tabla-llegadas-tardes-body');
 
       if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal operativo.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal operativo registrado.</td></tr>`;
         return;
       }
 
@@ -1474,7 +1499,9 @@
       let filasHtml = "";
 
       empleados.forEach(emp => {
-        const hEstipulada = emp.hora_entrada_estipulada || "08:00";
+        let hEstipulada = emp.hora_entrada_estipulada || "08:00:00";
+        if (hEstipulada.length === 5) hEstipulada = hEstipulada + ":00";
+
         const marcacion = marcaciones ? marcaciones.find(m => m.empleado_id === emp.id) : null;
         const fechaObj = marcacion ? new Date(marcacion.fecha_hora) : new Date();
         
@@ -1502,12 +1529,14 @@
           const s = String(fechaObj.getSeconds()).padStart(2, '0');
           const horaFmt = `${h}:${m}:${s}`;
 
-          // CÁLCULO DE HORA ESTIPULADA
-          const [hEst, mEst] = hEstipulada.split(':').map(Number);
+          // CALCULADOR DE RETRASO
+          const partesEst = hEstipulada.split(':');
+          const hEst = parseInt(partesEst[0]);
+          const mEst = parseInt(partesEst[1]);
+
           const limite = new Date(fechaObj);
           limite.setHours(hEst, mEst, 0, 0);
 
-          // FORMATO MOSTRAR AM/PM
           const pEst = hEst >= 12 ? 'PM' : 'AM';
           let h12 = hEst % 12;
           if (h12 === 0) h12 = 12;
@@ -1525,7 +1554,7 @@
 
             let textoTiempo = "";
             if (hrsRetraso > 0) {
-              textoTiempo = `${hrsRetraso} ${hrsRetraso === 1 ? 'hora' : 'horas'} y ${minRetraso} min de retraso`;
+              textoTiempo = `${hrsRetraso} h y ${minRetraso} min de retraso`;
             } else {
               textoTiempo = `${minRetraso} min de retraso`;
             }
@@ -1587,7 +1616,7 @@
 
     function exportarExcelLlegadasTardes() {
       const tbody = document.getElementById('tabla-llegadas-tardes-body');
-      let csv = "Nombre,Documento,CDA,Mes,Semana,Fecha,Hora_Estipulada,Hora_Real,Estado,Novedad_Observacion\n";
+      let csv = "Nombre Completo,Documento,CDA,Mes,Semana,Fecha,Hora Estipulada,Hora Marcacion Real,Estado,Novedad / Soporte\n";
 
       tbody.querySelectorAll('tr').forEach(tr => {
         const tds = tr.querySelectorAll('td');
@@ -1600,7 +1629,7 @@
           const fecha = tds[6].innerText;
           const hEst = tds[7].innerText;
           const hReal = tds[8].innerText;
-          const estado = tds[9].innerText;
+          const estado = tds[9].innerText.replace(/\n/g, ' ');
           const obsInput = tds[10].querySelector('input');
           const obs = obsInput ? obsInput.value : '';
 
@@ -1611,7 +1640,7 @@
       descargarCSVFile(csv, "Reporte_Llegadas_Tardes.csv");
     }
 
-    // PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA Y HORAS LABORADAS
+    // PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA
     async function cargarReporteHorasExtras() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1706,11 +1735,11 @@
           const totalMinLaborados = Math.floor(msTotales / (1000 * 60));
 
           if (totalMinLaborados < 60) {
-            horasLaboradasTexto = `${totalMinLaborados} minutos laborados`;
+            horasLaboradasTexto = `${totalMinLaborados} min laborados`;
           } else {
             const hLab = Math.floor(totalMinLaborados / 60);
             const mLab = totalMinLaborados % 60;
-            horasLaboradasTexto = `${hLab} ${hLab === 1 ? 'hora' : 'horas'} y ${mLab} minutos laboradas`;
+            horasLaboradasTexto = `${hLab} h y ${mLab} min laboradas`;
           }
 
           const hrsNetas = totalMinLaborados / 60;
@@ -1725,7 +1754,7 @@
             } else {
               const hEx = Math.floor(extraTotalMin / 60);
               const mEx = extraTotalMin % 60;
-              textoExtra = `${hEx} ${hEx === 1 ? 'hora' : 'horas'} y ${mEx} min extra`;
+              textoExtra = `${hEx} h y ${mEx} min extra`;
             }
 
             horasExtraTag = `<span class="px-2 py-1 rounded text-xs bg-amber-950 text-amber-400 border border-amber-500/30 font-bold"><i class="fa-solid fa-clock mr-1"></i>+${textoExtra}</span>`;
@@ -1763,7 +1792,7 @@
 
     function exportarExcelHorasExtras() {
       const tbody = document.getElementById('tabla-horas-extras-body');
-      let csv = "Trabajador,Documento,Mes,Semana,Fecha,Entrada_CDA,Salida_CDA,Descanso_Min,Horas_Laboradas,Horas_Extra,Novedad_Observacion\n";
+      let csv = "Trabajador,Documento,Mes,Semana,Fecha,Entrada CDA,Salida CDA,Descanso Descontado,Horas Laboradas,Horas Extra Netas,Novedad / Soporte\n";
 
       tbody.querySelectorAll('tr').forEach(tr => {
         const tds = tr.querySelectorAll('td');
@@ -1788,8 +1817,10 @@
       descargarCSVFile(csv, "Reporte_Horas_Extras.csv");
     }
 
+    // EXPORTADOR CON SOPORTE BOM DE EXCEL PARA FORZAR COLUMNAS
     function descargarCSVFile(csvContent, fileName) {
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const bom = "\uFEFF";
+      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
