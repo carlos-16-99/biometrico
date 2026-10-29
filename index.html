@@ -499,17 +499,37 @@
     let currentAdminCDA = null;
     let editandoDocumentoId = null;
 
-    // LISTA FIJA DE CDA (MODIFICACIÓN 1)
     const listaCDAProyectados = [
-      "CDA MOTOS RUTA 44",
+      "CDA MOTOS RUTA",
       "CDA ECOTEST",
       "CDA MOTOS SUR MOTOS",
       "CDA MOTOS SUR ITAGUI",
-      "CDA MOTOS CC FLORIDA",
-      "MOTOS TRUCK"
+      "CDA MOTOS CC FLORIDA"
     ];
 
     const NOMBRES_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    // GENERADOR COMPLETO 24H (48 OPCIONES DE 00:00 A 23:30)
+    function generarOpcionesHoras24h() {
+      const opciones = [];
+      for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+          const hh24 = String(h).padStart(2, '0');
+          const mm = String(m).padStart(2, '0');
+          
+          const periodo = h >= 12 ? 'PM' : 'AM';
+          let h12 = h % 12;
+          if (h12 === 0) h12 = 12;
+          const hh12 = String(h12).padStart(2, '0');
+
+          const valor24 = `${hh24}:${mm}`;
+          const label12 = `${hh12}:${mm} ${periodo}`;
+
+          opciones.push({ valor: valor24, label: label12 });
+        }
+      }
+      return opciones;
+    }
 
     function initFaceMesh() {
       faceMesh = new FaceMesh({
@@ -555,7 +575,6 @@
       return `${NOMBRES_MESES[d.getMonth()]} ${d.getFullYear()}`;
     }
 
-    // CONFIRMACIÓN DE CLAVE ADMIN PRINCIPAL (MODIFICACIÓN 3)
     function solicitarClaveAdminPrincipal() {
       const clave = prompt("🔒 ACCIÓN PROTEGIDA:\nPor favor ingresa la clave del Admin Principal (SuperAdmin) para autorizar:");
       if (clave === 'RUTA44**') {
@@ -726,7 +745,6 @@
       }
     }
 
-    // MODAL REGISTRO FACIAL
     async function abrirModalRegistroFacial() {
       document.getElementById('modal-registro-facial').classList.remove('hidden');
       try {
@@ -938,7 +956,6 @@
       `).join('');
     }
 
-    // EDICIÓN DE PERSONAL (PIDE CLAVE ADMIN PRINCIPAL)
     async function editarPersonal(id) {
       if (!solicitarClaveAdminPrincipal()) return;
 
@@ -971,14 +988,13 @@
       cargarListaPersonal();
     }
 
-    // ELIMINAR PERSONAL (PIDE CLAVE ADMIN PRINCIPAL)
     async function eliminarPersonal(id) {
       if (!solicitarClaveAdminPrincipal()) return;
       await supabaseClient.from('empleados').delete().eq('id', id);
       cargarListaPersonal();
     }
 
-    // PESTAÑA CARGA EXCEL Y EDICIÓN DE HORARIOS
+    // PESTAÑA CARGA EXCEL Y EDICIÓN DE HORARIOS CON LISTA COMPLETA 00:00 - 23:30
     async function cargarTablaEdicionHorarios() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -993,43 +1009,53 @@
         return;
       }
 
-      const opcionesHoras = [
-        "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", 
-        "09:00", "09:30", "10:00", "10:30", "11:00", "12:00"
-      ];
+      const opcionesHoras = generarOpcionesHoras24h();
 
       const hoy = new Date();
       const mesStr = getNombreMes(hoy);
       const semStr = `Semana ${getNumeroSemana(hoy)}`;
       const fechaStr = hoy.toLocaleDateString('es-CO');
 
-      tbody.innerHTML = empleados.map(e => `
-        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-          <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
-          <td class="p-2.5 font-mono text-lime-400">${e.id}</td>
-          <td class="p-2.5 text-zinc-300">${e.cda_nombre || ''}</td>
-          <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
-          <td class="p-2.5 font-mono text-lime-400 font-semibold">${semStr}</td>
-          <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
-          <td class="p-2.5">
-            <select id="sel-hora-${e.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none">
-              ${opcionesHoras.map(h => `<option value="${h}" ${e.hora_entrada_estipulada === h ? 'selected' : ''}>${h} AM</option>`).join('')}
-            </select>
-          </td>
-          <td class="p-2.5 text-right">
-            <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1 rounded text-xs shadow">
-              <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar y Sincronizar
-            </button>
-          </td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = empleados.map(e => {
+        const horaGuardada = e.hora_entrada_estipulada || "08:00";
+
+        return `
+          <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
+            <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
+            <td class="p-2.5 font-mono text-lime-400">${e.id}</td>
+            <td class="p-2.5 text-zinc-300">${e.cda_nombre || ''}</td>
+            <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
+            <td class="p-2.5 font-mono text-lime-400 font-semibold">${semStr}</td>
+            <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
+            <td class="p-2.5">
+              <select id="sel-hora-${e.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none focus:border-lime-500">
+                ${opcionesHoras.map(h => `<option value="${h.valor}" ${horaGuardada === h.valor ? 'selected' : ''}>${h.label}</option>`).join('')}
+              </select>
+            </td>
+            <td class="p-2.5 text-right">
+              <button type="button" onclick="guardarHoraIndividual('${e.id}')" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1 rounded text-xs shadow">
+                <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar y Sincronizar
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
+    // ACTUALIZACIÓN Y REDIRECCIÓN AUTOMÁTICA
     async function guardarHoraIndividual(id) {
       const horaSel = document.getElementById(`sel-hora-${id}`).value;
-      await supabaseClient.from('empleados').update({ hora_entrada_estipulada: horaSel }).eq('id', id);
-      alert(`✅ Hora de entrada actualizada a las ${horaSel} AM. Sincronizando con Llegadas Tardes...`);
-      cargarReporteLlegadasTardes();
+      const { error } = await supabaseClient.from('empleados').update({ hora_entrada_estipulada: horaSel }).eq('id', id);
+      
+      if (error) {
+        alert("❌ Error al guardar la hora de entrada estipulada.");
+        return;
+      }
+
+      alert(`✅ Hora estipulada actualizada a las ${horaSel}. Sincronizando con Llegadas Tardes...`);
+      
+      // Redirige automáticamente y fuerza la recarga de llegadas tardes
+      switchAdminTab('llegadas-tardes');
     }
 
     function procesarArchivoExcel() {
@@ -1066,12 +1092,12 @@
           status.className = "text-lime-400 font-bold";
           status.innerText = `✅ ¡Horarios semanales cargados! Se actualizaron ${actualizados} registros. Recalculando...`;
           cargarTablaEdicionHorarios();
-          cargarReporteLlegadasTardes();
+          switchAdminTab('llegadas-tardes');
         }
       });
     }
 
-    // KIOSCO Y REGLAS DE SECUENCIA BIOMÉTRICA (MODIFICACIÓN 2)
+    // KIOSCO Y MARCACIÓN
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
       document.getElementById('modal-titulo').innerText = `Validación Face ID para ${tipo.toUpperCase()}...`;
@@ -1164,7 +1190,6 @@
         return;
       }
 
-      // REGLAS ESTRICTAS DE SECUENCIA BIOMÉTRICA (MODIFICACIÓN 2)
       const hoyInicio = new Date();
       hoyInicio.setHours(0,0,0,0);
 
@@ -1178,7 +1203,6 @@
       const yaSalioDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Salida Descanso') : false;
       const yaEntroDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada Descanso') : false;
 
-      // REGLA 1: No permitir 'Salida Descanso' si no ha registrado 'Entrada al CDA' o 'Entrada Descanso'
       if (scanTipo === 'Salida Descanso') {
         if (!yaEntroCDA && !yaEntroDescanso) {
           status.className = "text-sm font-bold text-rose-400";
@@ -1188,7 +1212,6 @@
         }
       }
 
-      // REGLA 2: No permitir 'Salida CDA' si no ha registrado 'Entrada al CDA'
       if (scanTipo === 'Salida del CDA' && !yaEntroCDA) {
         status.className = "text-sm font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DEL CDA" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
@@ -1196,7 +1219,6 @@
         return;
       }
 
-      // REGLA 3: Si marcó 'Entrada Descanso', exige haber marcado 'Salida Descanso' previamente
       if (scanTipo === 'Entrada Descanso' && !yaSalioDescanso) {
         status.className = "text-sm font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO "SALIDA DESCANSO".`;
@@ -1204,7 +1226,6 @@
         return;
       }
 
-      // REGLA 4: Si marcó 'Salida Descanso', no permitir 'Salida del CDA' sin antes registrar 'Entrada Descanso'
       if (scanTipo === 'Salida del CDA' && yaSalioDescanso && !yaEntroDescanso) {
         status.className = "text-sm font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: ESTÁS EN TIEMPO DE DESCANSO. DEBES REGISTRAR "ENTRADA DESCANSO" ANTES DE LA "SALIDA DEL CDA".`;
@@ -1427,7 +1448,7 @@
       descargarCSVFile(csv, "Historial_Asistencias.csv");
     }
 
-    // PESTAÑA N° 2: REPORTE DE LLEGADAS TARDES
+    // PESTAÑA N° 2: REPORTE DE LLEGADAS TARDES CON COMPARACIÓN DINÁMICA DE HORAS
     async function cargarReporteLlegadasTardes() {
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
@@ -1481,9 +1502,16 @@
           const s = String(fechaObj.getSeconds()).padStart(2, '0');
           const horaFmt = `${h}:${m}:${s}`;
 
+          // CÁLCULO DE HORA ESTIPULADA
           const [hEst, mEst] = hEstipulada.split(':').map(Number);
           const limite = new Date(fechaObj);
           limite.setHours(hEst, mEst, 0, 0);
+
+          // FORMATO MOSTRAR AM/PM
+          const pEst = hEst >= 12 ? 'PM' : 'AM';
+          let h12 = hEst % 12;
+          if (h12 === 0) h12 = 12;
+          const labelEstipuladaFmt = `${String(h12).padStart(2, '0')}:${String(mEst).padStart(2, '0')} ${pEst}`;
 
           let esTarde = false;
           let estadoTag = "";
@@ -1521,7 +1549,7 @@
               <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
               <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${numSem}</td>
               <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
-              <td class="p-2.5 font-mono text-amber-300 font-bold">${hEstipulada} AM</td>
+              <td class="p-2.5 font-mono text-amber-300 font-bold">${labelEstipuladaFmt}</td>
               <td class="p-2.5 font-mono text-white font-bold text-sm bg-zinc-950 rounded px-2 border border-zinc-800">${horaFmt}</td>
               <td class="p-2.5">${estadoTag}</td>
               <td class="p-2.5">
@@ -1772,7 +1800,6 @@
       document.body.removeChild(link);
     }
 
-    // ELIMINAR ASISTENCIA (PIDE CLAVE ADMIN PRINCIPAL)
     async function limpiarRegistrosAsistencia(empId) {
       if (!solicitarClaveAdminPrincipal()) return;
       await supabaseClient.from('asistencias').delete().eq('empleado_id', empId);
