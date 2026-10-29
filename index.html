@@ -14,7 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
   <style>
-    /* Estilos para el Croquis Facial Guía */
+    /* Estilos para el Croquis Facial Guía dinámico */
     .face-guide-overlay {
       position: absolute;
       inset: 0;
@@ -26,32 +26,42 @@
       z-index: 20;
     }
     .face-oval-guide {
-      width: 62%;
-      height: 75%;
-      border: 3px dashed rgba(132, 204, 22, 0.85); /* Verde Lime brillante */
+      width: 58%;
+      height: 72%;
+      border: 3px dashed #84cc16; /* Verde Lime */
       border-radius: 50% / 45%;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); /* Oscurece el área fuera del rostro */
-      transition: border-color 0.3s ease;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+      transition: all 0.25s ease-in-out;
+    }
+    /* Estado de alerta en croquis cuando el rostro no está ajustado */
+    .face-oval-guide.guide-warning {
+      border-color: #f59e0b; /* Ámbar / Naranja */
+      box-shadow: 0 0 0 9999px rgba(120, 53, 15, 0.45);
+    }
+    .face-oval-guide.guide-success {
+      border-color: #10b981; /* Verde esmeralda firme */
+      border-style: solid;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
     }
   </style>
 </head>
 <body class="bg-zinc-950 text-slate-100 min-h-screen font-sans flex flex-col">
 
-  <!-- Navegación Superior Estilo RUTA 44 -->
+  <!-- Navegación Superior -->
   <nav class="bg-zinc-900 border-b-2 border-lime-500 px-6 py-4 flex flex-wrap justify-between items-center gap-4 z-20 shadow-lg shadow-lime-950/20">
     <div class="flex items-center gap-3">
       <div class="bg-gradient-to-br from-lime-500 to-emerald-600 p-2.5 rounded-2xl text-zinc-950 font-black shadow-md shadow-lime-500/30">
         <i class="fa-solid fa-motorcycle text-2xl"></i>
       </div>
       <div>
-        <h1 class="font-black text-xl text-white tracking-wider">CDA RUTA <span class="text-lime-400">44</span></h1>
-        <p class="text-xs text-zinc-400 font-medium">Sistema Biométrico Face ID Multi-Sede</p>
+        <h1 class="font-black text-xl text-white tracking-wider">CDA MOTOS <span class="text-lime-400">S.A.S.</span></h1>
+        <p class="text-xs text-zinc-400 font-medium">Sistema Biométrico Face ID CDA MOTOS S.A.S</p>
       </div>
     </div>
 
     <div class="flex bg-zinc-950 p-1.5 rounded-xl border border-zinc-800">
       <button type="button" onclick="switchTab('kiosk')" id="tab-kiosk" class="px-4 py-2 rounded-lg text-sm font-bold transition bg-lime-500 text-zinc-950 shadow-md shadow-lime-500/20">
-        <i class="fa-solid fa-desktop mr-2"></i>Kiosco
+        <i class="fa-solid fa-desktop mr-2"></i>Biométrico
       </button>
       <button type="button" onclick="switchTab('admin')" id="tab-admin" class="px-4 py-2 rounded-lg text-sm font-bold transition text-zinc-400 hover:text-white">
         <i class="fa-solid fa-user-shield mr-2"></i>Panel Administrativo
@@ -59,7 +69,7 @@
     </div>
   </nav>
 
-  <!-- CONTENIDO PRINCIPAL EXPANDIDO A ANCHO COMPLETO -->
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-1 py-6 w-full px-4 md:px-10 mx-auto flex flex-col">
 
     <!-- KIOSCO DE MARCACIÓN -->
@@ -72,7 +82,7 @@
             <i class="fa-solid fa-face-smile text-3xl"></i>
           </div>
           <h2 class="text-2xl font-black text-white uppercase tracking-wide">Marcación Biométrica</h2>
-          <p class="text-xs text-zinc-400">Selecciona el tipo de registro y mira fijamente a la cámara</p>
+          <p class="text-xs text-zinc-400">Selecciona la marcación e ingresa tu rostro en la guía</p>
         </div>
 
         <div class="grid grid-cols-1 gap-4 pt-2 relative z-10">
@@ -107,7 +117,7 @@
       </div>
     </section>
 
-    <!-- MODAL ESCÁNER PARA MARCACIÓN (CON CROQUIS FACIAL) -->
+    <!-- MODAL ESCÁNER PARA MARCACIÓN -->
     <div id="modal-escaner" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
       <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
@@ -120,20 +130,19 @@
           <video id="scan-video" autoplay playsinline class="w-full h-full object-cover"></video>
           <canvas id="scan-canvas" class="absolute top-0 left-0 w-full h-full object-cover z-10"></canvas>
           
-          <!-- Croquis Facial Guía Kiosco -->
           <div class="face-guide-overlay">
-            <div class="face-oval-guide"></div>
-            <span class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/60 px-2 py-0.5 rounded shadow">Ubica tu rostro aquí</span>
+            <div id="scan-oval-guide" class="face-oval-guide"></div>
+            <span id="scan-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/70 px-2 py-0.5 rounded shadow">Enfoca tu cara dentro del croquis</span>
           </div>
         </div>
 
-        <div id="scan-status" class="text-sm font-semibold text-amber-400">
+        <div id="scan-status" class="text-sm font-semibold text-amber-400 min-h-[24px]">
           <i class="fa-solid fa-spinner fa-spin mr-1"></i> Activando cámara...
         </div>
       </div>
     </div>
 
-    <!-- MODAL ESCÁNER PARA REGISTRO FACIAL (CON CROQUIS FACIAL) -->
+    <!-- MODAL ESCÁNER PARA REGISTRO FACIAL DE USUARIOS -->
     <div id="modal-registro-facial" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
       <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalRegistroFacial()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
@@ -146,14 +155,13 @@
           <video id="reg-video" autoplay playsinline class="w-full h-full object-cover"></video>
           <canvas id="reg-canvas" class="absolute top-0 left-0 w-full h-full object-cover z-10"></canvas>
 
-          <!-- Croquis Facial Guía Registro -->
           <div class="face-guide-overlay">
-            <div class="face-oval-guide"></div>
-            <span class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/60 px-2 py-0.5 rounded shadow">Alinea tu rostro</span>
+            <div id="reg-oval-guide" class="face-oval-guide"></div>
+            <span id="reg-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/70 px-2 py-0.5 rounded shadow">Ubica la cara dentro del croquis</span>
           </div>
         </div>
 
-        <div id="reg-status" class="text-xs font-semibold text-zinc-300">
+        <div id="reg-status" class="text-xs font-semibold text-zinc-300 min-h-[20px]">
           Ubícate frente a la cámara dentro de la guía y presiona "Capturar Rostro"
         </div>
 
@@ -163,7 +171,7 @@
       </div>
     </div>
 
-    <!-- PANEL ADMIN (EXPANDIDO) -->
+    <!-- PANEL ADMIN -->
     <section id="view-admin" class="hidden w-full space-y-6">
       
       <!-- LOGIN ADMIN -->
@@ -270,12 +278,9 @@
               </div>
             </div>
 
-            <!-- SELECCIÓN DE CDA -->
             <div id="contenedor-cda-select" class="space-y-2">
               <label id="lbl-cda-title" class="block text-xs font-bold text-lime-400 uppercase">Seleccionar CDA(s) de Pertenencia *</label>
-              
               <div id="cda-checkboxes-container" class="bg-zinc-950 border border-lime-500/40 rounded-xl p-3 max-h-36 overflow-y-auto space-y-2 text-xs"></div>
-
               <div id="cda-single-select-container" class="hidden">
                 <select id="emp-cda-single" class="w-full bg-zinc-950 border border-lime-500 rounded-lg px-3 py-2 text-white outline-none text-xs"></select>
               </div>
@@ -338,10 +343,9 @@
           </div>
         </div>
 
-        <!-- PESTAÑA N° 1: HISTORIAL DE ASISTENCIAS GENERAL -->
+        <!-- PESTAÑA N° 1: HISTORIAL DE ASISTENCIAS -->
         <div id="subview-asistencias" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
-            
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
                 <input type="text" id="flt-asis-nombre" oninput="cargarHistorialAsistencias()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
@@ -374,7 +378,6 @@
         <!-- PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES -->
         <div id="subview-llegadas-tardes" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
-            
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
                 <input type="text" id="flt-tardes-nombre" oninput="cargarReporteLlegadasTardes()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
@@ -423,7 +426,6 @@
         <!-- PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA -->
         <div id="subview-horas-extras" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
-            
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
                 <input type="text" id="flt-extra-nombre" oninput="cargarReporteHorasExtras()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
@@ -509,16 +511,11 @@
         for (let m = 0; m < 60; m += 30) {
           const hh24 = String(h).padStart(2, '0');
           const mm = String(m).padStart(2, '0');
-          
           const periodo = h >= 12 ? 'PM' : 'AM';
           let h12 = h % 12;
           if (h12 === 0) h12 = 12;
           const hh12 = String(h12).padStart(2, '0');
-
-          const valor24 = `${hh24}:${mm}:00`;
-          const label12 = `${hh12}:${mm} ${periodo}`;
-
-          opciones.push({ valor: valor24, label: label12 });
+          opciones.push({ valor: `${hh24}:${mm}:00`, label: `${hh12}:${mm} ${periodo}` });
         }
       }
       return opciones;
@@ -531,8 +528,8 @@
       faceMesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
       });
       faceMesh.onResults(onFaceResults);
     }
@@ -560,8 +557,7 @@
       d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
       d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
       var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-      var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
-      return weekNo;
+      return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
     }
 
     function getNombreMes(d) {
@@ -581,7 +577,6 @@
     function renderCheckboxesCDA() {
       const container = document.getElementById('cda-checkboxes-container');
       const singleSelect = document.getElementById('emp-cda-single');
-      
       const filtroGlobal = document.getElementById('filtro-cda-select');
       const filtroAsis = document.getElementById('flt-asis-cda');
       const filtroTardes = document.getElementById('flt-tardes-cda');
@@ -736,6 +731,44 @@
       }
     }
 
+    // VALIDACIÓN ESTRICTA DE CENTRADO Y DISTANCIA DEL ROSTRO RESPECTO AL CROQUIS
+    function validarPosicionRostroEnCroquis(landmarks) {
+      const nariz = landmarks[1];
+      const ojoIzquierdo = landmarks[33];
+      const ojoDerecho = landmarks[263];
+      const menton = landmarks[152];
+      const frente = landmarks[10];
+
+      // Centro del rostro (esperado en ~0.50 X y ~0.50 Y)
+      const centroX = nariz.x;
+      const centroY = nariz.y;
+
+      // Ancho del rostro (Distancia entre ojos) y alto del rostro
+      const anchoRostro = Math.hypot(ojoDerecho.x - ojoIzquierdo.x, ojoDerecho.y - ojoIzquierdo.y);
+      const altoRostro = Math.hypot(menton.x - frente.x, menton.y - frente.y);
+
+      // Regla 1: Debe estar horizontalmente centrado (Tol: 0.38 - 0.62)
+      if (centroX < 0.38 || centroX > 0.62) {
+        return { ok: false, msg: "⚠️ Centra tu rostro horizontalmente en el croquis" };
+      }
+
+      // Regla 2: Debe estar verticalmente centrado (Tol: 0.38 - 0.62)
+      if (centroY < 0.38 || centroY > 0.62) {
+        return { ok: false, msg: "⚠️ Ajusta la altura de tu rostro dentro del croquis" };
+      }
+
+      // Regla 3: Distancia/Tamaño (Si está muy lejos o muy cerca)
+      if (anchoRostro < 0.18 || altoRostro < 0.30) {
+        return { ok: false, msg: "⚠️ Acércate un poco más al croquis" };
+      }
+
+      if (anchoRostro > 0.42 || altoRostro > 0.65) {
+        return { ok: false, msg: "⚠️ Aléjate un poco más del croquis" };
+      }
+
+      return { ok: true, msg: "✅ Rostro Alineado Perfectamente" };
+    }
+
     async function abrirModalRegistroFacial() {
       document.getElementById('modal-registro-facial').classList.remove('hidden');
       try {
@@ -778,15 +811,33 @@
       const status = document.getElementById('reg-status');
       const video = document.getElementById('reg-video');
       const canvas = document.getElementById('reg-canvas');
+      const guideBox = document.getElementById('reg-oval-guide');
+      const guideMsg = document.getElementById('reg-guide-msg');
 
-      status.innerText = "🔍 Mapeando facciones de tu rostro...";
+      status.innerText = "🔍 Mapeando facciones del rostro...";
 
       await faceMesh.send({ image: video });
 
       if (!currentLandmarks) {
-        status.innerText = "❌ Rostro no detectado. Ubícate dentro de la guía.";
+        guideBox.className = "face-oval-guide guide-warning";
+        status.className = "text-xs font-bold text-amber-400";
+        status.innerText = "❌ Rostro no detectado. Ubícate dentro del croquis.";
         return;
       }
+
+      // VALIDAR POSICIÓN RIGUROSA DENTRO DEL CROQUIS
+      const validacion = validarPosicionRostroEnCroquis(currentLandmarks);
+
+      if (!validacion.ok) {
+        guideBox.className = "face-oval-guide guide-warning";
+        guideMsg.innerText = validacion.msg.toUpperCase();
+        status.className = "text-xs font-bold text-amber-400";
+        status.innerText = `⛔ REGISTRO DENEGADO: ${validacion.msg}`;
+        return;
+      }
+
+      guideBox.className = "face-oval-guide guide-success";
+      guideMsg.innerText = "ROSTRO ALINEADO CORRECTAMENTE";
 
       descriptorFacialGlobal = extraerVectorFacialNormalizado(currentLandmarks);
 
@@ -808,6 +859,8 @@
       tmpCanvas.getContext('2d').drawImage(video, 0, 0);
       tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
 
+      status.className = "text-xs font-bold text-lime-400";
+      status.innerText = "✅ Biometría Capturada con Éxito";
       document.getElementById('lbl-biometrico-status').innerText = "✅ Biometría Capturada Exitosa";
       document.getElementById('lbl-biometrico-status').className = "text-lime-400 font-bold";
       
@@ -1038,21 +1091,40 @@
       return Math.sqrt(suma);
     }
 
+    // PROCESO DE VALIDACIÓN BIOMÉTRICA Y REGLAS DE NEGOCIO CORREGIDAS
     async function procesarValidacionFaceID() {
       const status = document.getElementById('scan-status');
       const video = document.getElementById('scan-video');
       const canvas = document.getElementById('scan-canvas');
+      const guideBox = document.getElementById('scan-oval-guide');
+      const guideMsg = document.getElementById('scan-guide-msg');
 
       status.innerText = "🔍 Escaneando rostro...";
 
       await faceMesh.send({ image: video });
 
       if (!currentLandmarks) {
+        guideBox.className = "face-oval-guide guide-warning";
         status.className = "text-amber-400 font-semibold";
-        status.innerText = "⚠️ Enfoca tu rostro dentro de la guía...";
+        status.innerText = "⚠️ Ubícate frente a la cámara dentro del croquis...";
         setTimeout(procesarValidacionFaceID, 1000);
         return;
       }
+
+      // VALIDACIÓN DE CROQUIS
+      const validacionCroquis = validarPosicionRostroEnCroquis(currentLandmarks);
+
+      if (!validacionCroquis.ok) {
+        guideBox.className = "face-oval-guide guide-warning";
+        guideMsg.innerText = validacionCroquis.msg.toUpperCase();
+        status.className = "text-amber-400 font-semibold";
+        status.innerText = validacionCroquis.msg;
+        setTimeout(procesarValidacionFaceID, 1200);
+        return;
+      }
+
+      guideBox.className = "face-oval-guide guide-success";
+      guideMsg.innerText = "ROSTRO ALINEADO AL CROQUIS";
 
       const vecActual = extraerVectorFacialNormalizado(currentLandmarks);
 
@@ -1067,7 +1139,7 @@
         ctx.fill();
       });
 
-      status.innerText = "⚡ Buscando coincidencia...";
+      status.innerText = "⚡ Identificando trabajador...";
 
       const { data: empleados } = await supabaseClient
         .from('empleados')
@@ -1076,7 +1148,7 @@
         .neq('departamento', 'Administrador de CDA');
 
       if (!empleados || empleados.length === 0) {
-        status.innerText = "❌ No hay empleados operativos activos en el sistema.";
+        status.innerText = "❌ No hay empleados operativos activos.";
         return;
       }
 
@@ -1100,6 +1172,7 @@
         return;
       }
 
+      // REVISIÓN DE REGLAS DE NEGOCIO CORREGIDAS
       const hoyInicio = new Date();
       hoyInicio.setHours(0,0,0,0);
 
@@ -1113,45 +1186,49 @@
       const yaSalioDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Salida Descanso') : false;
       const yaEntroDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada Descanso') : false;
 
-      if (scanTipo === 'Salida Descanso') {
-        if (!yaEntroCDA && !yaEntroDescanso) {
-          status.className = "text-sm font-bold text-rose-400";
-          status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
-          setTimeout(() => { cerrarModalEscaner(); }, 4000);
-          return;
-        }
+      // REGLA 1 y 2: Entrada Descanso no se deja registrar si no ha hecho ENTRADA AL CDA
+      if (scanTipo === 'Entrada Descanso' && !yaEntroCDA) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
+        setTimeout(() => { cerrarModalEscaner(); }, 4000);
+        return;
       }
 
+      // REGLA 3: Salida descanso no se deja registrar si no ha hecho registro de ENTRADA DESCANSO
+      if (scanTipo === 'Salida Descanso' && !yaEntroDescanso) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA DESCANSO".`;
+        setTimeout(() => { cerrarModalEscaner(); }, 4000);
+        return;
+      }
+
+      // REGLA 4: Salida del CDA no se deja registrar si no ha hecho ENTRADA AL CDA
       if (scanTipo === 'Salida del CDA' && !yaEntroCDA) {
-        status.className = "text-sm font-bold text-rose-400";
+        status.className = "text-xs font-bold text-rose-400";
         status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DEL CDA" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
         setTimeout(() => { cerrarModalEscaner(); }, 4000);
         return;
       }
 
-      if (scanTipo === 'Entrada Descanso' && !yaSalioDescanso) {
-        status.className = "text-sm font-bold text-rose-400";
-        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO "SALIDA DESCANSO".`;
+      // REGLA 4 (Continuación): Si registró Entrada Descanso, no deje registrar Salida CDA hasta que haya hecho el registro Salida Descanso
+      if (scanTipo === 'Salida del CDA' && yaEntroDescanso && !yaSalioDescanso) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: REGISTRASTE ENTRADA A DESCANSO. DEBES REGISTRAR "SALIDA DESCANSO" ANTES DE TU SALIDA DEL CDA.`;
         setTimeout(() => { cerrarModalEscaner(); }, 4000);
         return;
       }
 
-      if (scanTipo === 'Salida del CDA' && yaSalioDescanso && !yaEntroDescanso) {
-        status.className = "text-sm font-bold text-rose-400";
-        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: ESTÁS EN TIEMPO DE DESCANSO. DEBES REGISTRAR "ENTRADA DESCANSO" ANTES DE LA "SALIDA DEL CDA".`;
-        setTimeout(() => { cerrarModalEscaner(); }, 4000);
-        return;
-      }
-
+      // VALIDACIÓN DE DUPLICADO DE MISMO REGISTRO EN EL DÍA
       const yaExisteEsteRegistro = marcacionesHoy ? marcacionesHoy.find(m => m.tipo === scanTipo) : null;
       if (yaExisteEsteRegistro) {
         const horaReg = new Date(yaExisteEsteRegistro.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-        status.className = "text-sm font-bold text-amber-400";
+        status.className = "text-xs font-bold text-amber-400";
         status.innerText = `⚠️ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: YA REALIZASTE TU REGISTRO DE [${scanTipo.toUpperCase()}] HOY A LAS ${horaReg}.`;
         setTimeout(() => { cerrarModalEscaner(); }, 4000);
         return;
       }
 
+      // SI TODO ESTÁ CORRECTO, MARCAR ASISTENCIA
       const tmpCanvas = document.createElement('canvas');
       tmpCanvas.width = canvas.width;
       tmpCanvas.height = canvas.height;
@@ -1192,10 +1269,10 @@
         <th class="p-2.5">Fecha</th>
         <th class="p-2.5">Entrada CDA</th>
         ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Entrada</th>` : ''}
-        <th class="p-2.5">Salida Descanso</th>
-        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Sal. Desc.</th>` : ''}
         <th class="p-2.5">Entrada Descanso</th>
         ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Ent. Desc.</th>` : ''}
+        <th class="p-2.5">Salida Descanso</th>
+        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Sal. Desc.</th>` : ''}
         <th class="p-2.5">Salida CDA</th>
         ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Salida</th>` : ''}
         ${isSuper ? `<th class="p-2.5 text-right">Acción</th>` : ''}
@@ -1236,8 +1313,8 @@
           fecha: hoy.toLocaleDateString('es-CO'),
           fechaRaw: hoy,
           entradaCDA: 'Sin Marcación', gpsEntradaCDA: '-',
-          salidaDescanso: 'Sin Marcación', gpsSalidaDescanso: '-',
           entradaDescanso: 'Sin Marcación', gpsEntradaDescanso: '-',
+          salidaDescanso: 'Sin Marcación', gpsSalidaDescanso: '-',
           salidaCDA: 'Sin Marcación', gpsSalidaCDA: '-',
           fotoMarcacion: null
         };
@@ -1262,17 +1339,17 @@
               mapaAsistencias[m.empleado_id].entradaCDA = horaStr;
               mapaAsistencias[m.empleado_id].gpsEntradaCDA = gpsLink;
             }
-            if (m.tipo === 'Salida Descanso') {
-              mapaAsistencias[m.empleado_id].salidaDescanso = horaStr;
-              mapaAsistencias[m.empleado_id].gpsSalidaDescanso = gpsLink;
-            }
             if (m.tipo === 'Entrada Descanso') {
               mapaAsistencias[m.empleado_id].entradaDescanso = horaStr;
               mapaAsistencias[m.empleado_id].gpsEntradaDescanso = gpsLink;
             }
+            if (m.tipo === 'Salida Descanso') {
+              mapaAsistencias[m.empleado_id].salidaDescanso = horaStr;
+              mapaAsistencias[m.empleado_id].gpsSalidaDescanso = gpsLink;
+            }
             if (m.tipo === 'Salida del CDA') {
               mapaAsistencias[m.empleado_id].salidaCDA = horaStr;
-              mapaAsistencias[m.empleado_id].gpsSalidaDescanso = gpsLink;
+              mapaAsistencias[m.empleado_id].gpsSalidaCDA = gpsLink;
             }
           }
         });
@@ -1309,11 +1386,11 @@
           <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-lime-950 text-lime-400 border border-lime-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaCDA}</span></td>
           ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsEntradaCDA}</td>` : ''}
 
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-950 text-amber-400 border border-amber-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaDescanso}</span></td>
-          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
-
           <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-950 text-teal-400 border border-teal-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaDescanso}</span></td>
           ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsEntradaDescanso}</td>` : ''}
+
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-950 text-amber-400 border border-amber-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaDescanso}</span></td>
+          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
 
           <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-950 text-rose-400 border border-rose-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaCDA}</span></td>
           ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaCDA}</td>` : ''}
@@ -1335,7 +1412,7 @@
 
     function exportarExcelAsistencias() {
       const tbody = document.getElementById('tabla-asistencias-body');
-      let csv = "Nombre Completo,Documento,CDA,Mes,Semana,Fecha,Entrada CDA,Salida Descanso,Entrada Descanso,Salida CDA\n";
+      let csv = "Nombre Completo,Documento,CDA,Mes,Semana,Fecha,Entrada CDA,Entrada Descanso,Salida Descanso,Salida CDA\n";
 
       tbody.querySelectorAll('tr').forEach(tr => {
         const tds = tr.querySelectorAll('td');
@@ -1346,11 +1423,11 @@
           const semana = tds[4].innerText;
           const fecha = tds[5].innerText;
           const entCDA = tds[6].innerText;
-          const salDesc = tds[7] ? tds[7].innerText : '';
-          const entDesc = tds[8] ? tds[8].innerText : '';
+          const entDesc = tds[7] ? tds[7].innerText : '';
+          const salDesc = tds[8] ? tds[8].innerText : '';
           const salCDA = tds[9] ? tds[9].innerText : '';
 
-          csv += `"${nombre}","${doc}","","${mes}","${semana}","${fecha}","${entCDA}","${salDesc}","${entDesc}","${salCDA}"\n`;
+          csv += `"${nombre}","${doc}","","${mes}","${semana}","${fecha}","${entCDA}","${entDesc}","${salDesc}","${salCDA}"\n`;
         }
       });
 
@@ -1577,7 +1654,7 @@
           numSem: getNumeroSemana(hoy),
           fecha: hoy.toLocaleDateString('es-CO'),
           fEntradaCDA: null, fSalidaCDA: null,
-          fSalidaDescanso: null, fEntradaDescanso: null,
+          fEntradaDescanso: null, fSalidaDescanso: null,
           asistenciaIdSalida: null,
           novedadSalida: ''
         };
@@ -1597,8 +1674,8 @@
               mapaExtra[m.empleado_id].asistenciaIdSalida = m.id;
               mapaExtra[m.empleado_id].novedadSalida = m.novedad || '';
             }
-            if (m.tipo === 'Salida Descanso') mapaExtra[m.empleado_id].fSalidaDescanso = fObj;
             if (m.tipo === 'Entrada Descanso') mapaExtra[m.empleado_id].fEntradaDescanso = fObj;
+            if (m.tipo === 'Salida Descanso') mapaExtra[m.empleado_id].fSalidaDescanso = fObj;
           }
         });
       }
@@ -1624,8 +1701,8 @@
         const salStr = e.fSalidaCDA ? e.fSalidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
 
         let descansoMin = 0;
-        if (e.fSalidaDescanso && e.fEntradaDescanso) {
-          descansoMin = Math.max(0, Math.round((e.fEntradaDescanso - e.fSalidaDescanso) / (1000 * 60)));
+        if (e.fEntradaDescanso && e.fSalidaDescanso) {
+          descansoMin = Math.max(0, Math.round((e.fSalidaDescanso - e.fEntradaDescanso) / (1000 * 60)));
         }
 
         let horasLaboradasTexto = "Incompleto";
