@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Biométrico FaceID - CDA MOTOS RUTA 44</title>
+  <title>Control Biométrico FaceID - CDA MOTOS S.A.S.</title>
+  
+  <!-- CDN de Tailwind CSS v3 (Soporta colores zinc, lime, opacidades y utilidades avanzadas) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,7 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
   <style>
-    /* Estilos para el Croquis Facial Guía dinámico */
+    /* Estilos corregidos para el Croquis Facial en móviles y Safari iOS */
     .face-guide-overlay {
       position: absolute;
       inset: 0;
@@ -24,24 +27,24 @@
       align-items: center;
       justify-content: center;
       z-index: 20;
+      overflow: hidden;
     }
     .face-oval-guide {
-      width: 58%;
-      height: 72%;
+      width: 65%;
+      height: 75%;
       border: 3px dashed #84cc16; /* Verde Lime */
-      border-radius: 50% / 45%;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+      border-radius: 50%;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
       transition: all 0.25s ease-in-out;
     }
-    /* Estado de alerta en croquis cuando el rostro no está ajustado */
     .face-oval-guide.guide-warning {
       border-color: #f59e0b; /* Ámbar / Naranja */
-      box-shadow: 0 0 0 9999px rgba(120, 53, 15, 0.45);
+      box-shadow: 0 0 0 9999px rgba(120, 53, 15, 0.55);
     }
     .face-oval-guide.guide-success {
-      border-color: #10b981; /* Verde esmeralda firme */
+      border-color: #10b981; /* Verde esmeralda */
       border-style: solid;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     }
   </style>
 </head>
@@ -565,7 +568,6 @@
       return `${NOMBRES_MESES[d.getMonth()]} ${d.getFullYear()}`;
     }
 
-    // AUTENTICACIÓN SEGÚN EL ROL DE SESIÓN (SUPERADMIN O ADMIN SECUNDARIO DE CDA)
     async function solicitarAutorizacion() {
       if (currentAdminRole === 'SUPERADMIN') {
         const clave = prompt("🔒 AUTORIZACIÓN DE SUPERADMIN:\nIngresa la contraseña del Admin Principal para continuar:");
@@ -1031,7 +1033,6 @@
       `).join('');
     }
 
-    // ACCIÓN PERMITIDA A ADMIN DE CDA (REQUIERE SU CONTRASEÑA)
     async function editarPersonal(id) {
       const autorizado = await solicitarAutorizacion();
       if (!autorizado) return;
@@ -1059,7 +1060,6 @@
       }
     }
 
-    // ACCIÓN PERMITIDA A ADMIN DE CDA (REQUIERE SU CONTRASEÑA)
     async function toggleEstadoPersonal(id, estadoActual) {
       const autorizado = await solicitarAutorizacion();
       if (!autorizado) return;
@@ -1068,7 +1068,6 @@
       cargarListaPersonal();
     }
 
-    // EXCLUSIVO DE SUPERADMIN
     async function eliminarPersonal(id) {
       if (currentAdminRole !== 'SUPERADMIN') {
         alert("⛔ Esta acción de eliminación permanente solo está permitida para el SuperAdmin.");
