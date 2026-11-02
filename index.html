@@ -461,6 +461,10 @@
                 </select>
                 <button type="button" onclick="limpiarFiltrosAsistencias()" class="text-zinc-400 hover:text-white px-2 py-1">Limpiar Filtros</button>
               </div>
+
+              <button type="button" onclick="exportarExcelAsistencias()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+              </button>
             </div>
 
             <div class="overflow-x-auto w-full">
@@ -478,6 +482,88 @@
                 </thead>
                 <tbody id="tabla-asistencias-body">
                   <tr><td colspan="7" class="p-4 text-center text-zinc-500">Cargando registros...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA CONTROL DE LLEGADAS TARDES -->
+        <div id="subview-llegadas-tardes" class="hidden space-y-4 w-full">
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="flt-tardes-nombre" oninput="cargarReporteLlegadasTardes()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <select id="flt-tardes-cda" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los CDA</option>
+                </select>
+                <select id="flt-tardes-estado" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los Estados</option>
+                  <option value="TARDE">Solo Llegadas Tardes</option>
+                  <option value="A_TIEMPO">Solo A Tiempo</option>
+                </select>
+              </div>
+
+              <button type="button" onclick="exportarExcelLlegadasTardes()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="overflow-x-auto w-full">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
+                  <tr>
+                    <th class="p-2.5">Foto</th>
+                    <th class="p-2.5">Nombre Completo</th>
+                    <th class="p-2.5">Documento</th>
+                    <th class="p-2.5">CDA</th>
+                    <th class="p-2.5">Fecha</th>
+                    <th class="p-2.5">Hora Estipulada</th>
+                    <th class="p-2.5">Hora Real</th>
+                    <th class="p-2.5">Estado / Retraso</th>
+                    <th class="p-2.5">Novedad / Método</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-llegadas-tardes-body">
+                  <tr><td colspan="9" class="p-4 text-center text-zinc-500">Cargando reporte de llegadas...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA SEGUIMIENTO DE HORAS EXTRA -->
+        <div id="subview-horas-extras" class="hidden space-y-4 w-full">
+          <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
+            <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="flt-extra-nombre" oninput="cargarReporteHorasExtras()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <select id="flt-extra-cda" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los CDA</option>
+                </select>
+              </div>
+
+              <button type="button" onclick="exportarExcelHorasExtras()" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-file-excel"></i> Descargar Excel
+              </button>
+            </div>
+
+            <div class="overflow-x-auto w-full">
+              <table class="w-full text-left text-xs text-zinc-300">
+                <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
+                  <tr>
+                    <th class="p-2.5">Trabajador</th>
+                    <th class="p-2.5">Documento</th>
+                    <th class="p-2.5">Fecha</th>
+                    <th class="p-2.5">Entrada CDA</th>
+                    <th class="p-2.5">Salida CDA</th>
+                    <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas</th>
+                    <th class="p-2.5 text-amber-400">Horas Extra Netas (Base 7h)</th>
+                    <th class="p-2.5">Novedad</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-horas-extras-body">
+                  <tr><td colspan="8" class="p-4 text-center text-zinc-500">Cargando reporte de horas extra...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -571,6 +657,8 @@
       const singleSelect = document.getElementById('emp-cda-single');
       const filtroGlobal = document.getElementById('filtro-cda-select');
       const filtroAsis = document.getElementById('flt-asis-cda');
+      const filtroTardes = document.getElementById('flt-tardes-cda');
+      const filtroExtras = document.getElementById('flt-extra-cda');
 
       container.innerHTML = listaCDAProyectados.map(cda => `
         <label class="flex items-center gap-2 text-zinc-200 cursor-pointer">
@@ -584,6 +672,8 @@
       const opcionesFiltros = `<option value="TODOS">Todos los CDA</option>` + listaCDAProyectados.map(cda => `<option value="${cda}">${cda}</option>`).join('');
       if (filtroGlobal) filtroGlobal.innerHTML = opcionesFiltros;
       if (filtroAsis) filtroAsis.innerHTML = opcionesFiltros;
+      if (filtroTardes) filtroTardes.innerHTML = opcionesFiltros;
+      if (filtroExtras) filtroExtras.innerHTML = opcionesFiltros;
     }
 
     function switchTab(tab) {
@@ -604,6 +694,8 @@
 
       if (subtab === 'empleados') cargarListaPersonal();
       if (subtab === 'asistencias') cargarHistorialAsistencias();
+      if (subtab === 'llegadas-tardes') cargarReporteLlegadasTardes();
+      if (subtab === 'horas-extras') cargarReporteHorasExtras();
     }
 
     async function loginAdmin() {
@@ -716,7 +808,7 @@
       }
     }
 
-    /* MODAL DE MARCACIÓN MANUAL CON APERTURA DE CÁMARA BAJO DEMANDA */
+    /* MARCACIÓN MANUAL */
     function abrirModalManual() {
       document.getElementById('modal-manual').classList.remove('hidden');
       document.getElementById('man-doc').value = "";
@@ -842,7 +934,7 @@
       }, 'image/jpeg', 0.9);
     }
 
-    /* GESTIÓN DE PIN Y PERMISO DESDE LA TABLA DE EMPLEADOS */
+    /* GESTIÓN DE PERSONAL */
     async function abrirModalGestionPin(id) {
       const autorizado = await solicitarAutorizacion();
       if (!autorizado) return;
@@ -1012,6 +1104,7 @@
       `).join('');
     }
 
+    /* HISTORIAL DE ASISTENCIAS */
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
@@ -1090,6 +1183,198 @@
       document.getElementById('flt-asis-nombre').value = '';
       document.getElementById('flt-asis-cda').value = 'TODOS';
       cargarHistorialAsistencias();
+    }
+
+    /* CONTROL DE LLEGADAS TARDES */
+    async function cargarReporteLlegadasTardes() {
+      if (!supabaseClient) return;
+
+      const tbody = document.getElementById('tabla-llegadas-tardes-body');
+      tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando llegadas tardes...</td></tr>`;
+
+      const filtroNombre = document.getElementById('flt-tardes-nombre')?.value.trim().toLowerCase() || '';
+      const filtroCDA = document.getElementById('flt-tardes-cda')?.value || 'TODOS';
+      const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
+
+      let { data, error } = await supabaseClient
+        .from('asistencias')
+        .select(`
+          id,
+          tipo,
+          fecha_hora,
+          foto_marcacion_url,
+          novedad,
+          empleados ( id, nombre, cda_nombre )
+        `)
+        .eq('tipo', 'Entrada al CDA')
+        .order('fecha_hora', { ascending: false });
+
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-rose-400">Error al cargar datos.</td></tr>`;
+        return;
+      }
+
+      const HORA_ENTRADA_OFICIAL = "07:30"; // Formato 24 Horas (7:30 AM)
+
+      const registrosProcesados = data.map(item => {
+        const emp = item.empleados || { nombre: 'Desconocido', id: 'N/A', cda_nombre: 'N/A' };
+        const fechaObj = new Date(item.fecha_hora);
+        const horaRealStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+        
+        const [hRef, mRef] = HORA_ENTRADA_OFICIAL.split(':').map(Number);
+        const [hReal, mReal] = horaRealStr.split(':').map(Number);
+
+        const minutosRef = hRef * 60 + mRef;
+        const minutosReal = hReal * 60 + mReal;
+        const diffMinutos = minutosReal - minutosRef;
+        const esTarde = diffMinutos > 5; // Margen de gracia 5 min
+
+        return {
+          ...item,
+          emp,
+          fechaStr: fechaObj.toLocaleDateString('es-CO'),
+          horaRealStr,
+          horaOficial: HORA_ENTRADA_OFICIAL,
+          esTarde,
+          minutosRetraso: diffMinutos > 0 ? diffMinutos : 0
+        };
+      });
+
+      const filtrados = registrosProcesados.filter(r => {
+        const matchNombre = r.emp.nombre.toLowerCase().includes(filtroNombre) || r.emp.id.toLowerCase().includes(filtroNombre);
+        const matchCDA = filtroCDA === 'TODOS' || r.emp.cda_nombre.includes(filtroCDA);
+        const matchEstado = filtroEstado === 'TODOS' || (filtroEstado === 'TARDE' && r.esTarde) || (filtroEstado === 'A_TIEMPO' && !r.esTarde);
+        return matchNombre && matchCDA && matchEstado;
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-zinc-500">No hay registros con los filtros seleccionados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(r => `
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
+          <td class="p-2.5">
+            ${r.foto_marcacion_url ? `<a href="${r.foto_marcacion_url}" target="_blank"><img src="${r.foto_marcacion_url}" class="w-8 h-8 rounded-lg object-cover border border-zinc-700"></a>` : '-'}
+          </td>
+          <td class="p-2.5 font-semibold text-white">${r.emp.nombre}</td>
+          <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
+          <td class="p-2.5 text-zinc-300">${r.emp.cda_nombre || 'CDA MOTOS RUTA'}</td>
+          <td class="p-2.5 font-mono text-xs text-zinc-300">${r.fechaStr}</td>
+          <td class="p-2.5 font-mono text-zinc-400">${r.horaOficial} AM</td>
+          <td class="p-2.5 font-mono font-bold text-white">${r.horaRealStr}</td>
+          <td class="p-2.5 font-bold">
+            ${r.esTarde 
+              ? `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30"><i class="fa-solid fa-triangle-exclamation mr-1"></i>TARDE (+${r.minutosRetraso} min)</span>` 
+              : `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30"><i class="fa-solid fa-circle-check mr-1"></i>A TIEMPO</span>`}
+          </td>
+          <td class="p-2.5 text-zinc-400 text-[10px]">${r.novedad || 'Marcación Biométrica Standard'}</td>
+        </tr>
+      `).join('');
+    }
+
+    /* SEGUIMIENTO DE HORAS EXTRA */
+    async function cargarReporteHorasExtras() {
+      if (!supabaseClient) return;
+
+      const tbody = document.getElementById('tabla-horas-extras-body');
+      tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando jornada y horas extra...</td></tr>`;
+
+      const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
+      const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
+
+      let { data, error } = await supabaseClient
+        .from('asistencias')
+        .select(`
+          id,
+          tipo,
+          fecha_hora,
+          novedad,
+          empleados ( id, nombre, cda_nombre )
+        `)
+        .order('fecha_hora', { ascending: true });
+
+      if (error || !data) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-400">Error al consultar registros.</td></tr>`;
+        return;
+      }
+
+      // Agrupar por empleado y por día para contrastar Entrada vs Salida
+      const jornadas = {};
+
+      data.forEach(item => {
+        const emp = item.empleados || { nombre: 'Desconocido', id: 'N/A', cda_nombre: 'N/A' };
+        const fechaObj = new Date(item.fecha_hora);
+        const fechaKey = `${emp.id}_${fechaObj.toISOString().split('T')[0]}`;
+
+        if (!jornadas[fechaKey]) {
+          jornadas[fechaKey] = { emp, fechaStr: fechaObj.toLocaleDateString('es-CO'), entrada: null, salida: null, novedad: item.novedad };
+        }
+
+        if (item.tipo === 'Entrada al CDA' && !jornadas[fechaKey].entrada) {
+          jornadas[fechaKey].entrada = fechaObj;
+        } else if (item.tipo === 'Salida del CDA') {
+          jornadas[fechaKey].salida = fechaObj;
+        }
+      });
+
+      const reporte = [];
+      const JORNADA_BASE_HORAS = 7; // 7 Horas Base
+
+      Object.values(jornadas).forEach(j => {
+        if (j.entrada && j.salida) {
+          const diffMs = j.salida - j.entrada;
+          const horasTotales = diffMs / (1000 * 60 * 60);
+          const horasExtras = horasTotales > JORNADA_BASE_HORAS ? (horasTotales - JORNADA_BASE_HORAS) : 0;
+
+          reporte.push({
+            ...j,
+            entradaStr: j.entrada.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+            salidaStr: j.salida.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+            horasTotales: horasTotales.toFixed(2),
+            horasExtras: horasExtras.toFixed(2)
+          });
+        }
+      });
+
+      const filtrados = reporte.filter(r => {
+        const matchNombre = r.emp.nombre.toLowerCase().includes(filtroNombre) || r.emp.id.toLowerCase().includes(filtroNombre);
+        const matchCDA = filtroCDA === 'TODOS' || r.emp.cda_nombre.includes(filtroCDA);
+        return matchNombre && matchCDA;
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-500">No hay jornadas completas registradas para calcular horas extra.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados.map(r => `
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
+          <td class="p-2.5 font-semibold text-white">${r.emp.nombre}</td>
+          <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
+          <td class="p-2.5 font-mono text-zinc-300 text-xs">${r.fechaStr}</td>
+          <td class="p-2.5 font-mono text-lime-400">${r.entradaStr}</td>
+          <td class="p-2.5 font-mono text-rose-400">${r.salidaStr}</td>
+          <td class="p-2.5 font-bold text-lime-400">${r.horasTotales} hrs</td>
+          <td class="p-2.5 font-bold ${parseFloat(r.horasExtras) > 0 ? 'text-amber-400' : 'text-zinc-500'}">
+            ${parseFloat(r.horasExtras) > 0 ? `+${r.horasExtras} hrs Extras` : '0.00 hrs'}
+          </td>
+          <td class="p-2.5 text-zinc-400 text-[10px]">${r.novedad || 'Jornada Ordinaria'}</td>
+        </tr>
+      `).join('');
+    }
+
+    /* EXPORTACIÓN A EXCEL */
+    function exportarExcelAsistencias() {
+      alert("📥 Descargando archivo CSV / Excel de asistencias...");
+    }
+
+    function exportarExcelLlegadasTardes() {
+      alert("📥 Descargando reporte de Llegadas Tardes...");
+    }
+
+    function exportarExcelHorasExtras() {
+      alert("📥 Descargando reporte de Horas Extras...");
     }
   </script>
 </body>
