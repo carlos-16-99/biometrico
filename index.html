@@ -16,7 +16,31 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
+  <!-- ESTILOS DE RESPALDO Y FIX PARA NAVEGADORES MÓVILES (ANDROID / IOS / WEBVIEW) -->
   <style>
+    /* Asegurar visibilidad limpia del modal de escaneo sin romper pantalla */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(9, 9, 11, 0.95);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    
+    .face-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background-color: #000;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 2px solid #84cc16;
+    }
+
     .face-guide-overlay {
       position: absolute;
       inset: 0;
@@ -26,24 +50,25 @@
       align-items: center;
       justify-content: center;
       z-index: 20;
-      overflow: hidden;
     }
+
+    /* Borde del óvalo limpio sin box-shadow gigante */
     .face-oval-guide {
       width: 65%;
       height: 75%;
       border: 3px dashed #84cc16;
       border-radius: 50%;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+      background: transparent;
+      box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.65);
       transition: all 0.25s ease-in-out;
     }
+
     .face-oval-guide.guide-warning {
       border-color: #f59e0b;
-      box-shadow: 0 0 0 9999px rgba(120, 53, 15, 0.55);
     }
     .face-oval-guide.guide-success {
       border-color: #10b981;
       border-style: solid;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     }
   </style>
 </head>
@@ -126,7 +151,7 @@
     </section>
 
     <!-- MODAL ESCÁNER PARA MARCACIÓN BIOMÉTRICA -->
-    <div id="modal-escaner" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+    <div id="modal-escaner" class="modal-backdrop hidden">
       <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
           <i class="fa-solid fa-xmark"></i>
@@ -134,13 +159,13 @@
 
         <h3 id="modal-titulo" class="text-lg font-bold text-lime-400">Escaneando Rostro...</h3>
 
-        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-lime-500 shadow-inner">
+        <div class="face-container">
           <video id="scan-video" autoplay playsinline class="w-full h-full object-cover"></video>
           <canvas id="scan-canvas" class="absolute top-0 left-0 w-full h-full object-cover z-10"></canvas>
           
           <div class="face-guide-overlay">
             <div id="scan-oval-guide" class="face-oval-guide"></div>
-            <span id="scan-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/70 px-2 py-0.5 rounded shadow">Enfoca tu cara dentro del croquis</span>
+            <span id="scan-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/80 px-2 py-0.5 rounded shadow">Enfoca tu cara dentro del croquis</span>
           </div>
         </div>
 
@@ -151,7 +176,7 @@
     </div>
 
     <!-- MODAL DE MARCACIÓN MANUAL CON BOTÓN DESPLEGABLE DE CÁMARA -->
-    <div id="modal-manual" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+    <div id="modal-manual" class="modal-backdrop hidden">
       <div class="bg-zinc-900 border-2 border-amber-500/50 rounded-2xl p-6 max-w-md w-full text-left space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalManual()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
           <i class="fa-solid fa-xmark"></i>
@@ -204,7 +229,7 @@
     </div>
 
     <!-- MODAL DE GESTIÓN DE PERMISO Y PIN MANUAL -->
-    <div id="modal-gestion-pin" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+    <div id="modal-gestion-pin" class="modal-backdrop hidden">
       <div class="bg-zinc-900 border-2 border-lime-500 rounded-2xl p-6 max-w-sm w-full space-y-4 text-left shadow-2xl relative">
         <button type="button" onclick="cerrarModalGestionPin()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg">
           <i class="fa-solid fa-xmark"></i>
@@ -247,7 +272,7 @@
     </div>
 
     <!-- MODAL ESCÁNER PARA REGISTRO FACIAL DE USUARIOS -->
-    <div id="modal-registro-facial" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+    <div id="modal-registro-facial" class="modal-backdrop hidden">
       <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalRegistroFacial()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
           <i class="fa-solid fa-xmark"></i>
@@ -255,13 +280,13 @@
 
         <h3 class="text-lg font-bold text-lime-400">Registrar Puntos Faciales</h3>
 
-        <div class="relative w-full aspect-square bg-black rounded-xl overflow-hidden border-2 border-lime-500 shadow-inner">
+        <div class="face-container">
           <video id="reg-video" autoplay playsinline class="w-full h-full object-cover"></video>
           <canvas id="reg-canvas" class="absolute top-0 left-0 w-full h-full object-cover z-10"></canvas>
 
           <div class="face-guide-overlay">
             <div id="reg-oval-guide" class="face-oval-guide"></div>
-            <span id="reg-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/70 px-2 py-0.5 rounded shadow">Ubica la cara dentro del croquis</span>
+            <span id="reg-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/80 px-2 py-0.5 rounded shadow">Ubica la cara dentro del croquis</span>
           </div>
         </div>
 
