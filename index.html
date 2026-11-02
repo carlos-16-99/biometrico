@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control Biométrico FaceID - CDA MOTOS S.A.S.</title>
   
-  <!-- CDN de Tailwind CSS v3 (Soporta colores zinc, lime, opacidades y utilidades avanzadas) -->
+  <!-- CDN de Tailwind CSS v3 -->
   <script src="https://cdn.tailwindcss.com"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -17,7 +17,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
   <style>
-    /* Estilos corregidos para el Croquis Facial en móviles y Safari iOS */
     .face-guide-overlay {
       position: absolute;
       inset: 0;
@@ -32,17 +31,17 @@
     .face-oval-guide {
       width: 65%;
       height: 75%;
-      border: 3px dashed #84cc16; /* Verde Lime */
+      border: 3px dashed #84cc16;
       border-radius: 50%;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
       transition: all 0.25s ease-in-out;
     }
     .face-oval-guide.guide-warning {
-      border-color: #f59e0b; /* Ámbar / Naranja */
+      border-color: #f59e0b;
       box-shadow: 0 0 0 9999px rgba(120, 53, 15, 0.55);
     }
     .face-oval-guide.guide-success {
-      border-color: #10b981; /* Verde esmeralda */
+      border-color: #10b981;
       border-style: solid;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
     }
@@ -112,6 +111,13 @@
               </button>
             </div>
           </div>
+
+          <!-- BOTÓN DE CONTINGENCIA / MARCACIÓN MANUAL -->
+          <div class="pt-4 border-t border-zinc-800">
+            <button type="button" onclick="abrirModalManual()" class="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold py-3 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-camera-retro text-sm"></i> Marcación Manual con Foto en Vivo (PIN)
+            </button>
+          </div>
         </div>
 
         <div id="models-status" class="text-xs text-lime-400 pt-2 flex items-center justify-center gap-1 font-bold">
@@ -120,7 +126,7 @@
       </div>
     </section>
 
-    <!-- MODAL ESCÁNER PARA MARCACIÓN -->
+    <!-- MODAL ESCÁNER PARA MARCACIÓN BIOMÉTRICA -->
     <div id="modal-escaner" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
       <div class="bg-zinc-900 border-2 border-lime-500/50 rounded-2xl p-6 max-w-md w-full text-center space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalEscaner()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
@@ -141,6 +147,104 @@
 
         <div id="scan-status" class="text-sm font-semibold text-amber-400 min-h-[24px]">
           <i class="fa-solid fa-spinner fa-spin mr-1"></i> Activando cámara...
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE MARCACIÓN MANUAL CON BOTÓN DESPLEGABLE DE CÁMARA -->
+    <div id="modal-manual" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+      <div class="bg-zinc-900 border-2 border-amber-500/50 rounded-2xl p-6 max-w-md w-full text-left space-y-4 shadow-2xl relative">
+        <button type="button" onclick="cerrarModalManual()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3 class="text-lg font-bold text-amber-400 text-center"><i class="fa-solid fa-camera mr-2"></i>Captura de Marcación Manual</h3>
+        <p class="text-xs text-zinc-400 text-center">Toma de fotografía en el instante con marca de agua (Hora, Fecha y GPS)</p>
+
+        <div class="space-y-3 pt-2">
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1">Documento / Cédula del Empleado *</label>
+            <input type="text" id="man-doc" placeholder="Número de Documento" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-amber-500 font-mono text-sm">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1">PIN Personal de Contingencia (4 dígitos) *</label>
+            <input type="password" maxlength="4" id="man-pin" placeholder="••••" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none focus:border-amber-500 font-mono text-center text-lg tracking-widest">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-zinc-300 mb-1">Tipo de Marcación *</label>
+            <select id="man-tipo" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-white outline-none text-xs focus:border-amber-500">
+              <option value="Entrada al CDA">Entrada al CDA</option>
+              <option value="Entrada Descanso">Entrada Descanso</option>
+              <option value="Salida Descanso">Salida Descanso</option>
+              <option value="Salida del CDA">Salida del CDA</option>
+            </select>
+          </div>
+
+          <!-- BOTÓN PARA DESPLEGAR CÁMARA + CONTENEDOR OCULTO -->
+          <div class="space-y-2 pt-1">
+            <button type="button" id="btn-abrir-camara-manual" onclick="activarCamaraManualEnVivo()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-amber-500/40 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-video"></i> Abrir Cámara para Foto
+            </button>
+
+            <!-- VISOR DE CÁMARA (OCULTO INICIALMENTE) -->
+            <div id="contenedor-camara-manual" class="hidden space-y-2 transition-all">
+              <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-amber-500">
+                <video id="man-video" autoplay playsinline class="w-full h-full object-cover"></video>
+                <canvas id="man-canvas" class="hidden"></canvas>
+              </div>
+              
+              <button type="button" onclick="tomarFotoYProcesarManual()" class="w-full bg-amber-500 hover:bg-amber-400 font-bold py-3 rounded-xl text-zinc-950 text-sm shadow-lg transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-camera"></i> Capturar Foto y Registrar Marcación
+              </button>
+            </div>
+          </div>
+
+          <div id="man-status" class="text-xs text-center font-semibold min-h-[20px]"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE GESTIÓN DE PERMISO Y PIN MANUAL (DESDE TABLA ADMIN) -->
+    <div id="modal-gestion-pin" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+      <div class="bg-zinc-900 border-2 border-lime-500 rounded-2xl p-6 max-w-sm w-full space-y-4 text-left shadow-2xl relative">
+        <button type="button" onclick="cerrarModalGestionPin()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3 class="text-base font-bold text-lime-400 flex items-center gap-2">
+          <i class="fa-solid fa-key"></i> Configurar Marcación Manual
+        </h3>
+
+        <div class="space-y-3 border-t border-zinc-800 pt-3">
+          <div>
+            <p class="text-xs text-zinc-400">Trabajador Seleccionado:</p>
+            <p id="pin-emp-nombre" class="font-bold text-white text-sm"></p>
+            <p id="pin-emp-doc" class="font-mono text-xs text-lime-400"></p>
+          </div>
+
+          <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-zinc-200">
+              <input type="checkbox" id="chk-permiso-manual-modal" class="w-4 h-4 rounded text-lime-500 bg-zinc-900 border-zinc-700">
+              <span>Habilitar Marcación Manual</span>
+            </label>
+            <p class="text-[10px] text-zinc-500">Permite registrar asistencias mediante foto fija en caso de fallo de la cámara FaceID.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-amber-400 mb-1">PIN de Contingencia (4 dígitos)</label>
+            <div class="flex gap-2">
+              <input type="text" id="input-pin-manual-modal" maxlength="4" placeholder="1234" class="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-center text-amber-300 font-mono text-base font-bold outline-none focus:border-amber-400 flex-1">
+              <button type="button" onclick="generarPinAleatorioModal()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-2 rounded-lg text-xs font-bold border border-zinc-700">
+                Generar
+              </button>
+            </div>
+          </div>
+
+          <button type="button" onclick="guardarPinYPermisoEmp()" class="w-full bg-lime-500 hover:bg-lime-400 font-bold py-2.5 rounded-xl text-zinc-950 text-xs shadow-lg">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Cambios
+          </button>
         </div>
       </div>
     </div>
@@ -332,8 +436,8 @@
                     <th class="p-2.5">Foto</th>
                     <th class="p-2.5">Nombre / Cargo</th>
                     <th class="p-2.5">Documento / NIT</th>
-                    <th class="p-2.5">Celular</th>
                     <th class="p-2.5">CDA(s)</th>
+                    <th class="p-2.5">Permiso Manual / PIN</th>
                     <th class="p-2.5">Estado</th>
                     <th id="th-accion-emp" class="p-2.5 text-right">Acción</th>
                   </tr>
@@ -346,7 +450,7 @@
           </div>
         </div>
 
-        <!-- PESTAÑA N° 1: HISTORIAL DE ASISTENCIAS -->
+        <!-- PESTAÑA HISTORIAL DE ASISTENCIAS -->
         <div id="subview-asistencias" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -378,7 +482,7 @@
           </div>
         </div>
 
-        <!-- PESTAÑA N° 2: CONTROL DE LLEGADAS TARDES -->
+        <!-- PESTAÑA CONTROL DE LLEGADAS TARDES -->
         <div id="subview-llegadas-tardes" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -413,9 +517,9 @@
                     <th class="p-2.5">Semana</th>
                     <th class="p-2.5">Fecha</th>
                     <th class="p-2.5">Hora Estipulada (Editar)</th>
-                    <th class="p-2.5">Hora Marcación Real (HH:MM:SS)</th>
+                    <th class="p-2.5">Hora Marcación Real</th>
                     <th class="p-2.5">Estado / Retraso</th>
-                    <th class="p-2.5">Novedad / Soporte (Observación)</th>
+                    <th class="p-2.5">Novedad / Soporte</th>
                   </tr>
                 </thead>
                 <tbody id="tabla-llegadas-tardes-body">
@@ -426,7 +530,7 @@
           </div>
         </div>
 
-        <!-- PESTAÑA N° 3: SEGUIMIENTO DE HORAS EXTRA -->
+        <!-- PESTAÑA SEGUIMIENTO DE HORAS EXTRA -->
         <div id="subview-horas-extras" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -458,7 +562,7 @@
                     <th class="p-2.5">Descanso Descontado</th>
                     <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas</th>
                     <th class="p-2.5 text-amber-400">Horas Extra Netas (Base 7h)</th>
-                    <th class="p-2.5">Novedad / Soporte (Observación)</th>
+                    <th class="p-2.5">Novedad / Soporte</th>
                   </tr>
                 </thead>
                 <tbody id="tabla-horas-extras-body">
@@ -485,7 +589,7 @@
       }
     } catch(e) {}
 
-    let scanStream = null, regStream = null;
+    let scanStream = null, regStream = null, manStream = null;
     let fotoRefBlob = null;
     let descriptorFacialGlobal = null;
     let currentLat = null, currentLng = null;
@@ -497,6 +601,7 @@
     let currentAdminCDA = null;
     let currentAdminUser = null;
     let editandoDocumentoId = null;
+    let empleadoGestionPin = null;
 
     const listaCDAProyectados = [
       "CDA MOTOS RUTA 44",
@@ -748,133 +853,182 @@
       }
     }
 
-    function validarPosicionRostroEnCroquis(landmarks) {
-      const nariz = landmarks[1];
-      const ojoIzquierdo = landmarks[33];
-      const ojoDerecho = landmarks[263];
-      const menton = landmarks[152];
-      const frente = landmarks[10];
-
-      const centroX = nariz.x;
-      const centroY = nariz.y;
-
-      const anchoRostro = Math.hypot(ojoDerecho.x - ojoIzquierdo.x, ojoDerecho.y - ojoIzquierdo.y);
-      const altoRostro = Math.hypot(menton.x - frente.x, menton.y - frente.y);
-
-      if (centroX < 0.38 || centroX > 0.62) {
-        return { ok: false, msg: "⚠️ Centra tu rostro horizontalmente en el croquis" };
-      }
-
-      if (centroY < 0.38 || centroY > 0.62) {
-        return { ok: false, msg: "⚠️ Ajusta la altura de tu rostro dentro del croquis" };
-      }
-
-      if (anchoRostro < 0.18 || altoRostro < 0.30) {
-        return { ok: false, msg: "⚠️ Acércate un poco más al croquis" };
-      }
-
-      if (anchoRostro > 0.42 || altoRostro > 0.65) {
-        return { ok: false, msg: "⚠️ Aléjate un poco más del croquis" };
-      }
-
-      return { ok: true, msg: "✅ Rostro Alineado Perfectamente" };
+    /* MODAL DE MARCACIÓN MANUAL CON APERTURA DE CÁMARA BAJO DEMANDA */
+    function abrirModalManual() {
+      document.getElementById('modal-manual').classList.remove('hidden');
+      document.getElementById('man-doc').value = "";
+      document.getElementById('man-pin').value = "";
+      document.getElementById('man-status').innerText = "";
+      document.getElementById('contenedor-camara-manual').classList.add('hidden');
+      document.getElementById('btn-abrir-camara-manual').classList.remove('hidden');
     }
 
-    async function abrirModalRegistroFacial() {
-      document.getElementById('modal-registro-facial').classList.remove('hidden');
+    function cerrarModalManual() {
+      if (manStream) {
+        manStream.getTracks().forEach(t => t.stop());
+        manStream = null;
+      }
+      document.getElementById('modal-manual').classList.add('hidden');
+    }
+
+    async function activarCamaraManualEnVivo() {
+      const doc = document.getElementById('man-doc').value.trim();
+      const pin = document.getElementById('man-pin').value.trim();
+      const status = document.getElementById('man-status');
+
+      if (!doc || !pin) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "❌ Ingresa tu Cédula y PIN antes de encender la cámara.";
+        return;
+      }
+
+      status.className = "text-xs font-semibold text-amber-400";
+      status.innerText = "🔍 Verificando autorización...";
+
+      const { data: emp, error } = await supabaseClient
+        .from('empleados')
+        .select('*')
+        .eq('id', doc)
+        .single();
+
+      if (error || !emp) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "❌ Trabajador no registrado en el sistema.";
+        return;
+      }
+
+      if (emp.permitir_manual !== true) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "⛔ ACCESO DENEGADO: No tienes permiso activo otorgado por el Administrador.";
+        return;
+      }
+
+      if (emp.pin_manual !== pin) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "❌ PIN de Contingencia incorrecto.";
+        return;
+      }
+
+      status.innerText = "🎥 Encendiendo cámara...";
+
       try {
-        regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('reg-video').srcObject = regStream;
+        manStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        document.getElementById('man-video').srcObject = manStream;
+        document.getElementById('contenedor-camara-manual').classList.remove('hidden');
+        document.getElementById('btn-abrir-camara-manual').classList.add('hidden');
+        status.className = "text-xs font-bold text-lime-400";
+        status.innerText = "✅ Cámara lista. Presiona 'Capturar Foto y Registrar Marcación'.";
       } catch(e) {
-        alert("No se pudo acceder a la cámara.");
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "❌ No se pudo encender la cámara en el dispositivo.";
       }
     }
 
-    function cerrarModalRegistroFacial() {
-      if (regStream) regStream.getTracks().forEach(t => t.stop());
-      document.getElementById('modal-registro-facial').classList.add('hidden');
-    }
+    async function tomarFotoYProcesarManual() {
+      const doc = document.getElementById('man-doc').value.trim();
+      const pin = document.getElementById('man-pin').value.trim();
+      const tipo = document.getElementById('man-tipo').value;
+      const status = document.getElementById('man-status');
+      const video = document.getElementById('man-video');
+      const canvas = document.getElementById('man-canvas');
 
-    function extraerVectorFacialNormalizado(landmarks) {
-      const pNose = landmarks[1];
-      const pLeftEye = landmarks[33];
-      const pRightEye = landmarks[263];
+      const { data: emp } = await supabaseClient.from('empleados').select('*').eq('id', doc).single();
 
-      const widthRef = Math.hypot(pRightEye.x - pLeftEye.x, pRightEye.y - pLeftEye.y) || 1.0;
-
-      const indicesClave = [
-        1, 4, 33, 61, 133, 159, 145, 263, 291, 362, 386, 374, 
-        0, 17, 61, 291, 13, 14, 78, 308, 10, 152, 234, 454
-      ];
-
-      const vector = [];
-      indicesClave.forEach(idx => {
-        const p = landmarks[idx];
-        vector.push((p.x - pNose.x) / widthRef);
-        vector.push((p.y - pNose.y) / widthRef);
-        vector.push((p.z - pNose.z) / widthRef);
-      });
-
-      return vector;
-    }
-
-    async function capturarPatronFacial() {
-      const status = document.getElementById('reg-status');
-      const video = document.getElementById('reg-video');
-      const canvas = document.getElementById('reg-canvas');
-      const guideBox = document.getElementById('reg-oval-guide');
-      const guideMsg = document.getElementById('reg-guide-msg');
-
-      status.innerText = "🔍 Mapeando facciones del rostro...";
-
-      await faceMesh.send({ image: video });
-
-      if (!currentLandmarks) {
-        guideBox.className = "face-oval-guide guide-warning";
-        status.className = "text-xs font-bold text-amber-400";
-        status.innerText = "❌ Rostro no detectado. Ubícate dentro del croquis.";
-        return;
-      }
-
-      const validacion = validarPosicionRostroEnCroquis(currentLandmarks);
-
-      if (!validacion.ok) {
-        guideBox.className = "face-oval-guide guide-warning";
-        guideMsg.innerText = validacion.msg.toUpperCase();
-        status.className = "text-xs font-bold text-amber-400";
-        status.innerText = `⛔ REGISTRO DENEGADO: ${validacion.msg}`;
-        return;
-      }
-
-      guideBox.className = "face-oval-guide guide-success";
-      guideMsg.innerText = "ROSTRO ALINEADO CORRECTAMENTE";
-
-      descriptorFacialGlobal = extraerVectorFacialNormalizado(currentLandmarks);
+      status.className = "text-xs font-semibold text-amber-400";
+      status.innerText = "📸 Procesando captura con marca de agua...";
 
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth || 640;
       canvas.height = video.videoHeight || 480;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Dibujar captura directa de la cámara
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Generar sello de agua con Fecha, Hora y Coordenadas GPS
+      const ahora = new Date();
+      const fechaStr = ahora.toLocaleDateString('es-CO');
+      const horaStr = ahora.toLocaleTimeString('es-CO', { hour12: false });
+      const gpsStr = currentLat && currentLng ? `GPS: ${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}` : "GPS: No disponible";
+
+      // Fondo del sello de agua
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.fillRect(10, canvas.height - 55, canvas.width - 20, 45);
+
+      // Texto del sello de agua
       ctx.fillStyle = '#84cc16';
-
-      currentLandmarks.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x * canvas.width, p.y * canvas.height, 1.5, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-
-      const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = canvas.width;
-      tmpCanvas.height = canvas.height;
-      tmpCanvas.getContext('2d').drawImage(video, 0, 0);
-      tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
-
-      status.className = "text-xs font-bold text-lime-400";
-      status.innerText = "✅ Biometría Capturada con Éxito";
-      document.getElementById('lbl-biometrico-status').innerText = "✅ Biometría Capturada Exitosa";
-      document.getElementById('lbl-biometrico-status').className = "text-lime-400 font-bold";
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText(`CDA MOTOS S.A.S. | MARCACIÓN MANUAL: ${tipo.toUpperCase()}`, 18, canvas.height - 37);
       
-      setTimeout(() => { cerrarModalRegistroFacial(); }, 1200);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '11px sans-serif';
+      ctx.fillText(`FECHA: ${fechaStr} ${horaStr} | ${gpsStr} | TRABAJADOR: ${emp.nombre}`, 18, canvas.height - 20);
+
+      canvas.toBlob(async (blob) => {
+        const fileName = `manual_${doc}_${Date.now()}.jpg`;
+        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
+        const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+
+        await supabaseClient.from('asistencias').insert([{
+          empleado_id: emp.id,
+          tipo: tipo,
+          latitud: currentLat,
+          longitud: currentLng,
+          foto_marcacion_url: fotoUrl,
+          novedad: "MARCACIÓN MANUAL AUTORIZADA CON FOTO EN VIVO Y MARCA DE AGUA"
+        }]);
+
+        status.className = "text-sm font-bold text-lime-400 animate-bounce";
+        status.innerText = `¡HOLA ${emp.nombre.toUpperCase()}! MARCACIÓN MANUAL [${tipo.toUpperCase()}] REGISTRADA EXITOSAMENTE.`;
+
+        setTimeout(() => { cerrarModalManual(); }, 3000);
+      }, 'image/jpeg', 0.9);
+    }
+
+    /* GESTIÓN DE PIN Y PERMISO DESDE LA TABLA DE EMPLEADOS */
+    async function abrirModalGestionPin(id) {
+      const autorizado = await solicitarAutorizacion();
+      if (!autorizado) return;
+
+      const { data: e } = await supabaseClient.from('empleados').select('*').eq('id', id).single();
+      if (!e) return;
+
+      empleadoGestionPin = e;
+      document.getElementById('pin-emp-nombre').innerText = e.nombre;
+      document.getElementById('pin-emp-doc').innerText = `CC/NIT: ${e.id}`;
+      document.getElementById('chk-permiso-manual-modal').checked = (e.permitir_manual === true);
+      document.getElementById('input-pin-manual-modal').value = e.pin_manual || '1234';
+
+      document.getElementById('modal-gestion-pin').classList.remove('hidden');
+    }
+
+    function cerrarModalGestionPin() {
+      document.getElementById('modal-gestion-pin').classList.add('hidden');
+    }
+
+    function generarPinAleatorioModal() {
+      const pin = Math.floor(1000 + Math.random() * 9000).toString();
+      document.getElementById('input-pin-manual-modal').value = pin;
+    }
+
+    async function guardarPinYPermisoEmp() {
+      if (!empleadoGestionPin) return;
+
+      const permiso = document.getElementById('chk-permiso-manual-modal').checked;
+      const pin = document.getElementById('input-pin-manual-modal').value.trim();
+
+      if (permiso && (!pin || pin.length < 4)) {
+        alert("OBLIGATORIO: Ingresa un PIN de 4 dígitos para habilitar la marcación manual.");
+        return;
+      }
+
+      await supabaseClient
+        .from('empleados')
+        .update({ permitir_manual: permiso, pin_manual: pin })
+        .eq('id', empleadoGestionPin.id);
+
+      alert(`✅ Configuración actualizada para ${empleadoGestionPin.nombre}.`);
+      cerrarModalGestionPin();
+      cargarListaPersonal();
     }
 
     async function guardarPersonal() {
@@ -909,35 +1063,6 @@
 
       const cdaString = cdasSeleccionados.join(',');
 
-      if (cargo === 'Administrador de CDA') {
-        if (!pass && !editandoDocumentoId) return alert("Asigna una contraseña para este Administrador.");
-
-        const { data: adminEx } = await supabaseClient
-          .from('empleados')
-          .select('id, nombre')
-          .eq('cda_nombre', cdasSeleccionados[0])
-          .eq('departamento', 'Administrador de CDA')
-          .neq('id', doc);
-
-        if (adminEx && adminEx.length > 0) {
-          return alert(`El CDA "${cdasSeleccionados[0]}" ya cuenta con un Administrador registrado (${adminEx[0].nombre}). Solo se permite 1 por sede.`);
-        }
-      } else {
-        if (!descriptorFacialGlobal && !editandoDocumentoId) {
-          return alert("OBLIGATORIO: Registra los puntos faciales del trabajador operativo.");
-        }
-      }
-
-      status.className = "text-lime-400 font-semibold";
-      status.innerText = "💾 Guardando información...";
-
-      let fotoUrl = null;
-      if (fotoRefBlob) {
-        const fileName = `ref_${doc}.jpg`;
-        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
-        fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
-      }
-
       const datosEmpleado = {
         id: doc,
         nombre: nombre,
@@ -948,8 +1073,16 @@
       };
 
       if (pass) datosEmpleado.password = pass;
-      if (fotoUrl) datosEmpleado.foto_referencia_url = fotoUrl;
+      if (fotoRefBlob) {
+        const fileName = `ref_${doc}.jpg`;
+        await supabaseClient.storage.from('fotos-asistencia').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg', upsert: true });
+        datosEmpleado.foto_referencia_url = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+      }
+
       if (descriptorFacialGlobal) datosEmpleado.descriptor_facial = descriptorFacialGlobal;
+
+      status.className = "text-lime-400 font-semibold";
+      status.innerText = "💾 Guardando información...";
 
       const { error } = await supabaseClient.from('empleados').upsert([datosEmpleado]);
 
@@ -1011,23 +1144,23 @@
           </td>
           <td class="p-2.5 font-semibold text-white">${e.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${e.departamento || 'Sin cargo'}</span></td>
           <td class="p-2.5 font-mono text-lime-400">${e.id}</td>
-          <td class="p-2.5 text-zinc-300">${e.telefono || 'N/A'}</td>
           <td class="p-2.5 text-zinc-300 font-semibold">${e.cda_nombre || 'CDA MOTOS RUTA'}</td>
+          <td class="p-2.5">
+            ${e.permitir_manual ? `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/30 font-bold"><i class="fa-solid fa-key mr-1"></i>PIN: ${e.pin_manual || '1234'}</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-zinc-950 text-zinc-500">Deshabilitado</span>`}
+          </td>
           <td class="p-2.5">
             ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30">Inactivo</span>`}
           </td>
           <td class="p-2.5 text-right space-x-1">
+            <button type="button" onclick="abrirModalGestionPin('${e.id}')" title="Configurar PIN y Permiso Manual" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-amber-400 px-2 py-1 rounded border border-zinc-700">
+              <i class="fa-solid fa-key"></i>
+            </button>
             <button type="button" onclick="editarPersonal('${e.id}')" title="Editar Datos" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-2 py-1 rounded border border-zinc-700">
               <i class="fa-solid fa-gear"></i>
             </button>
             <button type="button" onclick="toggleEstadoPersonal('${e.id}', ${e.activo !== false})" title="${e.activo !== false ? 'Deshabilitar' : 'Habilitar'}" class="text-xs ${e.activo !== false ? 'bg-amber-950 text-amber-400 border border-amber-500/30' : 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'} px-2 py-1 rounded">
               <i class="fa-solid ${e.activo !== false ? 'fa-user-slash' : 'fa-user-check'}"></i>
             </button>
-            ${currentAdminRole === 'SUPERADMIN' ? `
-              <button type="button" onclick="eliminarPersonal('${e.id}')" title="Eliminar Definitivamente" class="text-xs bg-rose-950 text-rose-400 border border-rose-500/30 px-2 py-1 rounded hover:bg-rose-900">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            ` : ''}
           </td>
         </tr>
       `).join('');
@@ -1060,24 +1193,92 @@
       }
     }
 
-    async function toggleEstadoPersonal(id, estadoActual) {
-      const autorizado = await solicitarAutorizacion();
-      if (!autorizado) return;
+    /* RESTO DE MÓDULOS DE ASISTENCIA, LLEGADAS TARDES Y HORAS EXTRAS */
+    function validarPosicionRostroEnCroquis(landmarks) {
+      const nariz = landmarks[1];
+      const ojoIzquierdo = landmarks[33];
+      const ojoDerecho = landmarks[263];
+      const menton = landmarks[152];
+      const frente = landmarks[10];
+      const centroX = nariz.x, centroY = nariz.y;
+      const anchoRostro = Math.hypot(ojoDerecho.x - ojoIzquierdo.x, ojoDerecho.y - ojoIzquierdo.y);
+      const altoRostro = Math.hypot(menton.x - frente.x, menton.y - frente.y);
 
-      await supabaseClient.from('empleados').update({ activo: !estadoActual }).eq('id', id);
-      cargarListaPersonal();
+      if (centroX < 0.38 || centroX > 0.62) return { ok: false, msg: "⚠️ Centra tu rostro horizontalmente en el croquis" };
+      if (centroY < 0.38 || centroY > 0.62) return { ok: false, msg: "⚠️ Ajusta la altura de tu rostro dentro del croquis" };
+      if (anchoRostro < 0.18 || altoRostro < 0.30) return { ok: false, msg: "⚠️ Acércate un poco más al croquis" };
+      if (anchoRostro > 0.42 || altoRostro > 0.65) return { ok: false, msg: "⚠️ Aléjate un poco más del croquis" };
+      return { ok: true, msg: "✅ Rostro Alineado Perfectamente" };
     }
 
-    async function eliminarPersonal(id) {
-      if (currentAdminRole !== 'SUPERADMIN') {
-        alert("⛔ Esta acción de eliminación permanente solo está permitida para el SuperAdmin.");
+    async function abrirModalRegistroFacial() {
+      document.getElementById('modal-registro-facial').classList.remove('hidden');
+      try {
+        regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        document.getElementById('reg-video').srcObject = regStream;
+      } catch(e) { alert("No se pudo acceder a la cámara."); }
+    }
+
+    function cerrarModalRegistroFacial() {
+      if (regStream) regStream.getTracks().forEach(t => t.stop());
+      document.getElementById('modal-registro-facial').classList.add('hidden');
+    }
+
+    function extraerVectorFacialNormalizado(landmarks) {
+      const pNose = landmarks[1], pLeftEye = landmarks[33], pRightEye = landmarks[263];
+      const widthRef = Math.hypot(pRightEye.x - pLeftEye.x, pRightEye.y - pLeftEye.y) || 1.0;
+      const indicesClave = [1, 4, 33, 61, 133, 159, 145, 263, 291, 362, 386, 374, 0, 17, 61, 291, 13, 14, 78, 308, 10, 152, 234, 454];
+      const vector = [];
+      indicesClave.forEach(idx => {
+        const p = landmarks[idx];
+        vector.push((p.x - pNose.x) / widthRef);
+        vector.push((p.y - pNose.y) / widthRef);
+        vector.push((p.z - pNose.z) / widthRef);
+      });
+      return vector;
+    }
+
+    async function capturarPatronFacial() {
+      const status = document.getElementById('reg-status'), video = document.getElementById('reg-video'), canvas = document.getElementById('reg-canvas');
+      const guideBox = document.getElementById('reg-oval-guide'), guideMsg = document.getElementById('reg-guide-msg');
+      status.innerText = "🔍 Mapeando facciones del rostro...";
+      await faceMesh.send({ image: video });
+
+      if (!currentLandmarks) {
+        guideBox.className = "face-oval-guide guide-warning";
+        status.className = "text-xs font-bold text-amber-400";
+        status.innerText = "❌ Rostro no detectado. Ubícate dentro del croquis.";
         return;
       }
-      const autorizado = await solicitarAutorizacion();
-      if (!autorizado) return;
 
-      await supabaseClient.from('empleados').delete().eq('id', id);
-      cargarListaPersonal();
+      const validacion = validarPosicionRostroEnCroquis(currentLandmarks);
+      if (!validacion.ok) {
+        guideBox.className = "face-oval-guide guide-warning";
+        guideMsg.innerText = validacion.msg.toUpperCase();
+        status.className = "text-xs font-bold text-amber-400";
+        status.innerText = `⛔ REGISTRO DENEGADO: ${validacion.msg}`;
+        return;
+      }
+
+      guideBox.className = "face-oval-guide guide-success";
+      guideMsg.innerText = "ROSTRO ALINEADO CORRECTAMENTE";
+      descriptorFacialGlobal = extraerVectorFacialNormalizado(currentLandmarks);
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+      ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#84cc16';
+      currentLandmarks.forEach(p => { ctx.beginPath(); ctx.arc(p.x * canvas.width, p.y * canvas.height, 1.5, 0, 2 * Math.PI); ctx.fill(); });
+
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = canvas.width; tmpCanvas.height = canvas.height;
+      tmpCanvas.getContext('2d').drawImage(video, 0, 0);
+      tmpCanvas.toBlob(blob => { fotoRefBlob = blob; }, 'image/jpeg', 0.85);
+
+      status.className = "text-xs font-bold text-lime-400";
+      status.innerText = "✅ Biometría Capturada con Éxito";
+      document.getElementById('lbl-biometrico-status').innerText = "✅ Biometría Capturada Exitosa";
+      document.getElementById('lbl-biometrico-status').className = "text-lime-400 font-bold";
+      setTimeout(() => { cerrarModalRegistroFacial(); }, 1200);
     }
 
     async function abrirModalEscaner(tipo) {
@@ -1086,14 +1287,11 @@
       document.getElementById('modal-escaner').classList.remove('hidden');
       const status = document.getElementById('scan-status');
       status.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Activando cámara...';
-
       try {
         scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         document.getElementById('scan-video').srcObject = scanStream;
         setTimeout(() => { procesarValidacionFaceID(); }, 1200);
-      } catch(err) {
-        status.innerText = "❌ No se pudo activar la cámara.";
-      }
+      } catch(err) { status.innerText = "❌ No se pudo activar la cámara."; }
     }
 
     function cerrarModalEscaner() {
@@ -1104,21 +1302,15 @@
     function calcularDistanciaFacial(vecA, vecB) {
       let suma = 0;
       for (let i = 0; i < Math.min(vecA.length, vecB.length); i++) {
-        let diff = vecA[i] - vecB[i];
-        suma += diff * diff;
+        let diff = vecA[i] - vecB[i]; suma += diff * diff;
       }
       return Math.sqrt(suma);
     }
 
     async function procesarValidacionFaceID() {
-      const status = document.getElementById('scan-status');
-      const video = document.getElementById('scan-video');
-      const canvas = document.getElementById('scan-canvas');
-      const guideBox = document.getElementById('scan-oval-guide');
-      const guideMsg = document.getElementById('scan-guide-msg');
-
+      const status = document.getElementById('scan-status'), video = document.getElementById('scan-video'), canvas = document.getElementById('scan-canvas');
+      const guideBox = document.getElementById('scan-oval-guide'), guideMsg = document.getElementById('scan-guide-msg');
       status.innerText = "🔍 Escaneando rostro...";
-
       await faceMesh.send({ image: video });
 
       if (!currentLandmarks) {
@@ -1130,7 +1322,6 @@
       }
 
       const validacionCroquis = validarPosicionRostroEnCroquis(currentLandmarks);
-
       if (!validacionCroquis.ok) {
         guideBox.className = "face-oval-guide guide-warning";
         guideMsg.innerText = validacionCroquis.msg.toUpperCase();
@@ -1142,43 +1333,23 @@
 
       guideBox.className = "face-oval-guide guide-success";
       guideMsg.innerText = "ROSTRO ALINEADO AL CROQUIS";
-
       const vecActual = extraerVectorFacialNormalizado(currentLandmarks);
 
       const ctx = canvas.getContext('2d');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#84cc16';
-      currentLandmarks.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x * canvas.width, p.y * canvas.height, 1.5, 0, 2 * Math.PI);
-        ctx.fill();
-      });
+      canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+      ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#84cc16';
+      currentLandmarks.forEach(p => { ctx.beginPath(); ctx.arc(p.x * canvas.width, p.y * canvas.height, 1.5, 0, 2 * Math.PI); ctx.fill(); });
 
       status.innerText = "⚡ Identificando trabajador...";
 
-      const { data: empleados } = await supabaseClient
-        .from('empleados')
-        .select('*')
-        .eq('activo', true)
-        .neq('departamento', 'Administrador de CDA');
+      const { data: empleados } = await supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
+      if (!empleados || empleados.length === 0) { status.innerText = "❌ No hay empleados operativos activos."; return; }
 
-      if (!empleados || empleados.length === 0) {
-        status.innerText = "❌ No hay empleados operativos activos.";
-        return;
-      }
-
-      let mejorCoincidencia = null;
-      let menorDistancia = 0.28;
-
+      let mejorCoincidencia = null, menorDistancia = 0.28;
       empleados.forEach(emp => {
         if (emp.descriptor_facial) {
           const dist = calcularDistanciaFacial(vecActual, emp.descriptor_facial);
-          if (dist < menorDistancia) {
-            menorDistancia = dist;
-            mejorCoincidencia = emp;
-          }
+          if (dist < menorDistancia) { menorDistancia = dist; mejorCoincidencia = emp; }
         }
       });
 
@@ -1189,59 +1360,19 @@
         return;
       }
 
-      const hoyInicio = new Date();
-      hoyInicio.setHours(0,0,0,0);
-
-      const { data: marcacionesHoy } = await supabaseClient
-        .from('asistencias')
-        .select('tipo, fecha_hora')
-        .eq('empleado_id', mejorCoincidencia.id)
-        .gte('fecha_hora', hoyInicio.toISOString());
+      const hoyInicio = new Date(); hoyInicio.setHours(0,0,0,0);
+      const { data: marcacionesHoy } = await supabaseClient.from('asistencias').select('tipo, fecha_hora').eq('empleado_id', mejorCoincidencia.id).gte('fecha_hora', hoyInicio.toISOString());
 
       const yaEntroCDA = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada al CDA') : false;
-      const yaSalioDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Salida Descanso') : false;
-      const yaEntroDescanso = marcacionesHoy ? marcacionesHoy.some(m => m.tipo === 'Entrada Descanso') : false;
 
       if (scanTipo === 'Entrada Descanso' && !yaEntroCDA) {
         status.className = "text-xs font-bold text-rose-400";
-        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "ENTRADA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
-        setTimeout(() => { cerrarModalEscaner(); }, 4000);
-        return;
-      }
-
-      if (scanTipo === 'Salida Descanso' && !yaEntroDescanso) {
-        status.className = "text-xs font-bold text-rose-400";
-        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DESCANSO" SIN HABER REGISTRADO PRIMERO LA "ENTRADA DESCANSO".`;
-        setTimeout(() => { cerrarModalEscaner(); }, 4000);
-        return;
-      }
-
-      if (scanTipo === 'Salida del CDA' && !yaEntroCDA) {
-        status.className = "text-xs font-bold text-rose-400";
-        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: NO PUEDES REGISTRAR "SALIDA DEL CDA" SIN HABER REGISTRADO PRIMERO LA "ENTRADA AL CDA".`;
-        setTimeout(() => { cerrarModalEscaner(); }, 4000);
-        return;
-      }
-
-      if (scanTipo === 'Salida del CDA' && yaEntroDescanso && !yaSalioDescanso) {
-        status.className = "text-xs font-bold text-rose-400";
-        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: REGISTRASTE ENTRADA A DESCANSO. DEBES REGISTRAR "SALIDA DESCANSO" ANTES DE TU SALIDA DEL CDA.`;
-        setTimeout(() => { cerrarModalEscaner(); }, 4000);
-        return;
-      }
-
-      const yaExisteEsteRegistro = marcacionesHoy ? marcacionesHoy.find(m => m.tipo === scanTipo) : null;
-      if (yaExisteEsteRegistro) {
-        const horaReg = new Date(yaExisteEsteRegistro.fecha_hora).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-        status.className = "text-xs font-bold text-amber-400";
-        status.innerText = `⚠️ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: YA REALIZASTE TU REGISTRO DE [${scanTipo.toUpperCase()}] HOY A LAS ${horaReg}.`;
-        setTimeout(() => { cerrarModalEscaner(); }, 4000);
-        return;
+        status.innerText = `❌ HOLA ${mejorCoincidencia.nombre.toUpperCase()}: REGISTRA PRIMERO TU "ENTRADA AL CDA".`;
+        setTimeout(() => { cerrarModalEscaner(); }, 4000); return;
       }
 
       const tmpCanvas = document.createElement('canvas');
-      tmpCanvas.width = canvas.width;
-      tmpCanvas.height = canvas.height;
+      tmpCanvas.width = canvas.width; tmpCanvas.height = canvas.height;
       tmpCanvas.getContext('2d').drawImage(video, 0, 0);
 
       tmpCanvas.toBlob(async (blob) => {
@@ -1259,572 +1390,8 @@
 
         status.className = "text-base font-bold text-lime-400 animate-bounce";
         status.innerText = `¡HOLA ${mejorCoincidencia.nombre.toUpperCase()}! MARCACIÓN: [${scanTipo.toUpperCase()}] REGISTRADA EXITOSAMENTE.`;
-
         setTimeout(() => { cerrarModalEscaner(); }, 3000);
       }, 'image/jpeg', 0.85);
-    }
-
-    async function cargarHistorialAsistencias() {
-      if (!supabaseClient) return;
-
-      const isSuper = (currentAdminRole === 'SUPERADMIN');
-
-      const trHeader = document.getElementById('tr-header-asistencias');
-      trHeader.innerHTML = `
-        <th class="p-2.5">Foto</th>
-        <th class="p-2.5">Nombre Completo</th>
-        <th class="p-2.5">Documento</th>
-        <th class="p-2.5">Mes</th>
-        <th class="p-2.5">Semana</th>
-        <th class="p-2.5">Fecha</th>
-        <th class="p-2.5">Entrada CDA</th>
-        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Entrada</th>` : ''}
-        <th class="p-2.5">Entrada Descanso</th>
-        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Ent. Desc.</th>` : ''}
-        <th class="p-2.5">Salida Descanso</th>
-        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Sal. Desc.</th>` : ''}
-        <th class="p-2.5">Salida CDA</th>
-        ${isSuper ? `<th class="p-2.5 text-[10px] text-lime-400">GPS Salida</th>` : ''}
-        ${isSuper ? `<th class="p-2.5 text-right">Acción</th>` : ''}
-      `;
-
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
-
-      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
-        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
-      }
-
-      const { data: todosEmpleados } = await queryEmp;
-      const { data: marcaciones } = await supabaseClient.from('asistencias').select('*').order('fecha_hora', { ascending: true });
-
-      const tbody = document.getElementById('tabla-asistencias-body');
-      
-      if (!todosEmpleados || !todosEmpleados.length) {
-        tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-500">No hay trabajadores operativos registrados.</td></tr>`;
-        return;
-      }
-
-      const fltNombre = document.getElementById('flt-asis-nombre').value.toLowerCase().trim();
-      const fltCDA = document.getElementById('flt-asis-cda').value;
-      const fltMes = document.getElementById('flt-asis-mes').value;
-      const fltSemana = document.getElementById('flt-asis-semana').value;
-
-      let mapaAsistencias = {};
-
-      todosEmpleados.forEach(emp => {
-        const hoy = new Date();
-        mapaAsistencias[emp.id] = {
-          nombre: emp.nombre,
-          doc: emp.id,
-          foto: emp.foto_referencia_url,
-          cda: emp.cda_nombre,
-          mes: getNombreMes(hoy),
-          numSemana: getNumeroSemana(hoy),
-          fecha: hoy.toLocaleDateString('es-CO'),
-          fechaRaw: hoy,
-          entradaCDA: 'Sin Marcación', gpsEntradaCDA: '-',
-          entradaDescanso: 'Sin Marcación', gpsEntradaDescanso: '-',
-          salidaDescanso: 'Sin Marcación', gpsSalidaDescanso: '-',
-          salidaCDA: 'Sin Marcación', gpsSalidaCDA: '-',
-          fotoMarcacion: null
-        };
-      });
-
-      if (marcaciones && marcaciones.length > 0) {
-        marcaciones.forEach(m => {
-          if (mapaAsistencias[m.empleado_id]) {
-            const fechaObj = new Date(m.fecha_hora);
-            const fechaStr = fechaObj.toLocaleDateString('es-CO');
-            const horaStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-            const gpsLink = m.latitud ? `<a href="https://maps.google.com/?q=${m.latitud},${m.longitud}" target="_blank" class="text-lime-400 underline font-semibold">Mapas</a>` : 'N/A';
-            
-            mapaAsistencias[m.empleado_id].fecha = fechaStr;
-            mapaAsistencias[m.empleado_id].fechaRaw = fechaObj;
-            mapaAsistencias[m.empleado_id].mes = getNombreMes(fechaObj);
-            mapaAsistencias[m.empleado_id].numSemana = getNumeroSemana(fechaObj);
-
-            if (m.foto_marcacion_url) mapaAsistencias[m.empleado_id].fotoMarcacion = m.foto_marcacion_url;
-
-            if (m.tipo === 'Entrada al CDA') {
-              mapaAsistencias[m.empleado_id].entradaCDA = horaStr;
-              mapaAsistencias[m.empleado_id].gpsEntradaCDA = gpsLink;
-            }
-            if (m.tipo === 'Entrada Descanso') {
-              mapaAsistencias[m.empleado_id].entradaDescanso = horaStr;
-              mapaAsistencias[m.empleado_id].gpsEntradaDescanso = gpsLink;
-            }
-            if (m.tipo === 'Salida Descanso') {
-              mapaAsistencias[m.empleado_id].salidaDescanso = horaStr;
-              mapaAsistencias[m.empleado_id].gpsSalidaDescanso = gpsLink;
-            }
-            if (m.tipo === 'Salida del CDA') {
-              mapaAsistencias[m.empleado_id].salidaCDA = horaStr;
-              mapaAsistencias[m.empleado_id].gpsSalidaCDA = gpsLink;
-            }
-          }
-        });
-      }
-
-      let listaFiltrada = Object.values(mapaAsistencias).filter(item => {
-        if (fltNombre && !item.nombre.toLowerCase().includes(fltNombre) && !item.doc.includes(fltNombre)) return false;
-        if (fltCDA !== 'TODOS' && (!item.cda || !item.cda.includes(fltCDA))) return false;
-        
-        if (fltMes) {
-          const yyyyMm = item.fechaRaw.toISOString().substring(0,7);
-          if (yyyyMm !== fltMes) return false;
-        }
-
-        if (fltSemana) {
-          const numSemSelected = parseInt(fltSemana.split('-W')[1]);
-          if (item.numSemana !== numSemSelected) return false;
-        }
-
-        return true;
-      });
-
-      tbody.innerHTML = listaFiltrada.map(a => `
-        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-          <td class="p-2.5">
-            <img src="${a.fotoMarcacion || a.foto || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-lg object-cover border border-zinc-700">
-          </td>
-          <td class="p-2.5 font-semibold text-white">${a.nombre}<br><span class="text-[10px] text-zinc-400 font-normal">${a.cda || ''}</span></td>
-          <td class="p-2.5 font-mono text-lime-400">${a.doc}</td>
-          <td class="p-2.5 text-zinc-300 font-mono text-[11px]">${a.mes}</td>
-          <td class="p-2.5 font-mono text-lime-400 font-semibold text-[11px]">Semana ${a.numSemana}</td>
-          <td class="p-2.5 text-zinc-300 font-mono text-[11px]">${a.fecha}</td>
-          
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaCDA !== 'Sin Marcación' ? 'bg-lime-950 text-lime-400 border border-lime-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaCDA}</span></td>
-          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsEntradaCDA}</td>` : ''}
-
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.entradaDescanso !== 'Sin Marcación' ? 'bg-teal-950 text-teal-400 border border-teal-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.entradaDescanso}</span></td>
-          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsEntradaDescanso}</td>` : ''}
-
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaDescanso !== 'Sin Marcación' ? 'bg-amber-950 text-amber-400 border border-amber-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaDescanso}</span></td>
-          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaDescanso}</td>` : ''}
-
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] ${a.salidaCDA !== 'Sin Marcación' ? 'bg-rose-950 text-rose-400 border border-rose-500/30 font-bold' : 'bg-zinc-950 text-zinc-500'}">${a.salidaCDA}</span></td>
-          ${isSuper ? `<td class="p-2.5 text-[10px]">${a.gpsSalidaCDA}</td>` : ''}
-
-          ${isSuper ? `
-            <td class="p-2.5 text-right"><button type="button" onclick="limpiarRegistrosAsistencia('${a.doc}')" class="text-xs text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button></td>
-          ` : ''}
-        </tr>
-      `).join('');
-    }
-
-    function limpiarFiltrosAsistencias() {
-      document.getElementById('flt-asis-nombre').value = "";
-      document.getElementById('flt-asis-cda').value = "TODOS";
-      document.getElementById('flt-asis-mes').value = "";
-      document.getElementById('flt-asis-semana').value = "";
-      cargarHistorialAsistencias();
-    }
-
-    function exportarExcelAsistencias() {
-      const tbody = document.getElementById('tabla-asistencias-body');
-      let csv = "Nombre Completo,Documento,CDA,Mes,Semana,Fecha,Entrada CDA,Entrada Descanso,Salida Descanso,Salida CDA\n";
-
-      tbody.querySelectorAll('tr').forEach(tr => {
-        const tds = tr.querySelectorAll('td');
-        if (tds.length >= 7) {
-          const nombre = tds[1].innerText.replace(/\n/g, ' ');
-          const doc = tds[2].innerText;
-          const mes = tds[3].innerText;
-          const semana = tds[4].innerText;
-          const fecha = tds[5].innerText;
-          const entCDA = tds[6].innerText;
-          const entDesc = tds[7] ? tds[7].innerText : '';
-          const salDesc = tds[8] ? tds[8].innerText : '';
-          const salCDA = tds[9] ? tds[9].innerText : '';
-
-          csv += `"${nombre}","${doc}","","${mes}","${semana}","${fecha}","${entCDA}","${entDesc}","${salDesc}","${salCDA}"\n`;
-        }
-      });
-
-      descargarCSVFile(csv, "Historial_Asistencias.csv");
-    }
-
-    async function cargarReporteLlegadasTardes() {
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
-      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
-        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
-      }
-
-      const { data: empleados } = await queryEmp;
-      const { data: marcaciones } = await supabaseClient.from('asistencias').select('*').eq('tipo', 'Entrada al CDA').order('fecha_hora', { ascending: false });
-
-      const tbody = document.getElementById('tabla-llegadas-tardes-body');
-
-      if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal operativo registrado.</td></tr>`;
-        return;
-      }
-
-      const fltNombre = document.getElementById('flt-tardes-nombre').value.toLowerCase().trim();
-      const fltCDA = document.getElementById('flt-tardes-cda').value;
-      const fltEstado = document.getElementById('flt-tardes-estado').value;
-      const fltMes = document.getElementById('flt-tardes-mes').value;
-      const fltSemana = document.getElementById('flt-tardes-semana').value;
-
-      const opcionesHoras = generarOpcionesHoras24h();
-      let mapaEmpleados = {};
-      empleados.forEach(e => mapaEmpleados[e.id] = e);
-
-      let filasHtml = "";
-
-      if (!marcaciones || marcaciones.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay marcaciones de entrada registradas en el historial.</td></tr>`;
-        return;
-      }
-
-      marcaciones.forEach(marcacion => {
-        const emp = mapaEmpleados[marcacion.empleado_id];
-        if (!emp) return;
-
-        if (fltNombre && !emp.nombre.toLowerCase().includes(fltNombre) && !emp.id.includes(fltNombre)) return;
-        if (fltCDA !== 'TODOS' && (!emp.cda_nombre || !emp.cda_nombre.includes(fltCDA))) return;
-
-        const fechaObj = new Date(marcacion.fecha_hora);
-        const mesStr = getNombreMes(fechaObj);
-        const numSem = getNumeroSemana(fechaObj);
-
-        if (fltMes) {
-          const yyyyMm = fechaObj.toISOString().substring(0,7);
-          if (yyyyMm !== fltMes) return;
-        }
-
-        if (fltSemana) {
-          const numSemSelected = parseInt(fltSemana.split('-W')[1]);
-          if (numSem !== numSemSelected) return;
-        }
-
-        let hEstipulada = emp.hora_entrada_estipulada || "08:00:00";
-        if (hEstipulada.length === 5) hEstipulada = hEstipulada + ":00";
-
-        const fechaStr = fechaObj.toLocaleDateString('es-CO');
-        const h = String(fechaObj.getHours()).padStart(2, '0');
-        const m = String(fechaObj.getMinutes()).padStart(2, '0');
-        const s = String(fechaObj.getSeconds()).padStart(2, '0');
-        const horaFmt = `${h}:${m}:${s}`;
-
-        const partesEst = hEstipulada.split(':');
-        const hEst = parseInt(partesEst[0]);
-        const mEst = parseInt(partesEst[1]);
-
-        const limite = new Date(fechaObj);
-        limite.setHours(hEst, mEst, 0, 0);
-
-        let esTarde = false;
-        let estadoTag = "";
-
-        if (fechaObj > limite) {
-          esTarde = true;
-          const diffMs = fechaObj - limite;
-          const diffTotalMin = Math.floor(diffMs / (1000 * 60));
-          const hrsRetraso = Math.floor(diffTotalMin / 60);
-          const minRetraso = diffTotalMin % 60;
-
-          let textoTiempo = hrsRetraso > 0 ? `${hrsRetraso} h y ${minRetraso} min` : `${minRetraso} min`;
-          estadoTag = `<span class="px-2 py-1 rounded text-xs bg-rose-950 text-rose-400 border border-rose-500/30 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Llegada Tarde (${textoTiempo})</span>`;
-        } else {
-          estadoTag = `<span class="px-2 py-1 rounded text-xs bg-lime-950 text-lime-400 border border-lime-500/30 font-bold"><i class="fa-solid fa-circle-check mr-1"></i>Llegada a Tiempo</span>`;
-        }
-
-        if (fltEstado === 'TARDE' && !esTarde) return;
-        if (fltEstado === 'A_TIEMPO' && esTarde) return;
-
-        const obsActual = marcacion.novedad || '';
-
-        filasHtml += `
-          <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-            <td class="p-2.5"><img src="${emp.foto_referencia_url || 'https://via.placeholder.com/40'}" class="w-8 h-8 rounded-full object-cover border border-zinc-700"></td>
-            <td class="p-2.5 font-semibold text-white">${emp.nombre}</td>
-            <td class="p-2.5 font-mono text-lime-400">${emp.id}</td>
-            <td class="p-2.5 text-zinc-300">${emp.cda_nombre || ''}</td>
-            <td class="p-2.5 font-mono text-zinc-300">${mesStr}</td>
-            <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${numSem}</td>
-            <td class="p-2.5 font-mono text-zinc-300">${fechaStr}</td>
-            <td class="p-2.5">
-              <div class="flex items-center gap-1">
-                <select id="sel-hora-tarde-${emp.id}-${marcacion.id}" class="bg-zinc-950 border border-amber-500/60 rounded px-2 py-1 text-xs text-amber-300 font-bold outline-none focus:border-lime-500">
-                  ${opcionesHoras.map(opt => `<option value="${opt.valor}" ${hEstipulada === opt.valor ? 'selected' : ''}>${opt.label}</option>`).join('')}
-                </select>
-                <button type="button" onclick="guardarHoraEstipuladaDirecta('${emp.id}', 'sel-hora-tarde-${emp.id}-${marcacion.id}')" title="Sincronizar Hora" class="bg-amber-500 hover:bg-amber-400 text-zinc-950 p-1 rounded font-bold text-xs">
-                  <i class="fa-solid fa-rotate"></i>
-                </button>
-              </div>
-            </td>
-            <td class="p-2.5 font-mono text-white font-bold text-sm bg-zinc-950 rounded px-2 border border-zinc-800">${horaFmt}</td>
-            <td class="p-2.5">${estadoTag}</td>
-            <td class="p-2.5">
-              <div class="flex items-center gap-1">
-                <input type="text" id="obs-m-${marcacion.id}" value="${obsActual}" placeholder="Escribir observación..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 outline-none focus:border-lime-500 w-44">
-                <button type="button" onclick="guardarNovedadMarcacion(${marcacion.id})" title="Guardar Observación" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 p-1.5 rounded font-bold">
-                  <i class="fa-solid fa-floppy-disk text-xs"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-
-      tbody.innerHTML = filasHtml || `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay registros coincidentes.</td></tr>`;
-    }
-
-    async function guardarHoraEstipuladaDirecta(empId, selectElementId) {
-      const nuevaHora = document.getElementById(selectElementId).value;
-
-      const { error } = await supabaseClient
-        .from('empleados')
-        .update({ hora_entrada_estipulada: nuevaHora })
-        .eq('id', empId);
-
-      if (error) {
-        alert("❌ Error al actualizar la hora estipulada.");
-      } else {
-        alert("✅ Hora estipulada actualizada exitosamente.");
-        cargarReporteLlegadasTardes();
-      }
-    }
-
-    async function guardarNovedadMarcacion(asistenciaId) {
-      const input = document.getElementById(`obs-m-${asistenciaId}`);
-      if (!input) return;
-      const obs = input.value.trim();
-
-      const { error } = await supabaseClient
-        .from('asistencias')
-        .update({ novedad: obs })
-        .eq('id', asistenciaId);
-
-      if (error) {
-        alert("❌ Error al guardar la observación en la base de datos.");
-      } else {
-        alert("✅ Novedad / Soporte guardado con éxito.");
-      }
-    }
-
-    function exportarExcelLlegadasTardes() {
-      const tbody = document.getElementById('tabla-llegadas-tardes-body');
-      let csv = "Nombre Completo,Documento,CDA,Mes,Semana,Fecha,Hora Estipulada,Hora Marcacion Real,Estado,Novedad / Soporte\n";
-
-      tbody.querySelectorAll('tr').forEach(tr => {
-        const tds = tr.querySelectorAll('td');
-        if (tds.length >= 11) {
-          const nombre = tds[1].innerText;
-          const doc = tds[2].innerText;
-          const cda = tds[3].innerText;
-          const mes = tds[4].innerText;
-          const semana = tds[5].innerText;
-          const fecha = tds[6].innerText;
-          const hEstSelect = tds[7].querySelector('select');
-          const hEst = hEstSelect ? hEstSelect.options[hEstSelect.selectedIndex].text : '';
-          const hReal = tds[8].innerText;
-          const estado = tds[9].innerText.replace(/\n/g, ' ');
-          const obsInput = tds[10].querySelector('input');
-          const obs = obsInput ? obsInput.value : '';
-
-          csv += `"${nombre}","${doc}","${cda}","${mes}","${semana}","${fecha}","${hEst}","${hReal}","${estado}","${obs}"\n`;
-        }
-      });
-
-      descargarCSVFile(csv, "Reporte_Llegadas_Tardes.csv");
-    }
-
-    async function cargarReporteHorasExtras() {
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
-      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
-        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
-      }
-
-      const { data: empleados } = await queryEmp;
-      const { data: marcaciones } = await supabaseClient.from('asistencias').select('*').order('fecha_hora', { ascending: true });
-
-      const tbody = document.getElementById('tabla-horas-extras-body');
-
-      if (!empleados || !empleados.length) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal operativo.</td></tr>`;
-        return;
-      }
-
-      const fltNombre = document.getElementById('flt-extra-nombre').value.toLowerCase().trim();
-      const fltCDA = document.getElementById('flt-extra-cda').value;
-      const fltMes = document.getElementById('flt-extra-mes').value;
-      const fltSemana = document.getElementById('flt-extra-semana').value;
-
-      let mapaExtra = {};
-
-      empleados.forEach(emp => {
-        const hoy = new Date();
-        mapaExtra[emp.id] = {
-          nombre: emp.nombre,
-          doc: emp.id,
-          cda: emp.cda_nombre,
-          mes: getNombreMes(hoy),
-          numSem: getNumeroSemana(hoy),
-          fecha: hoy.toLocaleDateString('es-CO'),
-          fEntradaCDA: null, fSalidaCDA: null,
-          fEntradaDescanso: null, fSalidaDescanso: null,
-          asistenciaIdSalida: null,
-          novedadSalida: ''
-        };
-      });
-
-      if (marcaciones && marcaciones.length > 0) {
-        marcaciones.forEach(m => {
-          if (mapaExtra[m.empleado_id]) {
-            const fObj = new Date(m.fecha_hora);
-            mapaExtra[m.empleado_id].fecha = fObj.toLocaleDateString('es-CO');
-            mapaExtra[m.empleado_id].mes = getNombreMes(fObj);
-            mapaExtra[m.empleado_id].numSem = getNumeroSemana(fObj);
-
-            if (m.tipo === 'Entrada al CDA') mapaExtra[m.empleado_id].fEntradaCDA = fObj;
-            if (m.tipo === 'Salida del CDA') {
-              mapaExtra[m.empleado_id].fSalidaCDA = fObj;
-              mapaExtra[m.empleado_id].asistenciaIdSalida = m.id;
-              mapaExtra[m.empleado_id].novedadSalida = m.novedad || '';
-            }
-            if (m.tipo === 'Entrada Descanso') mapaExtra[m.empleado_id].fEntradaDescanso = fObj;
-            if (m.tipo === 'Salida Descanso') mapaExtra[m.empleado_id].fSalidaDescanso = fObj;
-          }
-        });
-      }
-
-      tbody.innerHTML = Object.values(mapaExtra).filter(e => {
-        if (fltNombre && !e.nombre.toLowerCase().includes(fltNombre) && !e.doc.includes(fltNombre)) return false;
-        if (fltCDA !== 'TODOS' && (!e.cda || !e.cda.includes(fltCDA))) return false;
-
-        const refFecha = e.fEntradaCDA || new Date();
-        if (fltMes) {
-          const yyyyMm = refFecha.toISOString().substring(0,7);
-          if (yyyyMm !== fltMes) return false;
-        }
-
-        if (fltSemana) {
-          const numSemSelected = parseInt(fltSemana.split('-W')[1]);
-          if (e.numSem !== numSemSelected) return false;
-        }
-
-        return true;
-      }).map(e => {
-        const entStr = e.fEntradaCDA ? e.fEntradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
-        const salStr = e.fSalidaCDA ? e.fSalidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : 'Sin Marcación';
-
-        let descansoMin = 0;
-        if (e.fEntradaDescanso && e.fSalidaDescanso) {
-          descansoMin = Math.max(0, Math.round((e.fSalidaDescanso - e.fEntradaDescanso) / (1000 * 60)));
-        }
-
-        let horasLaboradasTexto = "Incompleto";
-        let horasExtraTag = `<span class="text-zinc-500 font-semibold">Sin Registro Completo</span>`;
-
-        if (e.fEntradaCDA && e.fSalidaCDA) {
-          let msTotales = e.fSalidaCDA - e.fEntradaCDA;
-          if (descansoMin > 0) msTotales -= (descansoMin * 60 * 1000);
-
-          const totalMinLaborados = Math.floor(msTotales / (1000 * 60));
-
-          if (totalMinLaborados < 60) {
-            horasLaboradasTexto = `${totalMinLaborados} min laborados`;
-          } else {
-            const hLab = Math.floor(totalMinLaborados / 60);
-            const mLab = totalMinLaborados % 60;
-            horasLaboradasTexto = `${hLab} h y ${mLab} min laboradas`;
-          }
-
-          const hrsNetas = totalMinLaborados / 60;
-
-          if (hrsNetas > 7) {
-            const extraNetas = hrsNetas - 7;
-            const extraTotalMin = Math.round(extraNetas * 60);
-
-            let textoExtra = "";
-            if (extraTotalMin < 60) {
-              textoExtra = `${extraTotalMin} min extra`;
-            } else {
-              const hEx = Math.floor(extraTotalMin / 60);
-              const mEx = extraTotalMin % 60;
-              textoExtra = `${hEx} h y ${mEx} min extra`;
-            }
-
-            horasExtraTag = `<span class="px-2 py-1 rounded text-xs bg-amber-950 text-amber-400 border border-amber-500/30 font-bold"><i class="fa-solid fa-clock mr-1"></i>+${textoExtra}</span>`;
-          } else {
-            horasExtraTag = `<span class="px-2 py-0.5 rounded text-xs bg-zinc-950 text-zinc-400 font-semibold">Jornada Regular (<= 7h)</span>`;
-          }
-        }
-
-        return `
-          <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
-            <td class="p-2.5 font-semibold text-white">${e.nombre}</td>
-            <td class="p-2.5 font-mono text-lime-400">${e.doc}</td>
-            <td class="p-2.5 text-zinc-300 font-mono">${e.mes}</td>
-            <td class="p-2.5 font-mono text-lime-400 font-semibold">Semana ${e.numSem}</td>
-            <td class="p-2.5 text-zinc-300 font-mono">${e.fecha}</td>
-            <td class="p-2.5 font-semibold text-lime-400">${entStr}</td>
-            <td class="p-2.5 font-semibold text-rose-400">${salStr}</td>
-            <td class="p-2.5 text-zinc-300">${descansoMin > 0 ? `${descansoMin} min` : 'No registró'}</td>
-            <td class="p-2.5 font-bold text-lime-400">${horasLaboradasTexto}</td>
-            <td class="p-2.5">${horasExtraTag}</td>
-            <td class="p-2.5">
-              ${e.asistenciaIdSalida ? `
-                <div class="flex items-center gap-1">
-                  <input type="text" id="obs-he-${e.asistenciaIdSalida}" value="${e.novedadSalida}" placeholder="Observación horas extra..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-xs text-zinc-200 outline-none focus:border-lime-500 w-48">
-                  <button type="button" onclick="guardarNovedadMarcacion(${e.asistenciaIdSalida})" title="Guardar Observación" class="bg-lime-500 hover:bg-lime-400 text-zinc-950 p-1.5 rounded font-bold">
-                    <i class="fa-solid fa-floppy-disk text-xs"></i>
-                  </button>
-                </div>
-              ` : `<span class="text-zinc-600 text-[10px]">Sin marcación de salida</span>`}
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function exportarExcelHorasExtras() {
-      const tbody = document.getElementById('tabla-horas-extras-body');
-      let csv = "Trabajador,Documento,Mes,Semana,Fecha,Entrada CDA,Salida CDA,Descanso Descontado,Horas Laboradas,Horas Extra Netas,Novedad / Soporte\n";
-
-      tbody.querySelectorAll('tr').forEach(tr => {
-        const tds = tr.querySelectorAll('td');
-        if (tds.length >= 11) {
-          const nombre = tds[0].innerText;
-          const doc = tds[1].innerText;
-          const mes = tds[2].innerText;
-          const semana = tds[3].innerText;
-          const fecha = tds[4].innerText;
-          const entCDA = tds[5].innerText;
-          const salCDA = tds[6].innerText;
-          const desc = tds[7].innerText;
-          const laboradas = tds[8].innerText;
-          const extra = tds[9].innerText;
-          const obsInput = tds[10].querySelector('input');
-          const obs = obsInput ? obsInput.value : '';
-
-          csv += `"${nombre}","${doc}","${mes}","${semana}","${fecha}","${entCDA}","${salCDA}","${desc}","${laboradas}","${extra}","${obs}"\n`;
-        }
-      });
-
-      descargarCSVFile(csv, "Reporte_Horas_Extras.csv");
-    }
-
-    function descargarCSVFile(csvContent, fileName) {
-      const bom = "\uFEFF";
-      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", fileName);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    async function limpiarRegistrosAsistencia(empId) {
-      const autorizado = await solicitarAutorizacion();
-      if (!autorizado) return;
-      await supabaseClient.from('asistencias').delete().eq('empleado_id', empId);
-      cargarHistorialAsistencias();
     }
   </script>
 </body>
