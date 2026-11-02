@@ -447,13 +447,18 @@
           </div>
         </div>
 
-        <!-- PESTAÑA HISTORIAL DE ASISTENCIAS CON FILTRO DIARIO DE HOY -->
+        <!-- PESTAÑA HISTORIAL DE ASISTENCIAS (ENTRADA DESCANSO DESPUÉS DE ENTRADA CDA) -->
         <div id="subview-asistencias" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
-                <label class="text-zinc-400 font-bold">Fecha:</label>
+                <label class="text-zinc-400 font-bold">Día:</label>
                 <input type="date" id="flt-asis-fecha" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                <label class="text-zinc-400 font-bold">Mes:</label>
+                <input type="month" id="flt-asis-mes" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <label class="text-zinc-400 font-bold">Semana:</label>
+                <input type="week" id="flt-asis-semana" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                
                 <input type="text" id="flt-asis-nombre" oninput="cargarHistorialAsistencias()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 <select id="flt-asis-cda" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
                   <option value="TODOS">Todos los CDA</option>
@@ -477,8 +482,8 @@
                     <th class="p-2.5">Semana</th>
                     <th class="p-2.5">Fecha</th>
                     <th class="p-2.5 text-lime-400">Entrada CDA</th>
-                    <th class="p-2.5 text-amber-400">Salida Descanso</th>
                     <th class="p-2.5 text-lime-400">Entrada Descanso</th>
+                    <th class="p-2.5 text-amber-400">Salida Descanso</th>
                     <th class="p-2.5 text-rose-400">Salida CDA</th>
                     <th class="p-2.5">Ubicaciones GPS</th>
                     <th class="p-2.5">Evidencias Foto</th>
@@ -493,13 +498,18 @@
           </div>
         </div>
 
-        <!-- PESTAÑA CONTROL DE LLEGADAS TARDES DIARIO CON TODOS LOS TRABAJADORES -->
+        <!-- PESTAÑA CONTROL DE LLEGADAS TARDES DIARIO -->
         <div id="subview-llegadas-tardes" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
-                <label class="text-zinc-400 font-bold">Fecha:</label>
+                <label class="text-zinc-400 font-bold">Día:</label>
                 <input type="date" id="flt-tardes-fecha" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                <label class="text-zinc-400 font-bold">Mes:</label>
+                <input type="month" id="flt-tardes-mes" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <label class="text-zinc-400 font-bold">Semana:</label>
+                <input type="week" id="flt-tardes-semana" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                
                 <input type="text" id="flt-tardes-nombre" oninput="cargarReporteLlegadasTardes()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 <select id="flt-tardes-cda" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
                   <option value="TODOS">Todos los CDA</option>
@@ -547,8 +557,13 @@
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
-                <label class="text-zinc-400 font-bold">Fecha:</label>
+                <label class="text-zinc-400 font-bold">Día:</label>
                 <input type="date" id="flt-extra-fecha" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                <label class="text-zinc-400 font-bold">Mes:</label>
+                <input type="month" id="flt-extra-mes" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <label class="text-zinc-400 font-bold">Semana:</label>
+                <input type="week" id="flt-extra-semana" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                
                 <input type="text" id="flt-extra-nombre" oninput="cargarReporteHorasExtras()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 <select id="flt-extra-cda" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
                   <option value="TODOS">Todos los CDA</option>
@@ -1166,7 +1181,7 @@
       `).join('');
     }
 
-    /* HISTORIAL DE ASISTENCIAS (SEGUIMIENTO DIARIO COMPLETO DE TODO EL PERSONAL) */
+    /* HISTORIAL DE ASISTENCIAS (ORDEN DE COLUMNAS: ENTRADA CDA -> ENTRADA DESCANSO -> SALIDA DESCANSO -> SALIDA CDA) */
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
@@ -1174,10 +1189,12 @@
       tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento diario de personal...</td></tr>`;
 
       const filtroFecha = document.getElementById('flt-asis-fecha')?.value || getHoyInputString();
+      const filtroMes = document.getElementById('flt-asis-mes')?.value || '';
+      const filtroSemana = document.getElementById('flt-asis-semana')?.value || '';
       const filtroNombre = document.getElementById('flt-asis-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
 
-      // 1. Obtener la lista completa de Empleados
+      // 1. Obtener empleados activos
       let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
@@ -1189,25 +1206,23 @@
         return;
       }
 
-      // 2. Obtener marcaciones del día seleccionado
-      const fechaInicio = `${filtroFecha}T00:00:00`;
-      const fechaFin = `${filtroFecha}T23:59:59`;
+      // 2. Obtener marcaciones según la fecha/mes/semana seleccionada
+      let queryMarcaciones = supabaseClient.from('asistencias').select('*');
 
-      const { data: marcaciones } = await supabaseClient
-        .from('asistencias')
-        .select('*')
-        .gte('fecha_hora', fechaInicio)
-        .lte('fecha_hora', fechaFin)
-        .order('fecha_hora', { ascending: true });
+      if (filtroFecha) {
+        queryMarcaciones = queryMarcaciones.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
+      }
+
+      const { data: marcaciones } = await queryMarcaciones.order('fecha_hora', { ascending: true });
 
       const [yyyy, mm, dd] = filtroFecha.split('-');
       const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
 
-      // 3. Cruzar Empleados vs Marcaciones del día
+      // 3. Cruzar Empleados vs Marcaciones
       const filasProcesadas = empleadosList.map(emp => {
         const misMarcaciones = (marcaciones || []).filter(m => String(m.empleado_id) === String(emp.id));
 
-        let entradaCDA = null, salidaDescanso = null, entradaDescanso = null, salidaCDA = null;
+        let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
         const fotos = [], gpsList = [], novedades = [];
 
         misMarcaciones.forEach(m => {
@@ -1215,8 +1230,8 @@
           const horaStr = d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
           if (m.tipo === 'Entrada al CDA') entradaCDA = horaStr;
-          if (m.tipo === 'Salida Descanso') salidaDescanso = horaStr;
           if (m.tipo === 'Entrada Descanso') entradaDescanso = horaStr;
+          if (m.tipo === 'Salida Descanso') salidaDescanso = horaStr;
           if (m.tipo === 'Salida del CDA') salidaCDA = horaStr;
 
           if (m.foto_marcacion_url) fotos.push({ tipo: m.tipo, url: m.foto_marcacion_url });
@@ -1228,12 +1243,13 @@
 
         return {
           emp,
+          fechaObj: fechaObjSel,
           fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
           mesStr: getNombreMes(fechaObjSel),
           semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
           entradaCDA,
-          salidaDescanso,
           entradaDescanso,
+          salidaDescanso,
           salidaCDA,
           fotos,
           gpsList,
@@ -1245,7 +1261,20 @@
       const filtrados = filasProcesadas.filter(r => {
         const matchNombre = r.emp.nombre.toLowerCase().includes(filtroNombre) || r.emp.id.toLowerCase().includes(filtroNombre);
         const matchCDA = filtroCDA === 'TODOS' || r.emp.cda_nombre.includes(filtroCDA);
-        return matchNombre && matchCDA;
+        
+        let matchMes = true;
+        if (filtroMes) {
+          const [yr, ms] = filtroMes.split('-');
+          matchMes = (r.fechaObj.getFullYear() == yr && (r.fechaObj.getMonth() + 1) == parseInt(ms));
+        }
+
+        let matchSemana = true;
+        if (filtroSemana) {
+          const [yrW, wkW] = filtroSemana.split('-W');
+          matchSemana = (r.fechaObj.getFullYear() == yrW && getNumeroSemana(r.fechaObj) == parseInt(wkW));
+        }
+
+        return matchNombre && matchCDA && matchMes && matchSemana;
       });
 
       tbody.innerHTML = filtrados.map(r => `
@@ -1257,8 +1286,8 @@
           <td class="p-2.5 text-zinc-400 font-mono">${r.semanaStr}</td>
           <td class="p-2.5 font-mono text-zinc-200">${r.fechaStr}</td>
           <td class="p-2.5 font-mono font-bold ${r.entradaCDA ? 'text-lime-400' : 'text-zinc-600'}">${r.entradaCDA || '---'}</td>
-          <td class="p-2.5 font-mono font-bold ${r.salidaDescanso ? 'text-amber-400' : 'text-zinc-600'}">${r.salidaDescanso || '---'}</td>
           <td class="p-2.5 font-mono font-bold ${r.entradaDescanso ? 'text-lime-400' : 'text-zinc-600'}">${r.entradaDescanso || '---'}</td>
+          <td class="p-2.5 font-mono font-bold ${r.salidaDescanso ? 'text-amber-400' : 'text-zinc-600'}">${r.salidaDescanso || '---'}</td>
           <td class="p-2.5 font-mono font-bold ${r.salidaCDA ? 'text-rose-400' : 'text-zinc-600'}">${r.salidaCDA || '---'}</td>
           <td class="p-2.5 text-[10px] text-zinc-400">${r.gpsList.join('<br>') || 'Sin GPS'}</td>
           <td class="p-2.5">
@@ -1277,12 +1306,14 @@
 
     function limpiarFiltrosAsistencias() {
       setFechasHoyFiltros();
+      if(document.getElementById('flt-asis-mes')) document.getElementById('flt-asis-mes').value = '';
+      if(document.getElementById('flt-asis-semana')) document.getElementById('flt-asis-semana').value = '';
       document.getElementById('flt-asis-nombre').value = '';
       document.getElementById('flt-asis-cda').value = 'TODOS';
       cargarHistorialAsistencias();
     }
 
-    /* CONTROL DE LLEGADAS TARDES DIARIO CON TODOS LOS TRABAJADORES */
+    /* CONTROL DE LLEGADAS TARDES CON FILTROS (DÍA, MES, SEMANA) */
     async function cargarReporteLlegadasTardes() {
       if (!supabaseClient) return;
 
@@ -1290,6 +1321,8 @@
       tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Verificando puntualidad diaria...</td></tr>`;
 
       const filtroFecha = document.getElementById('flt-tardes-fecha')?.value || getHoyInputString();
+      const filtroMes = document.getElementById('flt-tardes-mes')?.value || '';
+      const filtroSemana = document.getElementById('flt-tardes-semana')?.value || '';
       const filtroNombre = document.getElementById('flt-tardes-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-tardes-cda')?.value || 'TODOS';
       const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
@@ -1306,16 +1339,13 @@
         return;
       }
 
-      // 2. Marcaciones de "Entrada al CDA" para la fecha indicada
-      const fechaInicio = `${filtroFecha}T00:00:00`;
-      const fechaFin = `${filtroFecha}T23:59:59`;
+      // 2. Marcaciones de "Entrada al CDA"
+      let queryEntradas = supabaseClient.from('asistencias').select('*').eq('tipo', 'Entrada al CDA');
+      if (filtroFecha) {
+        queryEntradas = queryEntradas.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
+      }
 
-      const { data: entradas } = await supabaseClient
-        .from('asistencias')
-        .select('*')
-        .eq('tipo', 'Entrada al CDA')
-        .gte('fecha_hora', fechaInicio)
-        .lte('fecha_hora', fechaFin);
+      const { data: entradas } = await queryEntradas;
 
       const [yyyy, mm, dd] = filtroFecha.split('-');
       const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
@@ -1341,6 +1371,7 @@
           return {
             emp,
             keyHora,
+            fechaObj: fechaObjSel,
             fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
             mesStr: getNombreMes(fechaObjSel),
             semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
@@ -1356,6 +1387,7 @@
           return {
             emp,
             keyHora,
+            fechaObj: fechaObjSel,
             fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
             mesStr: getNombreMes(fechaObjSel),
             semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
@@ -1379,7 +1411,19 @@
         if (filtroEstado === 'A_TIEMPO') matchEstado = r.marco && !r.esTarde;
         if (filtroEstado === 'NO_MARCO') matchEstado = !r.marco;
 
-        return matchNombre && matchCDA && matchEstado;
+        let matchMes = true;
+        if (filtroMes) {
+          const [yr, ms] = filtroMes.split('-');
+          matchMes = (r.fechaObj.getFullYear() == yr && (r.fechaObj.getMonth() + 1) == parseInt(ms));
+        }
+
+        let matchSemana = true;
+        if (filtroSemana) {
+          const [yrW, wkW] = filtroSemana.split('-W');
+          matchSemana = (r.fechaObj.getFullYear() == yrW && getNumeroSemana(r.fechaObj) == parseInt(wkW));
+        }
+
+        return matchNombre && matchCDA && matchEstado && matchMes && matchSemana;
       });
 
       tbody.innerHTML = filtrados.map(r => `
@@ -1416,7 +1460,7 @@
       cargarReporteLlegadasTardes();
     }
 
-    /* SEGUIMIENTO DE HORAS EXTRA DIARIO CON TODOS LOS TRABAJADORES */
+    /* SEGUIMIENTO DE HORAS EXTRA CON FILTROS (DÍA, MES, SEMANA) */
     async function cargarReporteHorasExtras() {
       if (!supabaseClient) return;
 
@@ -1424,6 +1468,8 @@
       tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando seguimiento diario de horas extra...</td></tr>`;
 
       const filtroFecha = document.getElementById('flt-extra-fecha')?.value || getHoyInputString();
+      const filtroMes = document.getElementById('flt-extra-mes')?.value || '';
+      const filtroSemana = document.getElementById('flt-extra-semana')?.value || '';
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
 
@@ -1439,16 +1485,13 @@
         return;
       }
 
-      // 2. Obtener marcaciones del día
-      const fechaInicio = `${filtroFecha}T00:00:00`;
-      const fechaFin = `${filtroFecha}T23:59:59`;
+      // 2. Obtener marcaciones
+      let queryMarcaciones = supabaseClient.from('asistencias').select('*');
+      if (filtroFecha) {
+        queryMarcaciones = queryMarcaciones.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
+      }
 
-      const { data: marcaciones } = await supabaseClient
-        .from('asistencias')
-        .select('*')
-        .gte('fecha_hora', fechaInicio)
-        .lte('fecha_hora', fechaFin)
-        .order('fecha_hora', { ascending: true });
+      const { data: marcaciones } = await queryMarcaciones.order('fecha_hora', { ascending: true });
 
       const [yyyy, mm, dd] = filtroFecha.split('-');
       const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
@@ -1457,13 +1500,13 @@
       const reporte = empleadosList.map(emp => {
         const misMarcaciones = (marcaciones || []).filter(m => String(m.empleado_id) === String(emp.id));
 
-        let entradaCDA = null, salidaDescanso = null, entradaDescanso = null, salidaCDA = null;
+        let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
 
         misMarcaciones.forEach(m => {
           const d = new Date(m.fecha_hora);
           if (m.tipo === 'Entrada al CDA' && !entradaCDA) entradaCDA = d;
-          if (m.tipo === 'Salida Descanso') salidaDescanso = d;
           if (m.tipo === 'Entrada Descanso') entradaDescanso = d;
+          if (m.tipo === 'Salida Descanso') salidaDescanso = d;
           if (m.tipo === 'Salida del CDA') salidaCDA = d;
         });
 
@@ -1475,8 +1518,8 @@
           if (tiempoTotalMs < 0) tiempoTotalMs = salidaCDA - entradaCDA;
 
           let tiempoDescansoMs = 0;
-          if (salidaDescanso && entradaDescanso && entradaDescanso > salidaDescanso) {
-            tiempoDescansoMs = entradaDescanso - salidaDescanso;
+          if (entradaDescanso && salidaDescanso && salidaDescanso > entradaDescanso) {
+            tiempoDescansoMs = salidaDescanso - entradaDescanso;
           } else {
             tiempoDescansoMs = 1 * 60 * 60 * 1000;
           }
@@ -1487,6 +1530,7 @@
 
           return {
             emp,
+            fechaObj: fechaObjSel,
             fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
             mesStr: getNombreMes(fechaObjSel),
             semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
@@ -1501,6 +1545,7 @@
         } else {
           return {
             emp,
+            fechaObj: fechaObjSel,
             fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
             mesStr: getNombreMes(fechaObjSel),
             semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
@@ -1518,7 +1563,20 @@
       const filtrados = reporte.filter(r => {
         const matchNombre = r.emp.nombre.toLowerCase().includes(filtroNombre) || r.emp.id.toLowerCase().includes(filtroNombre);
         const matchCDA = filtroCDA === 'TODOS' || r.emp.cda_nombre.includes(filtroCDA);
-        return matchNombre && matchCDA;
+        
+        let matchMes = true;
+        if (filtroMes) {
+          const [yr, ms] = filtroMes.split('-');
+          matchMes = (r.fechaObj.getFullYear() == yr && (r.fechaObj.getMonth() + 1) == parseInt(ms));
+        }
+
+        let matchSemana = true;
+        if (filtroSemana) {
+          const [yrW, wkW] = filtroSemana.split('-W');
+          matchSemana = (r.fechaObj.getFullYear() == yrW && getNumeroSemana(r.fechaObj) == parseInt(wkW));
+        }
+
+        return matchNombre && matchCDA && matchMes && matchSemana;
       });
 
       tbody.innerHTML = filtrados.map(r => `
@@ -1541,9 +1599,9 @@
     }
 
     /* EXPORTACIÓN A EXCEL */
-    function exportarExcelAsistencias() { alert("📥 Descargando reporte diario de Asistencias..."); }
-    function exportarExcelLlegadasTardes() { alert("📥 Descargando reporte diario de Llegadas Tardes..."); }
-    function exportarExcelHorasExtras() { alert("📥 Descargando reporte diario de Horas Extras..."); }
+    function exportarExcelAsistencias() { alert("📥 Descargando reporte de Asistencias..."); }
+    function exportarExcelLlegadasTardes() { alert("📥 Descargando reporte de Llegadas Tardes..."); }
+    function exportarExcelHorasExtras() { alert("📥 Descargando reporte de Horas Extras..."); }
   </script>
 </body>
 </html>
