@@ -878,12 +878,19 @@
       return { valido: true, mensaje: "OK" };
     }
 
-    /* BUCLE DE ESCANEO BIOMÉTRICO CON REINICIO DE ESTADOS Y TIEMPO DE VALIDACIÓN */
+    /* BUCLE DE ESCANEO BIOMÉTRICO CON REINICIO DE ESTADOS Y FIJACIÓN DE CÁMARA CONGELADA */
 
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
-      isProcessingScan = false; // REINICIO OBLIGATORIO DE ESTADO DE ESCANEO
+      isProcessingScan = false; // REINICIO DE BANDERA DE PROCESAMIENTO
+      currentLandmarks = null;
       
+      // Detener cualquier transmisión anterior activa antes de abrir una nueva
+      if (scanStream) {
+        scanStream.getTracks().forEach(t => t.stop());
+        scanStream = null;
+      }
+
       document.getElementById('modal-titulo').innerText = `Marcación: ${tipo.toUpperCase()}`;
       document.getElementById('scan-status').innerText = "🎥 Encendiendo cámara de alta precisión...";
       document.getElementById('scan-oval-guide').className = "face-oval-guide";
@@ -893,6 +900,7 @@
         scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
         const video = document.getElementById('scan-video');
         video.srcObject = scanStream;
+        video.play(); // Forzar la reproducción en vivo
 
         video.onloadedmetadata = () => {
           document.getElementById('scan-status').innerText = "👤 Mira de frente a la cámara...";
@@ -905,10 +913,17 @@
 
     function cerrarModalEscaner() {
       isProcessingScan = false;
+      currentLandmarks = null;
+
       if (scanStream) {
         scanStream.getTracks().forEach(t => t.stop());
         scanStream = null;
       }
+      const video = document.getElementById('scan-video');
+      if (video) {
+        video.srcObject = null;
+      }
+
       document.getElementById('modal-escaner').classList.add('hidden');
     }
 
@@ -917,17 +932,17 @@
       const guide = document.getElementById('scan-oval-guide');
       const status = document.getElementById('scan-status');
 
-      // REINICIO DE VARIABLES DE ESTABILIDAD AL ABRIR CADA ESCANEO
+      // REINICIO COMPLETO DE VARIABLES AL ENTRAR A CADA ESCANEO NUEVO
       let framesCoincidentes = 0;
       let empTemporalDetectado = null;
-      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de estabilidad continua
-      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de límite
+      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de confirmación visual continua
+      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de búsqueda máxima
       const inicioEscaneo = Date.now();
 
       const processFrame = async () => {
         if (!scanStream || isProcessingScan) return;
 
-        // Comprobación de límite de tiempo (Alerta de rostro no reconocido)
+        // Si sobrepasa el límite sin confirmar rostro, se genera alerta de rechazo
         if (Date.now() - inicioEscaneo > TIEMPO_LIMITE_MS && framesCoincidentes === 0) {
           isProcessingScan = true;
           guide.className = "face-oval-guide guide-danger";
@@ -943,7 +958,7 @@
           await faceMesh.send({ image: video });
 
           if (currentLandmarks) {
-            // Verificación de postura frontal previa
+            // Comprobación de postura totalmente de frente
             const dOjoIzq = currentLandmarks[33].x;
             const dOjoDer = currentLandmarks[263].x;
             const centroNariz = currentLandmarks[1].x;
@@ -996,7 +1011,7 @@
                 status.className = "text-xs font-bold text-amber-400";
                 status.innerText = `🔍 Identificando a ${empEncontrado.nombre.split(' ')[0]}... Mantén la mirada (${porcentaje}%)`;
 
-                // Solo cuando se confirma la presencia continua por N fotogramas, se entra a validar las reglas
+                // Solo al completar el tiempo sostenido (frames), se ejecuta la marcación
                 if (framesCoincidentes >= FRAMES_REQUERIDOS) {
                   isProcessingScan = true;
 
@@ -1015,7 +1030,7 @@
                     return;
                   }
 
-                  // Si supera todas las reglas, se toma la marcación
+                  // Si supera las reglas, guarda la evidencia
                   guide.className = "face-oval-guide guide-success";
                   status.className = "text-base font-bold text-lime-400 animate-pulse";
                   status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado. Registrando...`;
@@ -1085,6 +1100,7 @@
         regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
         const video = document.getElementById('reg-video');
         video.srcObject = regStream;
+        video.play();
 
         video.onloadedmetadata = () => {
           status.innerText = "Ubícate dentro del croquis de frente y presiona 'Capturar Rostro'";
@@ -1101,6 +1117,8 @@
         regStream.getTracks().forEach(t => t.stop());
         regStream = null;
       }
+      const video = document.getElementById('reg-video');
+      if (video) video.srcObject = null;
       document.getElementById('modal-registro-facial').classList.add('hidden');
     }
 
@@ -1339,6 +1357,8 @@
         manStream.getTracks().forEach(t => t.stop());
         manStream = null;
       }
+      const video = document.getElementById('man-video');
+      if (video) video.srcObject = null;
       document.getElementById('modal-manual').classList.add('hidden');
     }
 
@@ -1393,7 +1413,9 @@
 
       try {
         manStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('man-video').srcObject = manStream;
+        const video = document.getElementById('man-video');
+        video.srcObject = manStream;
+        video.play();
         document.getElementById('contenedor-camara-manual').classList.remove('hidden');
         document.getElementById('btn-abrir-camara-manual').classList.add('hidden');
         status.className = "text-xs font-bold text-lime-400";
