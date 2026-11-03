@@ -450,7 +450,7 @@
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800">
                   <tr>
                     <th class="p-2.5">Foto</th>
-                    <th class="p-2.5">Nombre / Cargo</th>
+                    <th class="p-2.5">Nombre Completo</th>
                     <th class="p-2.5">Documento / NIT</th>
                     <th class="p-2.5">CDA(s)</th>
                     <th class="p-2.5">Permiso Manual / PIN</th>
@@ -611,7 +611,8 @@
                     <th class="p-2.5">Nombre Completo</th>
                     <th class="p-2.5">Documento</th>
                     <th class="p-2.5">CDA</th>
-                    <th class="p-2.5 text-lime-400">Hora Entrada Real / Estipulada</th>
+                    <th class="p-2.5 text-lime-400">Hora Real de Entrada</th>
+                    <th class="p-2.5 text-amber-400">Hora Estipulada</th>
                     <th class="p-2.5 text-rose-400">Salida CDA</th>
                     <th class="p-2.5 text-amber-400">Descanso Descontado (HH:MM)</th>
                     <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas Netas (HH:MM)</th>
@@ -620,7 +621,7 @@
                   </tr>
                 </thead>
                 <tbody id="tabla-horas-extras-body">
-                  <tr><td colspan="10" class="p-4 text-center text-zinc-500">Cargando reporte de horas extra...</td></tr>
+                  <tr><td colspan="11" class="p-4 text-center text-zinc-500">Cargando reporte de horas extra...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -691,7 +692,6 @@
       return `${hh}h ${mm}m`;
     }
 
-    // AJUSTE 2: FUNCIÓN PARA CONVERTIR MINUTOS A FORMATO HH:MM PARA RETRASOS
     function formatearMinutosAHorasMinutos(minutos) {
       if (!minutos || minutos <= 0) return "00h 00m";
       const hrs = Math.floor(minutos / 60);
@@ -1666,7 +1666,7 @@
 
     async function cargarListaPersonal() {
       if(!supabaseClient) return;
-      let query = supabaseClient.from('empleados').select('*');
+      let query = supabaseClient.from('empleados').select('*').order('nombre', { ascending: true });
 
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         query = query.ilike('cda_nombre', `%${currentAdminCDA}%`);
@@ -1716,7 +1716,7 @@
       `).join('');
     }
 
-    /* HISTORIAL DE ASISTENCIAS (AJUSTE 3 Y 4: COLUMNA FECHA Y NOMBRE COMPLETO) */
+    /* HISTORIAL DE ASISTENCIAS CON ORDEN CRONOLÓGICO ASCENDENTE */
 
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
@@ -1724,7 +1724,7 @@
       const tbody = document.getElementById('tabla-asistencias-body');
       tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento de personal...</td></tr>`;
 
-      const { inicioStr, finStr, fechaHastaStr, fechaDesdeStr } = obtenerRangoFiltros('asis');
+      const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('asis');
       const filtroNombre = document.getElementById('flt-asis-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
@@ -1736,7 +1736,7 @@
         .lte('fecha_hora', finStr)
         .order('fecha_hora', { ascending: true });
 
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA').order('nombre', { ascending: true });
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
       } else if (filtroCDA !== 'TODOS') {
@@ -1771,7 +1771,7 @@
             const misMarcaciones = mapaAgrupado[k];
             const fechaCorta = k.split('_')[1];
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
-            const fotos = [], gpsList = [], novedades = [];
+            const fotos = [], gpsList = [];
 
             misMarcaciones.forEach(m => {
               const dateObj = new Date(m.fecha_hora);
@@ -1784,28 +1784,55 @@
 
               if (m.foto_marcacion_url) fotos.push({ tipo: m.tipo, url: m.foto_marcacion_url });
               if (m.latitud && m.longitud) gpsList.push(`${m.tipo}: ${m.latitud.toFixed(4)},${m.longitud.toFixed(4)}`);
-              if (m.novedad) novedades.push(`${m.tipo}: ${m.novedad}`);
             });
+
+            // REGLAS NUEVAS DE ESTADOS Y NOVEDADES
+            let estadoHtml = '';
+            const tieneEntrada = !!entradaCDA;
+            const tieneSalida = !!salidaCDA;
+            const tieneDescansoIncompleto = (entradaDescanso && !salidaDescanso);
+
+            if (tieneEntrada && tieneSalida && !tieneDescansoIncompleto) {
+              estadoHtml = `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">REGISTRADO</span>`;
+            } else if ((tieneEntrada && !tieneSalida) || tieneDescansoIncompleto) {
+              if (fechaCorta === hoyStr) {
+                estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold"><i class="fa-solid fa-clock mr-1"></i>PENDIENTE</span>`;
+              } else {
+                estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider"><i class="fa-solid fa-triangle-exclamation mr-1"></i>MARCACIÓN INCORRECTA</span>`;
+              }
+            } else {
+              if (fechaCorta === hoyStr) {
+                estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold"><i class="fa-solid fa-clock mr-1"></i>NO HA MARCADO</span>`;
+              } else {
+                estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider"><i class="fa-solid fa-user-xmark mr-1"></i>NO LABORÓ</span>`;
+              }
+            }
 
             filasProcesadas.push({
               emp, fecha: fechaCorta,
               entradaCDA, entradaDescanso, salidaDescanso, salidaCDA,
-              fotos, gpsList, novedades,
+              fotos, gpsList, estadoHtml,
               laboro: true
             });
           });
         } else {
           if (emp.activo === false) return;
           const esHoy = (fechaHastaStr === hoyStr);
+          const estadoHtml = esHoy 
+            ? `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold"><i class="fa-solid fa-clock mr-1"></i>NO HA MARCADO</span>`
+            : `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider"><i class="fa-solid fa-user-xmark mr-1"></i>NO LABORÓ</span>`;
+
           filasProcesadas.push({
             emp, fecha: fechaHastaStr,
             entradaCDA: null, entradaDescanso: null, salidaDescanso: null, salidaCDA: null,
-            fotos: [], gpsList: [], novedades: [],
-            laboro: false,
-            esHoy
+            fotos: [], gpsList: [], estadoHtml,
+            laboro: false, esHoy
           });
         }
       });
+
+      // ORDENAMIENTO CRONOLÓGICO ASCENDENTE POR FECHA
+      filasProcesadas.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
       tbody.innerHTML = filasProcesadas.map(r => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.laboro ? (r.esHoy ? 'bg-amber-950/10' : 'bg-rose-950/20') : ''}">
@@ -1823,13 +1850,7 @@
               ${r.fotos.map(f => `<a href="${f.url}" target="_blank" title="${f.tipo}"><img src="${f.url}" class="w-7 h-7 rounded border border-amber-500 object-cover"></a>`).join('') || '-'}
             </div>
           </td>
-          <td class="p-2.5">
-            ${r.laboro 
-              ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">REGISTRADO</span>` 
-              : (r.esHoy
-                ? `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold"><i class="fa-solid fa-clock mr-1"></i>NO HA MARCADO</span>`
-                : `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider"><i class="fa-solid fa-user-xmark mr-1"></i>NO LABORÓ</span>`)}
-          </td>
+          <td class="p-2.5">${r.estadoHtml}</td>
         </tr>
       `).join('');
     }
@@ -1841,7 +1862,7 @@
       cargarHistorialAsistencias();
     }
 
-    /* CONTROL LLEGADAS TARDES (AJUSTE 2, 3 Y 4) */
+    /* CONTROL LLEGADAS TARDES (COLUMNA FOTO + 7:00 AM POR DEFECTO + ORDEN CRONOLÓGICO) */
 
     function limpiarFiltrosLlegadasTardes() {
       setFechasHoyFiltros();
@@ -1863,7 +1884,7 @@
       const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA').order('nombre', { ascending: true });
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
       } else if (filtroCDA !== 'TODOS') {
@@ -1900,7 +1921,8 @@
             const horaRealStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
             
             const keyHora = `${emp.id}_${fechaCorta}`;
-            const horaEstipulada = horasEstipuladasPersonalizadas[keyHora] || "07:30:00";
+            // 7:00 AM POR DEFECTO
+            const horaEstipulada = horasEstipuladasPersonalizadas[keyHora] || "07:00:00";
 
             const [hRef, mRef] = horaEstipulada.split(':').map(Number);
             const [hReal, mReal] = horaRealStr.split(':').map(Number);
@@ -1922,11 +1944,14 @@
           if (emp.activo === false) return;
           const esHoy = (fechaHastaStr === hoyStr);
           reporte.push({
-            emp, fecha: fechaHastaStr, keyHora: `${emp.id}_sin_fecha`, horaRealStr: '---', horaEstipulada: '07:30:00', esTarde: false,
+            emp, fecha: fechaHastaStr, keyHora: `${emp.id}_sin_fecha`, horaRealStr: '---', horaEstipulada: '07:00:00', esTarde: false,
             minutosRetraso: 0, foto_marcacion_url: null, novedad: esHoy ? 'PENDIENTE DE REGISTRO EN EL DÍA' : 'SIN REGISTRO DE ASISTENCIA', laboro: false, esHoy
           });
         }
       });
+
+      // ORDENAMIENTO CRONOLÓGICO ASCENDENTE
+      reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
       const filtrados = reporte.filter(r => {
         if (filtroEstado === 'TARDE') return r.laboro && r.esTarde;
@@ -1970,7 +1995,7 @@
       cargarReporteLlegadasTardes();
     }
 
-    /* SEGUIMIENTO HORAS EXTRA (AJUSTE 3 Y 4) */
+    /* SEGUIMIENTO HORAS EXTRA (COLUMNAS INDEPENDIENTES + 7:00 AM + ORDEN CRONOLÓGICO) */
 
     function limpiarFiltrosHorasExtras() {
       setFechasHoyFiltros();
@@ -1983,14 +2008,14 @@
       if (!supabaseClient) return;
 
       const tbody = document.getElementById('tabla-horas-extras-body');
-      tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando horas extra...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando horas extra...</td></tr>`;
 
       const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('extra');
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
-      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA').order('nombre', { ascending: true });
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
       } else if (filtroCDA !== 'TODOS') {
@@ -1999,7 +2024,7 @@
 
       const { data: todosEmpleados } = await queryEmp;
       if (!todosEmpleados || todosEmpleados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-zinc-500">No hay personal registrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay personal registrado.</td></tr>`;
         return;
       }
 
@@ -2045,7 +2070,8 @@
 
             if (entradaCDA && salidaCDA) {
               const keyHora = `${emp.id}_${fechaCorta}`;
-              const horaEstipuladaStr = horasEstipuladasPersonalizadas[keyHora] || "07:30:00";
+              // 7:00 AM POR DEFECTO
+              const horaEstipuladaStr = horasEstipuladasPersonalizadas[keyHora] || "07:00:00";
 
               const [hRef, mRef] = horaEstipuladaStr.split(':').map(Number);
               const horaEstipuladaEntrada = new Date(entradaCDA);
@@ -2069,12 +2095,14 @@
               const tiempoNetoMs = Math.max(0, tiempoTotalMs - tiempoDescansoMs);
               const tiempoExtrasMs = tiempoNetoMs > JORNADA_BASE_MS ? (tiempoNetoMs - JORNADA_BASE_MS) : 0;
 
-              const entradaRealStr = entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+              const entradaRealStr = entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+              const estipuladaLimpiaStr = horaEstipuladaStr.substring(0, 5);
 
               reporte.push({
                 emp, fecha: fechaCorta,
-                horaEntradaDisplay: `${entradaRealStr} (Est: ${horaEstipuladaStr.substring(0,5)})`,
-                salidaCDAStr: salidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+                entradaRealStr,
+                estipuladaLimpiaStr,
+                salidaCDAStr: salidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }),
                 descansoFormatted: formatearMsAHorasMinutos(tiempoDescansoMs),
                 laboradasFormatted: formatearMsAHorasMinutos(tiempoNetoMs),
                 extrasFormatted: formatearMsAHorasMinutos(tiempoExtrasMs),
@@ -2083,9 +2111,14 @@
                 novedad: 'Jornada Completa Calculada', laboro: true
               });
             } else {
+              const entradaRealStr = entradaCDA ? entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }) : '---';
+              const keyHora = `${emp.id}_${fechaCorta}`;
+              const estipuladaLimpiaStr = (horasEstipuladasPersonalizadas[keyHora] || "07:00:00").substring(0, 5);
+
               reporte.push({
                 emp, fecha: fechaCorta,
-                horaEntradaDisplay: entradaCDA ? entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '---',
+                entradaRealStr,
+                estipuladaLimpiaStr,
                 salidaCDAStr: '---', 
                 descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
                 tieneExtras: false, tieneLaboradas: false,
@@ -2097,7 +2130,7 @@
           if (emp.activo === false) return;
           const esHoy = (fechaHastaStr === hoyStr);
           reporte.push({
-            emp, fecha: fechaHastaStr, horaEntradaDisplay: '---', salidaCDAStr: '---', 
+            emp, fecha: fechaHastaStr, entradaRealStr: '---', estipuladaLimpiaStr: '07:00', salidaCDAStr: '---', 
             descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
             tieneExtras: false, tieneLaboradas: false,
             novedad: esHoy ? 'PENDIENTE DE ASISTENCIA' : 'SIN ASISTENCIA REGISTRADA', laboro: false, esHoy
@@ -2105,13 +2138,17 @@
         }
       });
 
+      // ORDENAMIENTO CRONOLÓGICO ASCENDENTE
+      reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
+
       tbody.innerHTML = reporte.map(r => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.laboro ? (r.esHoy ? 'bg-amber-950/10' : 'bg-rose-950/20') : ''}">
           <td class="p-2.5 font-mono text-zinc-300 font-bold">${r.fecha}</td>
           <td class="p-2.5 font-semibold text-white">${r.emp.nombre} ${r.emp.activo === false ? '<span class="text-[9px] bg-rose-950 text-rose-400 px-1 py-0.5 rounded border border-rose-800 ml-1">INACTIVO</span>' : ''}</td>
           <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
           <td class="p-2.5 text-zinc-300">${r.emp.cda_nombre || 'CDA MOTOS RUTA'}</td>
-          <td class="p-2.5 font-mono text-lime-400 font-bold">${r.horaEntradaDisplay}</td>
+          <td class="p-2.5 font-mono text-lime-400 font-bold">${r.entradaRealStr}</td>
+          <td class="p-2.5 font-mono text-amber-400 font-bold">${r.estipuladaLimpiaStr}</td>
           <td class="p-2.5 font-mono text-rose-400 font-bold">${r.salidaCDAStr}</td>
           <td class="p-2.5 font-mono text-amber-400">${r.descansoFormatted}</td>
           <td class="p-2.5 font-bold ${r.laboro && r.tieneLaboradas ? 'text-lime-400' : 'text-zinc-600'}">${r.laboradasFormatted}</td>
@@ -2129,7 +2166,6 @@
       `).join('');
     }
 
-    /* AJUSTE 1: EXPORTACIÓN REAL A EXCEL (.XLSX) */
     function exportarExcelAsistencias() {
       const tabla = document.getElementById('tabla-asistencias-excel');
       const wb = XLSX.utils.table_to_book(tabla, { sheet: "Asistencias" });
