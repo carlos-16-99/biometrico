@@ -68,6 +68,10 @@
       border-color: #10b981;
       border-style: solid;
     }
+    .face-oval-guide.guide-danger {
+      border-color: #f43f5e;
+      border-style: solid;
+    }
   </style>
 </head>
 <body class="bg-zinc-950 text-slate-100 min-h-screen font-sans flex flex-col">
@@ -759,13 +763,11 @@
       return false;
     }
 
-    /* MOTOR DE RECONOCIMIENTO FACIAL STRICTO Y NORMALIZADO (PROCRUSTES + REGION FILTER) */
+    /* MOTOR DE RECONOCIMIENTO FACIAL STRICTO Y NORMALIZADO */
 
-    // Normalización: Centra la cara en (0,0) y la escala según la distancia interocular
     function normalizarRostroVectorial(pts) {
       if (!pts || pts.length === 0) return null;
       
-      // Centroide
       let cx = 0, cy = 0;
       for (let p of pts) {
         cx += p.x;
@@ -774,7 +776,6 @@
       cx /= pts.length;
       cy /= pts.length;
 
-      // Distancia interocular (ojo izq: 33, ojo der: 263)
       const distInterocular = Math.hypot(pts[33].x - pts[263].x, pts[33].y - pts[263].y);
       if (distInterocular === 0) return null;
 
@@ -785,7 +786,6 @@
       }));
     }
 
-    // Calcula error vectorial medio entre regiones
     function calcularErrorRegion(vec1, vec2, indices) {
       let suma = 0;
       for (let idx of indices) {
@@ -796,7 +796,6 @@
       return suma / indices.length;
     }
 
-    // Evaluador Estricto Multicapa
     function compararRostrosEstricto(ptsEntrada, ptsGuardados) {
       if (!ptsEntrada || !ptsGuardados || ptsEntrada.length !== ptsGuardados.length) {
         return { coincidencia: false, score: 999 };
@@ -807,18 +806,14 @@
 
       if (!vecEntrada || !vecGuardado) return { coincidencia: false, score: 999 };
 
-      // 1. Error de Regiones Clave
       const errorOjos = calcularErrorRegion(vecEntrada, vecGuardado, REGION_OJOS);
       const errorNariz = calcularErrorRegion(vecEntrada, vecGuardado, REGION_NARIZ);
       const errorBoca = calcularErrorRegion(vecEntrada, vecGuardado, REGION_BOCA);
-      const errorContorno = calcularErrorRegion(vecEntrada, vecGuardado, REGION_CONTORNO);
 
-      // Si una región crítica (Ojos o Nariz) se aleja demasiado, se rechaza de inmediato (Filtro Anti-Suplantación)
       if (errorOjos > 0.18 || errorNariz > 0.17 || errorBoca > 0.19) {
         return { coincidencia: false, score: 999 };
       }
 
-      // 2. Error Global Ponderado
       let sumaGlobal = 0;
       for (let i = 0; i < vecEntrada.length; i++) {
         const dx = vecEntrada[i].x - vecGuardado[i].x;
@@ -827,13 +822,12 @@
       }
       const scoreGlobal = sumaGlobal / vecEntrada.length;
 
-      // Umbral Estricto Ajustado (0.145)
       const esValido = scoreGlobal <= 0.145;
 
       return { coincidencia: esValido, score: scoreGlobal };
     }
 
-    /* BUCLE DE ESCANEO BIOMÉTRICO */
+    /* BUCLE DE ESCANEO BIOMÉTRICO CON TIEMPO DE VALIDACIÓN Y ALERTA DE NO REGISTRADO */
 
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
@@ -871,8 +865,27 @@
       const guide = document.getElementById('scan-oval-guide');
       const status = document.getElementById('scan-status');
 
+      // Variables para controlar el tiempo y la estabilidad antes de tomar la marcación
+      let framesCoincidentes = 0;
+      let empTemporalDetectado = null;
+      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de confirmación continua
+      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de búsqueda máxima
+      const inicioEscaneo = Date.now();
+
       const processFrame = async () => {
         if (!scanStream || isProcessingScan) return;
+
+        // Comprobación de tiempo límite de búsqueda (Alerta si no se reconoce a nadie)
+        if (Date.now() - inicioEscaneo > TIEMPO_LIMITE_MS && framesCoincidentes === 0) {
+          isProcessingScan = true;
+          guide.className = "face-oval-guide guide-danger";
+          status.className = "text-sm font-bold text-rose-400 animate-pulse";
+          status.innerText = "❌ ROSTRO NO RECONOCIDO O NO REGISTRADO";
+          setTimeout(() => {
+            cerrarModalEscaner();
+          }, 3500);
+          return;
+        }
 
         if (video.readyState === 4 && faceMesh) {
           await faceMesh.send({ image: video });
@@ -885,14 +898,11 @@
             const simetria = Math.abs((centroNariz - dOjoIzq) - (dOjoDer - centroNariz));
 
             if (simetria > 0.08) {
+              framesCoincidentes = 0;
               guide.className = "face-oval-guide guide-warning";
               status.className = "text-xs font-bold text-amber-400";
               status.innerText = "⚠️ Por favor mira de frente sin girar el rostro";
             } else {
-              guide.className = "face-oval-guide guide-warning";
-              status.className = "text-xs font-semibold text-amber-400";
-              status.innerText = "🔍 Verificando patrón biométrico estricto...";
-
               const { data: empleados } = await supabaseClient
                 .from('empleados')
                 .select('*')
@@ -921,40 +931,63 @@
               }
 
               if (empEncontrado) {
-                isProcessingScan = true;
-                guide.className = "face-oval-guide guide-success";
-                status.className = "text-base font-bold text-lime-400 animate-pulse";
-                status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado con éxito.`;
+                if (empTemporalDetectado && empTemporalDetectado.id === empEncontrado.id) {
+                  framesCoincidentes++;
+                } else {
+                  empTemporalDetectado = empEncontrado;
+                  framesCoincidentes = 1;
+                }
 
-                const canvas = document.getElementById('scan-canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const porcentaje = Math.min(100, Math.round((framesCoincidentes / FRAMES_REQUERIDOS) * 100));
+                guide.className = "face-oval-guide guide-warning";
+                status.className = "text-xs font-bold text-amber-400";
+                status.innerText = `🔍 Identificando a ${empEncontrado.nombre.split(' ')[0]}... Mantén la mirada (${porcentaje}%)`;
 
-                canvas.toBlob(async (blob) => {
-                  const fileName = `face_${empEncontrado.id}_${Date.now()}.jpg`;
-                  await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
-                  const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+                // Solo cuando se confirma la presencia continua por N fotogramas, se toma la marcación
+                if (framesCoincidentes >= FRAMES_REQUERIDOS) {
+                  isProcessingScan = true;
+                  guide.className = "face-oval-guide guide-success";
+                  status.className = "text-base font-bold text-lime-400 animate-pulse";
+                  status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado. Registrando...`;
 
-                  await supabaseClient.from('asistencias').insert([{
-                    empleado_id: empEncontrado.id,
-                    tipo: scanTipo,
-                    latitud: currentLat,
-                    longitud: currentLng,
-                    foto_marcacion_url: fotoUrl,
-                    novedad: "VERIFICACIÓN BIOMÉTRICA ESTRICTA CONFIRMADA"
-                  }]);
+                  const canvas = document.getElementById('scan-canvas');
+                  const ctx = canvas.getContext('2d');
+                  canvas.width = video.videoWidth || 640;
+                  canvas.height = video.videoHeight || 480;
+                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                  setTimeout(() => {
-                    cerrarModalEscaner();
-                  }, 2200);
-                }, 'image/jpeg', 0.85);
+                  canvas.toBlob(async (blob) => {
+                    const fileName = `face_${empEncontrado.id}_${Date.now()}.jpg`;
+                    await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
+                    const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
 
-                return;
+                    await supabaseClient.from('asistencias').insert([{
+                      empleado_id: empEncontrado.id,
+                      tipo: scanTipo,
+                      latitud: currentLat,
+                      longitud: currentLng,
+                      foto_marcacion_url: fotoUrl,
+                      novedad: "VERIFICACIÓN BIOMÉTRICA ESTRICTA CONFIRMADA"
+                    }]);
+
+                    setTimeout(() => {
+                      cerrarModalEscaner();
+                    }, 2200);
+                  }, 'image/jpeg', 0.85);
+
+                  return;
+                }
+              } else {
+                framesCoincidentes = 0;
+                empTemporalDetectado = null;
+                guide.className = "face-oval-guide guide-warning";
+                status.className = "text-xs font-semibold text-amber-400";
+                status.innerText = "🔍 Analizando rasgos faciales...";
               }
             }
           } else {
+            framesCoincidentes = 0;
+            empTemporalDetectado = null;
             guide.className = "face-oval-guide";
             status.className = "text-xs font-semibold text-amber-400";
             status.innerText = "👤 Ubica tu cara dentro de la guía...";
@@ -1032,7 +1065,6 @@
         return;
       }
 
-      // Validar postura antes de registrar para asegurar la máxima precisión
       const dOjoIzq = currentLandmarks[33].x;
       const dOjoDer = currentLandmarks[263].x;
       const centroNariz = currentLandmarks[1].x;
