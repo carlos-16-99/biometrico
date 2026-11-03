@@ -609,8 +609,8 @@
                     <th class="p-2.5">CDA</th>
                     <th class="p-2.5 text-lime-400">Hora Entrada Real / Estipulada</th>
                     <th class="p-2.5 text-rose-400">Salida CDA</th>
-                    <th class="p-2.5 text-amber-400">Descanso Descontado</th>
-                    <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas Netas</th>
+                    <th class="p-2.5 text-amber-400">Descanso Descontado (HH:MM)</th>
+                    <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas Netas (HH:MM)</th>
                     <th class="p-2.5 text-amber-400">Horas Extra Netas (Base 7h)</th>
                     <th class="p-2.5">Novedad</th>
                   </tr>
@@ -675,6 +675,17 @@
       const mm = String(hoy.getMonth() + 1).padStart(2, '0');
       const dd = String(hoy.getDate()).padStart(2, '0');
       return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // AJUSTE 2: FUNCIÓN PARA CONVERTIR MILISEGUNDOS A CÓDIGO HH:MM
+    function formatearMsAHorasMinutos(ms) {
+      if (!ms || ms <= 0) return "00h 00m";
+      const totalMinutos = Math.floor(ms / (1000 * 60));
+      const horas = Math.floor(totalMinutos / 60);
+      const minutos = totalMinutos % 60;
+      const hh = String(horas).padStart(2, '0');
+      const mm = String(minutos).padStart(2, '0');
+      return `${hh}h ${mm}m`;
     }
 
     function generarOpcionesHoras24h() {
@@ -1708,7 +1719,7 @@
       `).join('');
     }
 
-    /* HISTORIAL DE ASISTENCIAS (LISTA COMPLETA + SEGUIMIENTO DE AUSENCIAS) */
+    /* HISTORIAL DE ASISTENCIAS (AJUSTE 1: INCLUSIÓN DE DESHABILITADOS SI TIENEN MARCACIÓN ESE DÍA) */
 
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
@@ -1721,26 +1732,27 @@
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
-      let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
-      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
-        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
-      } else if (filtroCDA !== 'TODOS') {
-        queryEmp = queryEmp.ilike('cda_nombre', `%${filtroCDA}%`);
-      }
-
-      const { data: empleadosList } = await queryEmp;
-
-      if (!empleadosList || empleadosList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-zinc-500">No hay personal para el filtro aplicado.</td></tr>`;
-        return;
-      }
-
+      // Consultar marcaciones en el rango
       const { data: marcaciones } = await supabaseClient
         .from('asistencias')
         .select('*')
         .gte('fecha_hora', inicioStr)
         .lte('fecha_hora', finStr)
         .order('fecha_hora', { ascending: true });
+
+      // Obtener todos los empleados (Activos e Inactivos)
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
+      if (currentAdminRole === 'ADMIN_SECUNDARIO') {
+        queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
+      } else if (filtroCDA !== 'TODOS') {
+        queryEmp = queryEmp.ilike('cda_nombre', `%${filtroCDA}%`);
+      }
+
+      const { data: todosEmpleados } = await queryEmp;
+      if (!todosEmpleados || todosEmpleados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-zinc-500">No hay personal para el filtro aplicado.</td></tr>`;
+        return;
+      }
 
       const mapaAgrupado = {};
       (marcaciones || []).forEach(m => {
@@ -1752,7 +1764,7 @@
 
       const filasProcesadas = [];
 
-      empleadosList.forEach(emp => {
+      todosEmpleados.forEach(emp => {
         if (filtroNombre && !emp.nombre.toLowerCase().includes(filtroNombre) && !emp.id.toLowerCase().includes(filtroNombre)) {
           return;
         }
@@ -1760,6 +1772,7 @@
         const keysEmp = Object.keys(mapaAgrupado).filter(k => k.startsWith(`${emp.id}_`));
 
         if (keysEmp.length > 0) {
+          // Si el empleado (activo o deshabilitado) marcó en esta fecha, SIEMPRE se muestra en la tabla
           keysEmp.forEach(k => {
             const misMarcaciones = mapaAgrupado[k];
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
@@ -1787,8 +1800,10 @@
             });
           });
         } else {
-          const esHoy = (fechaHastaStr === hoyStr);
+          // AJUSTE 1: Si NO tiene marcación y está DESHABILITADO, YA NO APARECE desde el día siguiente a su deshabilitación
+          if (emp.activo === false) return;
 
+          const esHoy = (fechaHastaStr === hoyStr);
           filasProcesadas.push({
             emp,
             entradaCDA: null, entradaDescanso: null, salidaDescanso: null, salidaCDA: null,
@@ -1801,7 +1816,7 @@
 
       tbody.innerHTML = filasProcesadas.map(r => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.laboro ? (r.esHoy ? 'bg-amber-950/10' : 'bg-rose-950/20') : ''}">
-          <td class="p-2.5 font-semibold text-white">${r.emp.nombre}</td>
+          <td class="p-2.5 font-semibold text-white">${r.emp.nombre} ${r.emp.activo === false ? '<span class="text-[9px] bg-rose-950 text-rose-400 px-1 py-0.5 rounded border border-rose-800 ml-1">INACTIVO</span>' : ''}</td>
           <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
           <td class="p-2.5 text-zinc-300">${r.emp.cda_nombre || 'CDA MOTOS RUTA'}</td>
           <td class="p-2.5 font-mono font-bold ${r.entradaCDA ? 'text-lime-400' : 'text-zinc-600'}">${r.entradaCDA || '---'}</td>
@@ -1832,7 +1847,7 @@
       cargarHistorialAsistencias();
     }
 
-    /* CONTROL LLEGADAS TARDES */
+    /* CONTROL LLEGADAS TARDES (AJUSTE 1) */
 
     function limpiarFiltrosLlegadasTardes() {
       setFechasHoyFiltros();
@@ -1854,16 +1869,15 @@
       const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
-      let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
       } else if (filtroCDA !== 'TODOS') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${filtroCDA}%`);
       }
 
-      const { data: empleadosList } = await queryEmp;
-
-      if (!empleadosList || empleadosList.length === 0) {
+      const { data: todosEmpleados } = await queryEmp;
+      if (!todosEmpleados || todosEmpleados.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-500">No hay personal registrado.</td></tr>`;
         return;
       }
@@ -1878,7 +1892,7 @@
       const opcionesHoras = generarOpcionesHoras24h();
       const reporte = [];
 
-      empleadosList.forEach(emp => {
+      todosEmpleados.forEach(emp => {
         if (filtroNombre && !emp.nombre.toLowerCase().includes(filtroNombre) && !emp.id.toLowerCase().includes(filtroNombre)) {
           return;
         }
@@ -1911,6 +1925,9 @@
             });
           });
         } else {
+          // AJUSTE 1: Deshabilitado sin marcación no aparece desde el día siguiente
+          if (emp.activo === false) return;
+
           const esHoy = (fechaHastaStr === hoyStr);
           reporte.push({
             emp, keyHora: `${emp.id}_sin_fecha`, horaRealStr: '---', horaEstipulada: '07:30:00', esTarde: false,
@@ -1932,7 +1949,7 @@
           <td class="p-2.5">
             ${r.foto_marcacion_url ? `<a href="${r.foto_marcacion_url}" target="_blank"><img src="${r.foto_marcacion_url}" class="w-8 h-8 rounded-lg object-cover border border-zinc-700"></a>` : '-'}
           </td>
-          <td class="p-2.5 font-semibold text-white">${r.emp.nombre}</td>
+          <td class="p-2.5 font-semibold text-white">${r.emp.nombre} ${r.emp.activo === false ? '<span class="text-[9px] bg-rose-950 text-rose-400 px-1 py-0.5 rounded border border-rose-800 ml-1">INACTIVO</span>' : ''}</td>
           <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
           <td class="p-2.5 text-zinc-300">${r.emp.cda_nombre || 'CDA MOTOS RUTA'}</td>
           <td class="p-2.5">
@@ -1960,7 +1977,7 @@
       cargarReporteLlegadasTardes();
     }
 
-    /* SEGUIMIENTO HORAS EXTRA (REGLA DE CÁLCULO SEGÚN MARCACIÓN TARDÍA DE ENTRADA AL SEA/CDA) */
+    /* SEGUIMIENTO HORAS EXTRA (AJUSTE 1 Y 2: HH:MM FORMATO + MANEJO DE DESHABILITADOS HISTÓRICOS) */
 
     function limpiarFiltrosHorasExtras() {
       setFechasHoyFiltros();
@@ -1980,16 +1997,15 @@
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
-      let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
+      let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
       } else if (filtroCDA !== 'TODOS') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${filtroCDA}%`);
       }
 
-      const { data: empleadosList } = await queryEmp;
-
-      if (!empleadosList || empleadosList.length === 0) {
+      const { data: todosEmpleados } = await queryEmp;
+      if (!todosEmpleados || todosEmpleados.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-zinc-500">No hay personal registrado.</td></tr>`;
         return;
       }
@@ -2001,7 +2017,7 @@
         .lte('fecha_hora', finStr)
         .order('fecha_hora', { ascending: true });
 
-      const JORNADA_BASE_HORAS = 7;
+      const JORNADA_BASE_MS = 7 * 60 * 60 * 1000; // Base 7 Horas
       const mapaAgrupado = {};
 
       (marcaciones || []).forEach(m => {
@@ -2013,7 +2029,7 @@
 
       const reporte = [];
 
-      empleadosList.forEach(emp => {
+      todosEmpleados.forEach(emp => {
         if (filtroNombre && !emp.nombre.toLowerCase().includes(filtroNombre) && !emp.id.toLowerCase().includes(filtroNombre)) {
           return;
         }
@@ -2043,10 +2059,10 @@
               const horaEstipuladaEntrada = new Date(entradaCDA);
               horaEstipuladaEntrada.setHours(hRef, mRef, 0, 0);
 
-              // REGLA: SI MARCÓ DESPUÉS DE LA HORA ESTIPULADA, EL CÁLCULO SE REALIZA DESDE LA HORA REAL DE ENTRADA AL SEA/CDA
+              // CÁLCULO DE HORA DE INICIO: Si llegó después de la hora estipulada, el tiempo corre desde la hora real de entrada
               let horaInicioConteo = entradaCDA;
               if (entradaCDA < horaEstipuladaEntrada) {
-                horaInicioConteo = horaEstipuladaEntrada; // Llegó a tiempo -> Conteo parte desde hora estipulada
+                horaInicioConteo = horaEstipuladaEntrada;
               }
 
               let tiempoTotalMs = salidaCDA - horaInicioConteo;
@@ -2060,8 +2076,7 @@
               }
 
               const tiempoNetoMs = Math.max(0, tiempoTotalMs - tiempoDescansoMs);
-              const horasLaboradasNetas = tiempoNetoMs / (1000 * 60 * 60);
-              const horasExtrasNetas = horasLaboradasNetas > JORNADA_BASE_HORAS ? (horasLaboradasNetas - JORNADA_BASE_HORAS) : 0;
+              const tiempoExtrasMs = tiempoNetoMs > JORNADA_BASE_MS ? (tiempoNetoMs - JORNADA_BASE_MS) : 0;
 
               const entradaRealStr = entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
@@ -2069,39 +2084,48 @@
                 emp, 
                 horaEntradaDisplay: `${entradaRealStr} (Est: ${horaEstipuladaStr.substring(0,5)})`,
                 salidaCDAStr: salidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
-                horasDescanso: (tiempoDescansoMs / (1000 * 60 * 60)).toFixed(2),
-                horasLaboradasNetas: horasLaboradasNetas.toFixed(2),
-                horasExtrasNetas: horasExtrasNetas.toFixed(2),
+                descansoFormatted: formatearMsAHorasMinutos(tiempoDescansoMs),
+                laboradasFormatted: formatearMsAHorasMinutos(tiempoNetoMs),
+                extrasFormatted: formatearMsAHorasMinutos(tiempoExtrasMs),
+                tieneExtras: tiempoExtrasMs > 0,
+                tieneLaboradas: tiempoNetoMs > 0,
                 novedad: 'Jornada Completa Calculada', laboro: true
               });
             } else {
               reporte.push({
                 emp, horaEntradaDisplay: entradaCDA ? entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) : '---',
-                salidaCDAStr: '---', horasDescanso: '0.00',
-                horasLaboradasNetas: '0.00', horasExtrasNetas: '0.00', novedad: 'JORNADA INCOMPLETA', laboro: true
+                salidaCDAStr: '---', 
+                descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
+                tieneExtras: false, tieneLaboradas: false,
+                novedad: 'JORNADA INCOMPLETA', laboro: true
               });
             }
           });
         } else {
+          // AJUSTE 1: Deshabilitado sin marcación no aparece desde el día siguiente
+          if (emp.activo === false) return;
+
           const esHoy = (fechaHastaStr === hoyStr);
           reporte.push({
-            emp, horaEntradaDisplay: '---', salidaCDAStr: '---', horasDescanso: '0.00',
-            horasLaboradasNetas: '0.00', horasExtrasNetas: '0.00', novedad: esHoy ? 'PENDIENTE DE ASISTENCIA' : 'SIN ASISTENCIA REGISTRADA', laboro: false, esHoy
+            emp, horaEntradaDisplay: '---', salidaCDAStr: '---', 
+            descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
+            tieneExtras: false, tieneLaboradas: false,
+            novedad: esHoy ? 'PENDIENTE DE ASISTENCIA' : 'SIN ASISTENCIA REGISTRADA', laboro: false, esHoy
           });
         }
       });
 
       tbody.innerHTML = reporte.map(r => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.laboro ? (r.esHoy ? 'bg-amber-950/10' : 'bg-rose-950/20') : ''}">
-          <td class="p-2.5 font-semibold text-white">${r.emp.nombre}</td>
+          <td class="p-2.5 font-semibold text-white">${r.emp.nombre} ${r.emp.activo === false ? '<span class="text-[9px] bg-rose-950 text-rose-400 px-1 py-0.5 rounded border border-rose-800 ml-1">INACTIVO</span>' : ''}</td>
           <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
           <td class="p-2.5 text-zinc-300">${r.emp.cda_nombre || 'CDA MOTOS RUTA'}</td>
           <td class="p-2.5 font-mono text-lime-400 font-bold">${r.horaEntradaDisplay}</td>
           <td class="p-2.5 font-mono text-rose-400 font-bold">${r.salidaCDAStr}</td>
-          <td class="p-2.5 font-mono text-amber-400">${r.horasDescanso} hrs</td>
-          <td class="p-2.5 font-bold ${r.laboro && parseFloat(r.horasLaboradasNetas) > 0 ? 'text-lime-400' : 'text-zinc-600'}">${r.horasLaboradasNetas} hrs</td>
-          <td class="p-2.5 font-bold ${parseFloat(r.horasExtrasNetas) > 0 ? 'text-amber-400' : 'text-zinc-500'}">
-            ${parseFloat(r.horasExtrasNetas) > 0 ? `+${r.horasExtrasNetas} hrs Extras` : '0.00 hrs'}
+          <td class="p-2.5 font-mono text-amber-400">${r.descansoFormatted}</td>
+          <td class="p-2.5 font-bold ${r.laboro && r.tieneLaboradas ? 'text-lime-400' : 'text-zinc-600'}">${r.laboradasFormatted}</td>
+          <td class="p-2.5 font-bold ${r.tieneExtras ? 'text-amber-400' : 'text-zinc-500'}">
+            ${r.tieneExtras ? `+${r.extrasFormatted} Extras` : '00h 00m'}
           </td>
           <td class="p-2.5">
             ${r.laboro 
