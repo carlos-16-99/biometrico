@@ -18,7 +18,6 @@
 
   <!-- ESTILOS DE RESPALDO Y FIX PARA NAVEGADORES MÓVILES (ANDROID / IOS / WEBVIEW) -->
   <style>
-    /* Asegurar visibilidad limpia del modal de escaneo sin romper pantalla */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -52,7 +51,6 @@
       z-index: 20;
     }
 
-    /* Borde del óvalo limpio sin box-shadow gigante */
     .face-oval-guide {
       width: 65%;
       height: 75%;
@@ -160,7 +158,7 @@
         <h3 id="modal-titulo" class="text-lg font-bold text-lime-400">Escaneando Rostro...</h3>
 
         <div class="face-container">
-          <video id="scan-video" autoplay playsinline class="w-full h-full object-cover"></video>
+          <video id="scan-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
           <canvas id="scan-canvas" class="absolute top-0 left-0 w-full h-full object-cover z-10"></canvas>
           
           <div class="face-guide-overlay">
@@ -213,7 +211,7 @@
 
             <div id="contenedor-camara-manual" class="hidden space-y-2 transition-all">
               <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-amber-500">
-                <video id="man-video" autoplay playsinline class="w-full h-full object-cover"></video>
+                <video id="man-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
                 <canvas id="man-canvas" class="hidden"></canvas>
               </div>
               
@@ -281,7 +279,7 @@
         <h3 class="text-lg font-bold text-lime-400">Registrar Puntos Faciales</h3>
 
         <div class="face-container">
-          <video id="reg-video" autoplay playsinline class="w-full h-full object-cover"></video>
+          <video id="reg-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
           <canvas id="reg-canvas" class="absolute top-0 left-0 w-full h-full object-cover z-10"></canvas>
 
           <div class="face-guide-overlay">
@@ -472,7 +470,7 @@
           </div>
         </div>
 
-        <!-- PESTAÑA HISTORIAL DE ASISTENCIAS (ENTRADA DESCANSO DESPUÉS DE ENTRADA CDA) -->
+        <!-- PESTAÑA HISTORIAL DE ASISTENCIAS -->
         <div id="subview-asistencias" class="hidden space-y-4 w-full">
           <div class="bg-zinc-900 rounded-2xl border border-zinc-800 p-4 space-y-4 w-full">
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -648,6 +646,7 @@
     let scanTipo = 'Entrada al CDA';
     let faceMesh = null;
     let currentLandmarks = null;
+    let isProcessingScan = false;
     
     let currentAdminRole = null;
     let currentAdminCDA = null;
@@ -753,6 +752,228 @@
       }
       return false;
     }
+
+    /* LÓGICA BIOMÉTRICA (CÁMARA, ESCANEO Y REGISTRO FACIAL) */
+
+    function calcularDistanciaFacial(pts1, pts2) {
+      if (!pts1 || !pts2 || pts1.length !== pts2.length) return 999;
+      let suma = 0;
+      for (let i = 0; i < pts1.length; i++) {
+        const dx = pts1[i].x - pts2[i].x;
+        const dy = pts1[i].y - pts2[i].y;
+        const dz = (pts1[i].z || 0) - (pts2[i].z || 0);
+        suma += Math.sqrt(dx * dx + dy * dy + dz * dz);
+      }
+      return suma / pts1.length;
+    }
+
+    async function abrirModalEscaner(tipo) {
+      scanTipo = tipo;
+      document.getElementById('modal-titulo').innerText = `Marcación: ${tipo.toUpperCase()}`;
+      document.getElementById('scan-status').innerText = "🎥 Encendiendo cámara...";
+      document.getElementById('scan-oval-guide').className = "face-oval-guide";
+      document.getElementById('modal-escaner').classList.remove('hidden');
+      isProcessingScan = false;
+
+      try {
+        scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
+        const video = document.getElementById('scan-video');
+        video.srcObject = scanStream;
+
+        video.onloadedmetadata = () => {
+          document.getElementById('scan-status').innerText = "👤 Enfoca tu rostro dentro de la guía...";
+          iniciarBucleEscaneo();
+        };
+      } catch (e) {
+        document.getElementById('scan-status').innerHTML = "<span class='text-rose-400'>❌ Error al acceder a la cámara. Permite el acceso e intenta de nuevo.</span>";
+      }
+    }
+
+    function cerrarModalEscaner() {
+      isProcessingScan = false;
+      if (scanStream) {
+        scanStream.getTracks().forEach(t => t.stop());
+        scanStream = null;
+      }
+      document.getElementById('modal-escaner').classList.add('hidden');
+    }
+
+    async function iniciarBucleEscaneo() {
+      const video = document.getElementById('scan-video');
+      const guide = document.getElementById('scan-oval-guide');
+      const status = document.getElementById('scan-status');
+
+      const processFrame = async () => {
+        if (!scanStream || isProcessingScan) return;
+
+        if (video.readyState === 4 && faceMesh) {
+          await faceMesh.send({ image: video });
+
+          if (currentLandmarks) {
+            guide.className = "face-oval-guide guide-warning";
+            status.className = "text-sm font-semibold text-amber-400";
+            status.innerText = "🔍 Buscando coincidencia de rostro...";
+
+            const { data: empleados } = await supabaseClient
+              .from('empleados')
+              .select('*')
+              .eq('activo', true)
+              .not('descriptor_facial', 'is', null);
+
+            let empEncontrado = null;
+            let menorDistancia = 999;
+
+            if (empleados && empleados.length > 0) {
+              for (const emp of empleados) {
+                if (emp.descriptor_facial) {
+                  try {
+                    const patronGuardado = typeof emp.descriptor_facial === 'string' 
+                      ? JSON.parse(emp.descriptor_facial) 
+                      : emp.descriptor_facial;
+
+                    const dist = calcularDistanciaFacial(currentLandmarks, patronGuardado);
+                    if (dist < menorDistancia) {
+                      menorDistancia = dist;
+                      if (dist < 0.12) {
+                        empEncontrado = emp;
+                      }
+                    }
+                  } catch (err) {}
+                }
+              }
+            }
+
+            if (empEncontrado) {
+              isProcessingScan = true;
+              guide.className = "face-oval-guide guide-success";
+              status.className = "text-base font-bold text-lime-400 animate-pulse";
+              status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Registrando marcación...`;
+
+              const canvas = document.getElementById('scan-canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = video.videoWidth || 640;
+              canvas.height = video.videoHeight || 480;
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+              canvas.toBlob(async (blob) => {
+                const fileName = `face_${empEncontrado.id}_${Date.now()}.jpg`;
+                await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
+                const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+
+                await supabaseClient.from('asistencias').insert([{
+                  empleado_id: empEncontrado.id,
+                  tipo: scanTipo,
+                  latitud: currentLat,
+                  longitud: currentLng,
+                  foto_marcacion_url: fotoUrl,
+                  novedad: "MARCACIÓN BIOMÉTRICA RECONOCIDA"
+                }]);
+
+                setTimeout(() => {
+                  cerrarModalEscaner();
+                }, 2500);
+              }, 'image/jpeg', 0.85);
+
+              return;
+            }
+          } else {
+            guide.className = "face-oval-guide";
+            status.className = "text-sm font-semibold text-amber-400";
+            status.innerText = "👤 Ajusta tu cara dentro del croquis...";
+          }
+        }
+
+        if (scanStream && !isProcessingScan) {
+          requestAnimationFrame(processFrame);
+        }
+      };
+
+      requestAnimationFrame(processFrame);
+    }
+
+    /* REGISTRO FACIAL DE PERSONAL (CAPTURA DE PUNTOS FACIALES) */
+
+    async function abrirModalRegistroFacial() {
+      const status = document.getElementById('reg-status');
+      status.className = "text-xs font-semibold text-zinc-300";
+      status.innerText = "🎥 Encendiendo cámara para registro facial...";
+      document.getElementById('reg-oval-guide').className = "face-oval-guide";
+      document.getElementById('modal-registro-facial').classList.remove('hidden');
+
+      try {
+        regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
+        const video = document.getElementById('reg-video');
+        video.srcObject = regStream;
+
+        video.onloadedmetadata = () => {
+          status.innerText = "Ubícate dentro del croquis y presiona 'Capturar Rostro'";
+          bucleMonitoreoRegistro();
+        };
+      } catch (e) {
+        status.className = "text-xs font-semibold text-rose-400";
+        status.innerText = "❌ No se pudo abrir la cámara en el dispositivo.";
+      }
+    }
+
+    function cerrarModalRegistroFacial() {
+      if (regStream) {
+        regStream.getTracks().forEach(t => t.stop());
+        regStream = null;
+      }
+      document.getElementById('modal-registro-facial').classList.add('hidden');
+    }
+
+    async function bucleMonitoreoRegistro() {
+      const video = document.getElementById('reg-video');
+      const guide = document.getElementById('reg-oval-guide');
+
+      const trackFrame = async () => {
+        if (!regStream) return;
+        if (video.readyState === 4 && faceMesh) {
+          await faceMesh.send({ image: video });
+          if (currentLandmarks) {
+            guide.className = "face-oval-guide guide-success";
+          } else {
+            guide.className = "face-oval-guide";
+          }
+        }
+        if (regStream) {
+          requestAnimationFrame(trackFrame);
+        }
+      };
+      requestAnimationFrame(trackFrame);
+    }
+
+    async function capturarPatronFacial() {
+      const status = document.getElementById('reg-status');
+      const video = document.getElementById('reg-video');
+
+      if (!currentLandmarks) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "❌ No se detecta rostro dentro de la guía. Mira hacia la cámara.";
+        return;
+      }
+
+      descriptorFacialGlobal = JSON.stringify(currentLandmarks);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        fotoRefBlob = blob;
+        document.getElementById('lbl-biometrico-status').innerText = "✅ Rostro Capturado Correctamente";
+        status.className = "text-xs font-bold text-lime-400";
+        status.innerText = "✅ Puntos faciales extraídos con éxito. Cerrando...";
+        setTimeout(() => {
+          cerrarModalRegistroFacial();
+        }, 1200);
+      }, 'image/jpeg', 0.85);
+    }
+
+    /* FIN LÓGICA BIOMÉTRICA */
 
     function renderCheckboxesCDA() {
       const container = document.getElementById('cda-checkboxes-container');
@@ -910,7 +1131,8 @@
       }
     }
 
-    /* MARCACIÓN MANUAL */
+    /* MARCACIÓN MANUAL POR PIN Y FOTO EN VIVO */
+
     function abrirModalManual() {
       document.getElementById('modal-manual').classList.remove('hidden');
       document.getElementById('man-doc').value = "";
@@ -1037,6 +1259,7 @@
     }
 
     /* GESTIÓN DE PERSONAL */
+
     async function abrirModalGestionPin(id) {
       const autorizado = await solicitarAutorizacion();
       if (!autorizado) return;
@@ -1115,6 +1338,13 @@
 
       const cdaString = cdasSeleccionados.join(',');
 
+      let fotoUrlGuardada = null;
+      if (fotoRefBlob) {
+        const fileName = `ref_${doc}_${Date.now()}.jpg`;
+        await supabaseClient.storage.from('fotos-empleados').upload(fileName, fotoRefBlob, { contentType: 'image/jpeg' });
+        fotoUrlGuardada = `${SUPABASE_URL}/storage/v1/object/public/fotos-empleados/${fileName}`;
+      }
+
       const datosEmpleado = {
         id: doc,
         nombre: nombre,
@@ -1124,6 +1354,8 @@
         activo: true
       };
 
+      if (descriptorFacialGlobal) datosEmpleado.descriptor_facial = descriptorFacialGlobal;
+      if (fotoUrlGuardada) datosEmpleado.foto_referencia_url = fotoUrlGuardada;
       if (pass) datosEmpleado.password = pass;
 
       status.className = "text-lime-400 font-semibold";
@@ -1155,8 +1387,41 @@
       editandoDocumentoId = null;
       document.getElementById('emp-doc').disabled = false;
       document.getElementById('edit-mode-tag').classList.add('hidden');
+      document.getElementById('lbl-biometrico-status').innerText = "Registrar Puntos Faciales";
       document.getElementById('emp-status').innerText = "";
       validarCargoSeleccionado();
+    }
+
+    async function editarPersonal(id) {
+      const { data: e } = await supabaseClient.from('empleados').select('*').eq('id', id).single();
+      if (!e) return;
+
+      editandoDocumentoId = e.id;
+      document.getElementById('emp-doc').value = e.id;
+      document.getElementById('emp-doc').disabled = true;
+      document.getElementById('emp-nombre').value = e.nombre;
+      document.getElementById('emp-cargo').value = e.departamento || '';
+      document.getElementById('emp-telefono').value = e.telefono || '';
+      document.getElementById('edit-mode-tag').classList.remove('hidden');
+
+      validarCargoSeleccionado();
+
+      if (e.departamento === 'Administrador de CDA') {
+        document.getElementById('emp-cda-single').value = e.cda_nombre || '';
+      } else {
+        const misCdas = (e.cda_nombre || '').split(',');
+        document.querySelectorAll('.chk-cda').forEach(cb => {
+          cb.checked = misCdas.includes(cb.value);
+        });
+      }
+
+      if (e.descriptor_facial) {
+        document.getElementById('lbl-biometrico-status').innerText = "✅ Puntos Faciales Registrados (Actualizar)";
+        descriptorFacialGlobal = e.descriptor_facial;
+      } else {
+        document.getElementById('lbl-biometrico-status').innerText = "Registrar Puntos Faciales";
+        descriptorFacialGlobal = null;
+      }
     }
 
     async function cargarListaPersonal() {
@@ -1206,7 +1471,8 @@
       `).join('');
     }
 
-    /* HISTORIAL DE ASISTENCIAS (ORDEN DE COLUMNAS: ENTRADA CDA -> ENTRADA DESCANSO -> SALIDA DESCANSO -> SALIDA CDA) */
+    /* HISTORIAL DE ASISTENCIAS */
+
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
@@ -1219,7 +1485,6 @@
       const filtroNombre = document.getElementById('flt-asis-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
 
-      // 1. Obtener empleados activos
       let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
@@ -1231,9 +1496,7 @@
         return;
       }
 
-      // 2. Obtener marcaciones según la fecha/mes/semana seleccionada
       let queryMarcaciones = supabaseClient.from('asistencias').select('*');
-
       if (filtroFecha) {
         queryMarcaciones = queryMarcaciones.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
       }
@@ -1243,7 +1506,6 @@
       const [yyyy, mm, dd] = filtroFecha.split('-');
       const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
 
-      // 3. Cruzar Empleados vs Marcaciones
       const filasProcesadas = empleadosList.map(emp => {
         const misMarcaciones = (marcaciones || []).filter(m => String(m.empleado_id) === String(emp.id));
 
@@ -1338,7 +1600,8 @@
       cargarHistorialAsistencias();
     }
 
-    /* CONTROL DE LLEGADAS TARDES CON FILTROS (DÍA, MES, SEMANA) */
+    /* CONTROL DE LLEGADAS TARDES */
+
     async function cargarReporteLlegadasTardes() {
       if (!supabaseClient) return;
 
@@ -1352,7 +1615,6 @@
       const filtroCDA = document.getElementById('flt-tardes-cda')?.value || 'TODOS';
       const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
 
-      // 1. Obtener empleados activos
       let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
@@ -1364,7 +1626,6 @@
         return;
       }
 
-      // 2. Marcaciones de "Entrada al CDA"
       let queryEntradas = supabaseClient.from('asistencias').select('*').eq('tipo', 'Entrada al CDA');
       if (filtroFecha) {
         queryEntradas = queryEntradas.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
@@ -1485,7 +1746,8 @@
       cargarReporteLlegadasTardes();
     }
 
-    /* SEGUIMIENTO DE HORAS EXTRA CON FILTROS (DÍA, MES, SEMANA) */
+    /* SEGUIMIENTO DE HORAS EXTRA */
+
     async function cargarReporteHorasExtras() {
       if (!supabaseClient) return;
 
@@ -1498,7 +1760,6 @@
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
 
-      // 1. Obtener Empleados Activos
       let queryEmp = supabaseClient.from('empleados').select('*').eq('activo', true).neq('departamento', 'Administrador de CDA');
       if (currentAdminRole === 'ADMIN_SECUNDARIO') {
         queryEmp = queryEmp.ilike('cda_nombre', `%${currentAdminCDA}%`);
@@ -1510,7 +1771,6 @@
         return;
       }
 
-      // 2. Obtener marcaciones
       let queryMarcaciones = supabaseClient.from('asistencias').select('*');
       if (filtroFecha) {
         queryMarcaciones = queryMarcaciones.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
