@@ -16,7 +16,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
-  <!-- ESTILOS DE RESPALDO Y FIX PARA NAVEGADORES MÓVILES -->
   <style>
     .modal-backdrop {
       position: fixed;
@@ -177,7 +176,7 @@
       </div>
     </div>
 
-    <!-- MODAL DE MARCACIÓN MANUAL CON BOTÓN DESPLEGABLE DE CÁMARA -->
+    <!-- MODAL DE MARCACIÓN MANUAL -->
     <div id="modal-manual" class="modal-backdrop hidden">
       <div class="bg-zinc-900 border-2 border-amber-500/50 rounded-2xl p-6 max-w-md w-full text-left space-y-4 shadow-2xl relative">
         <button type="button" onclick="cerrarModalManual()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-lg z-30">
@@ -339,7 +338,7 @@
         </div>
       </div>
 
-      <!-- DASHBOARD ANCHO COMPLETO -->
+      <!-- DASHBOARD -->
       <div id="admin-dashboard" class="hidden space-y-6 w-full">
         <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl flex justify-between items-center flex-wrap gap-4 w-full">
           <div class="flex items-center gap-3">
@@ -480,11 +479,13 @@
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
                 <label class="text-zinc-400 font-bold">Día:</label>
-                <input type="date" id="flt-asis-fecha" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                <input type="date" id="flt-asis-fecha" onchange="alCambiarFiltroFecha('dia', 'asis')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                
                 <label class="text-zinc-400 font-bold">Mes:</label>
-                <input type="month" id="flt-asis-mes" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="month" id="flt-asis-mes" onchange="alCambiarFiltroFecha('mes', 'asis')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                
                 <label class="text-zinc-400 font-bold">Semana:</label>
-                <input type="week" id="flt-asis-semana" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="week" id="flt-asis-semana" onchange="alCambiarFiltroFecha('semana', 'asis')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 
                 <input type="text" id="flt-asis-nombre" oninput="cargarHistorialAsistencias()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 <select id="flt-asis-cda" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
@@ -531,11 +532,13 @@
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
                 <label class="text-zinc-400 font-bold">Día:</label>
-                <input type="date" id="flt-tardes-fecha" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                <input type="date" id="flt-tardes-fecha" onchange="alCambiarFiltroFecha('dia', 'tardes')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                
                 <label class="text-zinc-400 font-bold">Mes:</label>
-                <input type="month" id="flt-tardes-mes" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="month" id="flt-tardes-mes" onchange="alCambiarFiltroFecha('mes', 'tardes')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                
                 <label class="text-zinc-400 font-bold">Semana:</label>
-                <input type="week" id="flt-tardes-semana" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="week" id="flt-tardes-semana" onchange="alCambiarFiltroFecha('semana', 'tardes')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 
                 <input type="text" id="flt-tardes-nombre" oninput="cargarReporteLlegadasTardes()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 <select id="flt-tardes-cda" onchange="cargarReporteLlegadasTardes()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
@@ -585,11 +588,13 @@
             <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div class="flex flex-wrap items-center gap-2">
                 <label class="text-zinc-400 font-bold">Día:</label>
-                <input type="date" id="flt-extra-fecha" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                <input type="date" id="flt-extra-fecha" onchange="alCambiarFiltroFecha('dia', 'extra')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500 font-bold">
+                
                 <label class="text-zinc-400 font-bold">Mes:</label>
-                <input type="month" id="flt-extra-mes" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="month" id="flt-extra-mes" onchange="alCambiarFiltroFecha('mes', 'extra')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                
                 <label class="text-zinc-400 font-bold">Semana:</label>
-                <input type="week" id="flt-extra-semana" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                <input type="week" id="flt-extra-semana" onchange="alCambiarFiltroFecha('semana', 'extra')" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 
                 <input type="text" id="flt-extra-nombre" oninput="cargarReporteHorasExtras()" placeholder="Buscar Nombre/CC" class="bg-zinc-900 border border-zinc-800 rounded px-2.5 py-1 text-zinc-200 outline-none focus:border-lime-500">
                 <select id="flt-extra-cda" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
@@ -671,11 +676,9 @@
 
     const NOMBRES_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-    // ÍNDICES DE PUNTOS CLAVE DE MEDIAPIPE FACE MESH POR REGIONALES
     const REGION_OJOS = [33, 133, 159, 145, 263, 362, 386, 374];
     const REGION_NARIZ = [1, 2, 98, 327, 168, 197, 5];
     const REGION_BOCA = [61, 291, 0, 17, 84, 314, 13, 14];
-    const REGION_CONTORNO = [10, 152, 234, 454, 127, 356];
 
     function getHoyInputString() {
       const hoy = new Date();
@@ -752,6 +755,75 @@
       return `${NOMBRES_MESES[d.getMonth()]} ${d.getFullYear()}`;
     }
 
+    // CONTROL EXCLUSIVO DE FILTROS DE FECHA
+    function alCambiarFiltroFecha(tipo, pestaña) {
+      const inputDia = document.getElementById(`flt-${pestaña}-fecha`);
+      const inputMes = document.getElementById(`flt-${pestaña}-mes`);
+      const inputSemana = document.getElementById(`flt-${pestaña}-semana`);
+
+      if (tipo === 'mes') {
+        if (inputMes.value) {
+          inputDia.value = '';
+          inputSemana.value = '';
+        }
+      } else if (tipo === 'semana') {
+        if (inputSemana.value) {
+          inputDia.value = '';
+          inputMes.value = '';
+        }
+      } else if (tipo === 'dia') {
+        if (inputDia.value) {
+          inputMes.value = '';
+          inputSemana.value = '';
+        }
+      }
+
+      if (pestaña === 'asis') cargarHistorialAsistencias();
+      if (pestaña === 'tardes') cargarReporteLlegadasTardes();
+      if (pestaña === 'extra') cargarReporteHorasExtras();
+    }
+
+    function calcularRangoFechasFiltro(pestaña) {
+      const fechaVal = document.getElementById(`flt-${pestaña}-fecha`)?.value;
+      const mesVal = document.getElementById(`flt-${pestaña}-mes`)?.value;
+      const semanaVal = document.getElementById(`flt-${pestaña}-semana`)?.value;
+
+      let inicioStr = '', finStr = '';
+
+      if (mesVal) {
+        const [yr, ms] = mesVal.split('-').map(Number);
+        const primerDia = new Date(yr, ms - 1, 1);
+        const ultimoDia = new Date(yr, ms, 0);
+
+        const mmStr = String(ms).padStart(2, '0');
+        inicioStr = `${yr}-${mmStr}-01T00:00:00`;
+        finStr = `${yr}-${mmStr}-${String(ultimoDia.getDate()).padStart(2, '0')}T23:59:59`;
+      } else if (semanaVal) {
+        const [yr, wk] = semanaVal.split('-W').map(Number);
+        const simple = new Date(yr, 0, 1 + (wk - 1) * 7);
+        const dow = simple.getDay();
+        const ISOweekStart = simple;
+        if (dow <= 4) ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+        else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+        
+        const ISOweekEnd = new Date(ISOweekStart);
+        ISOweekEnd.setDate(ISOweekStart.getDate() + 6);
+
+        const formatD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        inicioStr = `${formatD(ISOweekStart)}T00:00:00`;
+        finStr = `${formatD(ISOweekEnd)}T23:59:59`;
+      } else if (fechaVal) {
+        inicioStr = `${fechaVal}T00:00:00`;
+        finStr = `${fechaVal}T23:59:59`;
+      } else {
+        const hoy = getHoyInputString();
+        inicioStr = `${hoy}T00:00:00`;
+        finStr = `${hoy}T23:59:59`;
+      }
+
+      return { inicioStr, finStr };
+    }
+
     async function solicitarAutorizacion() {
       if (currentAdminRole === 'SUPERADMIN') {
         const clave = prompt("🔒 AUTORIZACIÓN DE SUPERADMIN:\nIngresa la contraseña del Admin Principal para continuar:");
@@ -763,11 +835,10 @@
       return false;
     }
 
-    /* MOTOR DE RECONOCIMIENTO FACIAL ESTRICTO Y NORMALIZADO */
+    /* MOTOR DE RECONOCIMIENTO FACIAL */
 
     function normalizarRostroVectorial(pts) {
       if (!pts || pts.length === 0) return null;
-      
       let cx = 0, cy = 0;
       for (let p of pts) {
         cx += p.x;
@@ -803,7 +874,6 @@
 
       const vecEntrada = normalizarRostroVectorial(ptsEntrada);
       const vecGuardado = normalizarRostroVectorial(ptsGuardados);
-
       if (!vecEntrada || !vecGuardado) return { coincidencia: false, score: 999 };
 
       const errorOjos = calcularErrorRegion(vecEntrada, vecGuardado, REGION_OJOS);
@@ -821,18 +891,14 @@
         sumaGlobal += Math.sqrt(dx * dx + dy * dy);
       }
       const scoreGlobal = sumaGlobal / vecEntrada.length;
-
-      const esValido = scoreGlobal <= 0.145;
-
-      return { coincidencia: esValido, score: scoreGlobal };
+      return { coincidencia: scoreGlobal <= 0.145, score: scoreGlobal };
     }
 
-    /* VALIDACIÓN DE REGLAS DE SECUENCIA Y MARCACIÓN ÚNICA DIARIA */
+    /* VALIDACIÓN DE REGLAS DE SECUENCIA */
 
     async function validarReglasMarcacion(empleadoId, tipoSolicitado) {
       const hoyStr = getHoyInputString();
 
-      // Consultar todas las marcaciones realizadas hoy por el trabajador
       const { data: marcacionesHoy } = await supabaseClient
         .from('asistencias')
         .select('tipo')
@@ -842,7 +908,6 @@
 
       const tiposRealizados = (marcacionesHoy || []).map(m => m.tipo);
 
-      // 1. REGLA: No permitir repetir la misma marcación en el mismo día
       if (tiposRealizados.includes(tipoSolicitado)) {
         return { valido: false, mensaje: `⛔ Ya registraste '${tipoSolicitado}' el día de hoy.` };
       }
@@ -851,41 +916,35 @@
       const tieneEntradaDescanso = tiposRealizados.includes('Entrada Descanso');
       const tieneSalidaDescanso = tiposRealizados.includes('Salida Descanso');
 
-      // 2. REGLA: No dejar marcar Entrada Descanso si no ha registrado Entrada CDA
-      if (tipoSolicitado === 'Entrada Descanso') {
-        if (!tieneEntradaCDA) {
-          return { valido: false, mensaje: "⛔ Debes registrar 'Entrada al CDA' antes de marcar inicio de descanso." };
-        }
+      if (tipoSolicitado === 'Entrada Descanso' && !tieneEntradaCDA) {
+        return { valido: false, mensaje: "⛔ Debes registrar 'Entrada al CDA' antes de marcar descanso." };
       }
 
-      // 3. REGLA: No dejar marcar Salida Descanso si no ha registrado Entrada Descanso
-      if (tipoSolicitado === 'Salida Descanso') {
-        if (!tieneEntradaDescanso) {
-          return { valido: false, mensaje: "⛔ Debes registrar 'Entrada Descanso' antes de marcar fin de descanso." };
-        }
+      if (tipoSolicitado === 'Salida Descanso' && !tieneEntradaDescanso) {
+        return { valido: false, mensaje: "⛔ Debes registrar 'Entrada Descanso' antes de marcar fin de descanso." };
       }
 
-      // 4. REGLA: No dejar marcar Salida CDA si no ha marcado Entrada CDA, y si marcó Entrada Descanso debe haber marcado Salida Descanso
       if (tipoSolicitado === 'Salida del CDA') {
         if (!tieneEntradaCDA) {
           return { valido: false, mensaje: "⛔ Debes registrar 'Entrada al CDA' antes de marcar la Salida final." };
         }
         if (tieneEntradaDescanso && !tieneSalidaDescanso) {
-          return { valido: false, mensaje: "⛔ Tienes pendiente registrar 'Salida Descanso' antes de cerrar jornada en CDA." };
+          return { valido: false, mensaje: "⛔ Tienes pendiente registrar 'Salida Descanso' antes de cerrar jornada." };
         }
       }
 
       return { valido: true, mensaje: "OK" };
     }
 
-    /* BUCLE DE ESCANEO BIOMÉTRICO CON CORRECCIÓN DE CÁMARA CONGELADA */
+    /* BUCLE DE ESCANEO BIOMÉTRICO (REPARADO DEFINITIVAMENTE) */
 
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
-      isProcessingScan = false;
+      
+      // REINICIO FORZADO DE ESTADOS DE MEMORIA Y BUFFER
+      isProcessingScan = true; 
       currentLandmarks = null;
       
-      // 1. Detener transmisiones previas en ejecución
       if (scanStream) {
         scanStream.getTracks().forEach(t => t.stop());
         scanStream = null;
@@ -897,7 +956,6 @@
         video.srcObject = null;
       }
 
-      // 2. Limpiar el canvas de captura
       const canvas = document.getElementById('scan-canvas');
       if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -909,15 +967,18 @@
       document.getElementById('scan-oval-guide').className = "face-oval-guide";
       document.getElementById('modal-escaner').classList.remove('hidden');
 
+      // RETARDO ASÍNCRONO DE SEGURIDAD PARA LIBERAR LA CÁMARA
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       try {
-        // Solicitar nuevo stream de cámara en vivo
         scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
         video.srcObject = scanStream;
 
         video.onloadedmetadata = async () => {
           try {
-            await video.play(); // Forzar la reactivación en vivo
+            await video.play();
           } catch(e) {}
+          isProcessingScan = false; // LIBERAR PROCESAMIENTO
           document.getElementById('scan-status').innerText = "👤 Mira de frente a la cámara...";
           iniciarBucleEscaneo();
         };
@@ -927,7 +988,7 @@
     }
 
     function cerrarModalEscaner() {
-      isProcessingScan = false;
+      isProcessingScan = true;
       currentLandmarks = null;
 
       if (scanStream) {
@@ -938,7 +999,7 @@
       if (video) {
         video.pause();
         video.srcObject = null;
-        video.load(); // Restablece el elemento HTML video para evitar fotogramas residuales
+        video.load();
       }
 
       document.getElementById('modal-escaner').classList.add('hidden');
@@ -949,25 +1010,21 @@
       const guide = document.getElementById('scan-oval-guide');
       const status = document.getElementById('scan-status');
 
-      // Variables de control de estabilidad reiniciadas a cero
       let framesCoincidentes = 0;
       let empTemporalDetectado = null;
-      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de confirmación continua
-      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de límite
+      const FRAMES_REQUERIDOS = 9;
+      const TIEMPO_LIMITE_MS = 8000;
       const inicioEscaneo = Date.now();
 
       const processFrame = async () => {
         if (!scanStream || isProcessingScan) return;
 
-        // Si se supera el límite sin éxito, se alerta y se cierra la cámara limpia
         if (Date.now() - inicioEscaneo > TIEMPO_LIMITE_MS && framesCoincidentes === 0) {
           isProcessingScan = true;
           guide.className = "face-oval-guide guide-danger";
           status.className = "text-sm font-bold text-rose-400 animate-pulse";
           status.innerText = "❌ ROSTRO NO RECONOCIDO O NO REGISTRADO";
-          setTimeout(() => {
-            cerrarModalEscaner();
-          }, 3500);
+          setTimeout(() => { cerrarModalEscaner(); }, 3500);
           return;
         }
 
@@ -975,7 +1032,6 @@
           await faceMesh.send({ image: video });
 
           if (currentLandmarks) {
-            // Verificación de simetría facial
             const dOjoIzq = currentLandmarks[33].x;
             const dOjoDer = currentLandmarks[263].x;
             const centroNariz = currentLandmarks[1].x;
@@ -1028,11 +1084,9 @@
                 status.className = "text-xs font-bold text-amber-400";
                 status.innerText = `🔍 Identificando a ${empEncontrado.nombre.split(' ')[0]}... Mantén la mirada (${porcentaje}%)`;
 
-                // Solo al completar los fotogramas sostenidos, se intenta registrar
                 if (framesCoincidentes >= FRAMES_REQUERIDOS) {
                   isProcessingScan = true;
 
-                  // VERIFICACIÓN DE REGLAS DE SECUENCIA Y MARCACIÓN ÚNICA
                   status.className = "text-xs font-semibold text-amber-300";
                   status.innerText = "📋 Verificando historial y secuencia de marcación...";
                   const checkReglas = await validarReglasMarcacion(empEncontrado.id, scanTipo);
@@ -1041,13 +1095,10 @@
                     guide.className = "face-oval-guide guide-danger";
                     status.className = "text-xs font-bold text-rose-400 animate-bounce";
                     status.innerText = checkReglas.mensaje;
-                    setTimeout(() => {
-                      cerrarModalEscaner();
-                    }, 4000);
+                    setTimeout(() => { cerrarModalEscaner(); }, 4000);
                     return;
                   }
 
-                  // Registro válido
                   guide.className = "face-oval-guide guide-success";
                   status.className = "text-base font-bold text-lime-400 animate-pulse";
                   status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado. Registrando...`;
@@ -1072,9 +1123,7 @@
                       novedad: "VERIFICACIÓN BIOMÉTRICA ESTRICTA CONFIRMADA"
                     }]);
 
-                    setTimeout(() => {
-                      cerrarModalEscaner();
-                    }, 2200);
+                    setTimeout(() => { cerrarModalEscaner(); }, 2200);
                   }, 'image/jpeg', 0.85);
 
                   return;
@@ -1104,7 +1153,7 @@
       requestAnimationFrame(processFrame);
     }
 
-    /* REGISTRO FACIAL DE PERSONAL CON VALIDACIÓN DE POSTURA */
+    /* REGISTRO FACIAL DE PERSONAL */
 
     async function abrirModalRegistroFacial() {
       const status = document.getElementById('reg-status');
@@ -1198,13 +1247,11 @@
         document.getElementById('lbl-biometrico-status').innerText = "✅ Puntos Faciales de Alta Precisión Capturados";
         status.className = "text-xs font-bold text-lime-400";
         status.innerText = "✅ Patrón vectorial extraído con éxito. Guardando...";
-        setTimeout(() => {
-          cerrarModalRegistroFacial();
-        }, 1200);
+        setTimeout(() => { cerrarModalRegistroFacial(); }, 1200);
       }, 'image/jpeg', 0.85);
     }
 
-    /* RESTO DE FUNCIONALIDADES (ADMINISTRACIÓN Y CONSULTAS) */
+    /* NAVEGACIÓN Y ADMINISTRACIÓN */
 
     function renderCheckboxesCDA() {
       const container = document.getElementById('cda-checkboxes-container');
@@ -1362,7 +1409,7 @@
       }
     }
 
-    /* MARCACIÓN MANUAL POR PIN Y FOTO EN VIVO */
+    /* MARCACIÓN MANUAL */
 
     function abrirModalManual() {
       document.getElementById('modal-manual').classList.remove('hidden');
@@ -1426,7 +1473,6 @@
         return;
       }
 
-      // Validar secuencia de reglas en marcación manual también
       const checkReglas = await validarReglasMarcacion(emp.id, tipo);
       if (!checkReglas.valido) {
         status.className = "text-xs font-bold text-rose-400";
@@ -1719,17 +1765,15 @@
       `).join('');
     }
 
-    /* HISTORIAL DE ASISTENCIAS */
+    /* HISTORIAL DE ASISTENCIAS CON RANGOS DINÁMICOS */
 
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
 
       const tbody = document.getElementById('tabla-asistencias-body');
-      tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento diario de personal...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento de personal...</td></tr>`;
 
-      const filtroFecha = document.getElementById('flt-asis-fecha')?.value || getHoyInputString();
-      const filtroMes = document.getElementById('flt-asis-mes')?.value || '';
-      const filtroSemana = document.getElementById('flt-asis-semana')?.value || '';
+      const { inicioStr, finStr } = calcularRangoFechasFiltro('asis');
       const filtroNombre = document.getElementById('flt-asis-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
 
@@ -1744,73 +1788,99 @@
         return;
       }
 
-      let queryMarcaciones = supabaseClient.from('asistencias').select('*');
-      if (filtroFecha) {
-        queryMarcaciones = queryMarcaciones.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
-      }
+      const { data: marcaciones } = await supabaseClient
+        .from('asistencias')
+        .select('*')
+        .gte('fecha_hora', inicioStr)
+        .lte('fecha_hora', finStr)
+        .order('fecha_hora', { ascending: true });
 
-      const { data: marcaciones } = await queryMarcaciones.order('fecha_hora', { ascending: true });
+      // Agrupar marcaciones por Fecha y Empleado
+      const mapaAgrupado = {};
 
-      const [yyyy, mm, dd] = filtroFecha.split('-');
-      const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+      (marcaciones || []).forEach(m => {
+        const fechaCorta = m.fecha_hora.split('T')[0];
+        const key = `${m.empleado_id}_${fechaCorta}`;
+        if (!mapaAgrupado[key]) mapaAgrupado[key] = [];
+        mapaAgrupado[key].push(m);
+      });
 
-      const filasProcesadas = empleadosList.map(emp => {
-        const misMarcaciones = (marcaciones || []).filter(m => String(m.empleado_id) === String(emp.id));
+      const filasProcesadas = [];
 
-        let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
-        const fotos = [], gpsList = [], novedades = [];
+      empleadosList.forEach(emp => {
+        // Buscar todas las fechas registradas dentro del mapa para este empleado
+        const keysEmp = Object.keys(mapaAgrupado).filter(k => k.startsWith(`${emp.id}_`));
 
-        misMarcaciones.forEach(m => {
-          const d = new Date(m.fecha_hora);
-          const horaStr = d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+        if (keysEmp.length > 0) {
+          keysEmp.forEach(k => {
+            const misMarcaciones = mapaAgrupado[k];
+            const fechaStrRaw = k.split('_')[1];
+            const [y, m, d] = fechaStrRaw.split('-').map(Number);
+            const fechaObjSel = new Date(y, m - 1, d);
 
-          if (m.tipo === 'Entrada al CDA') entradaCDA = horaStr;
-          if (m.tipo === 'Entrada Descanso') entradaDescanso = horaStr;
-          if (m.tipo === 'Salida Descanso') salidaDescanso = horaStr;
-          if (m.tipo === 'Salida del CDA') salidaCDA = horaStr;
+            let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
+            const fotos = [], gpsList = [], novedades = [];
 
-          if (m.foto_marcacion_url) fotos.push({ tipo: m.tipo, url: m.foto_marcacion_url });
-          if (m.latitud && m.longitud) gpsList.push(`${m.tipo}: ${m.latitud.toFixed(4)},${m.longitud.toFixed(4)}`);
-          if (m.novedad) novedades.push(`${m.tipo}: ${m.novedad}`);
-        });
+            misMarcaciones.forEach(m => {
+              const dateObj = new Date(m.fecha_hora);
+              const horaStr = dateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
-        const marcoAlgunaVez = misMarcaciones.length > 0;
+              if (m.tipo === 'Entrada al CDA') entradaCDA = horaStr;
+              if (m.tipo === 'Entrada Descanso') entradaDescanso = horaStr;
+              if (m.tipo === 'Salida Descanso') salidaDescanso = horaStr;
+              if (m.tipo === 'Salida del CDA') salidaCDA = horaStr;
 
-        return {
-          emp,
-          fechaObj: fechaObjSel,
-          fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
-          mesStr: getNombreMes(fechaObjSel),
-          semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
-          entradaCDA,
-          entradaDescanso,
-          salidaDescanso,
-          salidaCDA,
-          fotos,
-          gpsList,
-          novedades,
-          marcoAlgunaVez
-        };
+              if (m.foto_marcacion_url) fotos.push({ tipo: m.tipo, url: m.foto_marcacion_url });
+              if (m.latitud && m.longitud) gpsList.push(`${m.tipo}: ${m.latitud.toFixed(4)},${m.longitud.toFixed(4)}`);
+              if (m.novedad) novedades.push(`${m.tipo}: ${m.novedad}`);
+            });
+
+            filasProcesadas.push({
+              emp,
+              fechaObj: fechaObjSel,
+              fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
+              mesStr: getNombreMes(fechaObjSel),
+              semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
+              entradaCDA,
+              entradaDescanso,
+              salidaDescanso,
+              salidaCDA,
+              fotos,
+              gpsList,
+              novedades,
+              marcoAlgunaVez: true
+            });
+          });
+        } else {
+          // Si es un filtro por día único y el empleado no marcó
+          const fechaVal = document.getElementById('flt-asis-fecha')?.value;
+          if (fechaVal) {
+            const [y, m, d] = fechaVal.split('-').map(Number);
+            const fechaObjSel = new Date(y, m - 1, d);
+            filasProcesadas.push({
+              emp,
+              fechaObj: fechaObjSel,
+              fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
+              mesStr: getNombreMes(fechaObjSel),
+              semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
+              entradaCDA: null, entradaDescanso: null, salidaDescanso: null, salidaCDA: null,
+              fotos: [], gpsList: [], novedades: [],
+              marcoAlgunaVez: false
+            });
+          }
+        }
       });
 
       const filtrados = filasProcesadas.filter(r => {
         const matchNombre = r.emp.nombre.toLowerCase().includes(filtroNombre) || r.emp.id.toLowerCase().includes(filtroNombre);
         const matchCDA = filtroCDA === 'TODOS' || r.emp.cda_nombre.includes(filtroCDA);
-        
-        let matchMes = true;
-        if (filtroMes) {
-          const [yr, ms] = filtroMes.split('-');
-          matchMes = (r.fechaObj.getFullYear() == yr && (r.fechaObj.getMonth() + 1) == parseInt(ms));
-        }
-
-        let matchSemana = true;
-        if (filtroSemana) {
-          const [yrW, wkW] = filtroSemana.split('-W');
-          matchSemana = (r.fechaObj.getFullYear() == yrW && getNumeroSemana(r.fechaObj) == parseInt(wkW));
-        }
-
-        return matchNombre && matchCDA && matchMes && matchSemana;
+        return matchNombre && matchCDA;
       });
+
+      if (!filtrados.length) {
+        tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-500">No se encontraron marcaciones para el rango seleccionado.</td></tr>`;
+        return;
+      }
 
       tbody.innerHTML = filtrados.map(r => `
         <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.marcoAlgunaVez ? 'bg-rose-950/10' : ''}">
@@ -1848,17 +1918,15 @@
       cargarHistorialAsistencias();
     }
 
-    /* CONTROL DE LLEGADAS TARDES */
+    /* CONTROL DE LLEGADAS TARDES CON RANGOS DINÁMICOS */
 
     async function cargarReporteLlegadasTardes() {
       if (!supabaseClient) return;
 
       const tbody = document.getElementById('tabla-llegadas-tardes-body');
-      tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Verificando puntualidad diaria...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Verificando puntualidad...</td></tr>`;
 
-      const filtroFecha = document.getElementById('flt-tardes-fecha')?.value || getHoyInputString();
-      const filtroMes = document.getElementById('flt-tardes-mes')?.value || '';
-      const filtroSemana = document.getElementById('flt-tardes-semana')?.value || '';
+      const { inicioStr, finStr } = calcularRangoFechasFiltro('tardes');
       const filtroNombre = document.getElementById('flt-tardes-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-tardes-cda')?.value || 'TODOS';
       const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
@@ -1874,26 +1942,26 @@
         return;
       }
 
-      let queryEntradas = supabaseClient.from('asistencias').select('*').eq('tipo', 'Entrada al CDA');
-      if (filtroFecha) {
-        queryEntradas = queryEntradas.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
-      }
+      const { data: entradas } = await supabaseClient
+        .from('asistencias')
+        .select('*')
+        .eq('tipo', 'Entrada al CDA')
+        .gte('fecha_hora', inicioStr)
+        .lte('fecha_hora', finStr);
 
-      const { data: entradas } = await queryEntradas;
-
-      const [yyyy, mm, dd] = filtroFecha.split('-');
-      const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
       const opcionesHoras = generarOpcionesHoras24h();
+      const reporte = [];
 
-      const reporte = empleadosList.map(emp => {
-        const marcacionEntrada = (entradas || []).find(m => String(m.empleado_id) === String(emp.id));
-        const keyHora = `${emp.id}_${filtroFecha}`;
-        const horaEstipulada = horasEstipuladasPersonalizadas[keyHora] || "07:30:00";
-
-        if (marcacionEntrada) {
-          const fechaObj = new Date(marcacionEntrada.fecha_hora);
+      (entradas || []).forEach(m => {
+        const emp = empleadosList.find(e => String(e.id) === String(m.empleado_id));
+        if (emp) {
+          const fechaObj = new Date(m.fecha_hora);
+          const fechaCorta = m.fecha_hora.split('T')[0];
           const horaRealStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
           
+          const keyHora = `${emp.id}_${fechaCorta}`;
+          const horaEstipulada = horasEstipuladasPersonalizadas[keyHora] || "07:30:00";
+
           const [hRef, mRef] = horaEstipulada.split(':').map(Number);
           const [hReal, mReal] = horaRealStr.split(':').map(Number);
 
@@ -1902,37 +1970,21 @@
           const diffMinutos = minutosReal - minutosRef;
           const esTarde = diffMinutos > 5;
 
-          return {
+          reporte.push({
             emp,
             keyHora,
-            fechaObj: fechaObjSel,
-            fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
-            mesStr: getNombreMes(fechaObjSel),
-            semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
+            fechaObj,
+            fechaStr: fechaObj.toLocaleDateString('es-CO'),
+            mesStr: getNombreMes(fechaObj),
+            semanaStr: `Semana ${getNumeroSemana(fechaObj)}`,
             horaRealStr,
             horaEstipulada,
             esTarde,
             minutosRetraso: diffMinutos > 0 ? diffMinutos : 0,
-            foto_marcacion_url: marcacionEntrada.foto_marcacion_url,
-            novedad: marcacionEntrada.novedad || 'Marcación Biométrica',
+            foto_marcacion_url: m.foto_marcacion_url,
+            novedad: m.novedad || 'Marcación Biométrica',
             marco: true
-          };
-        } else {
-          return {
-            emp,
-            keyHora,
-            fechaObj: fechaObjSel,
-            fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
-            mesStr: getNombreMes(fechaObjSel),
-            semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
-            horaRealStr: '---',
-            horaEstipulada,
-            esTarde: false,
-            minutosRetraso: 0,
-            foto_marcacion_url: null,
-            novedad: 'PENDIENTE DE REGISTRO DE ENTRADA',
-            marco: false
-          };
+          });
         }
       });
 
@@ -1945,23 +1997,16 @@
         if (filtroEstado === 'A_TIEMPO') matchEstado = r.marco && !r.esTarde;
         if (filtroEstado === 'NO_MARCO') matchEstado = !r.marco;
 
-        let matchMes = true;
-        if (filtroMes) {
-          const [yr, ms] = filtroMes.split('-');
-          matchMes = (r.fechaObj.getFullYear() == yr && (r.fechaObj.getMonth() + 1) == parseInt(ms));
-        }
-
-        let matchSemana = true;
-        if (filtroSemana) {
-          const [yrW, wkW] = filtroSemana.split('-W');
-          matchSemana = (r.fechaObj.getFullYear() == yrW && getNumeroSemana(r.fechaObj) == parseInt(wkW));
-        }
-
-        return matchNombre && matchCDA && matchEstado && matchMes && matchSemana;
+        return matchNombre && matchCDA && matchEstado;
       });
 
+      if (!filtrados.length) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No hay datos para el rango seleccionado.</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = filtrados.map(r => `
-        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.marco ? 'bg-rose-950/10' : ''}">
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
           <td class="p-2.5">
             ${r.foto_marcacion_url ? `<a href="${r.foto_marcacion_url}" target="_blank"><img src="${r.foto_marcacion_url}" class="w-8 h-8 rounded-lg object-cover border border-zinc-700"></a>` : '-'}
           </td>
@@ -1978,11 +2023,9 @@
           </td>
           <td class="p-2.5 font-mono font-bold text-white">${r.horaRealStr}</td>
           <td class="p-2.5 font-bold">
-            ${!r.marco 
-              ? `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30 font-bold"><i class="fa-solid fa-clock-slash mr-1"></i>NO HA MARCADO</span>`
-              : (r.esTarde 
-                ? `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30"><i class="fa-solid fa-triangle-exclamation mr-1"></i>TARDE (+${r.minutosRetraso} min)</span>` 
-                : `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30"><i class="fa-solid fa-circle-check mr-1"></i>A TIEMPO</span>`)}
+            ${r.esTarde 
+              ? `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30"><i class="fa-solid fa-triangle-exclamation mr-1"></i>TARDE (+${r.minutosRetraso} min)</span>` 
+              : `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30"><i class="fa-solid fa-circle-check mr-1"></i>A TIEMPO</span>`}
           </td>
           <td class="p-2.5 text-zinc-400 text-[10px]">${r.novedad}</td>
         </tr>
@@ -1994,17 +2037,15 @@
       cargarReporteLlegadasTardes();
     }
 
-    /* SEGUIMIENTO DE HORAS EXTRA */
+    /* SEGUIMIENTO DE HORAS EXTRA CON RANGOS DINÁMICOS */
 
     async function cargarReporteHorasExtras() {
       if (!supabaseClient) return;
 
       const tbody = document.getElementById('tabla-horas-extras-body');
-      tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando seguimiento diario de horas extra...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando horas extra...</td></tr>`;
 
-      const filtroFecha = document.getElementById('flt-extra-fecha')?.value || getHoyInputString();
-      const filtroMes = document.getElementById('flt-extra-mes')?.value || '';
-      const filtroSemana = document.getElementById('flt-extra-semana')?.value || '';
+      const { inicioStr, finStr } = calcularRangoFechasFiltro('extra');
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
 
@@ -2019,101 +2060,93 @@
         return;
       }
 
-      let queryMarcaciones = supabaseClient.from('asistencias').select('*');
-      if (filtroFecha) {
-        queryMarcaciones = queryMarcaciones.gte('fecha_hora', `${filtroFecha}T00:00:00`).lte('fecha_hora', `${filtroFecha}T23:59:59`);
-      }
+      const { data: marcaciones } = await supabaseClient
+        .from('asistencias')
+        .select('*')
+        .gte('fecha_hora', inicioStr)
+        .lte('fecha_hora', finStr)
+        .order('fecha_hora', { ascending: true });
 
-      const { data: marcaciones } = await queryMarcaciones.order('fecha_hora', { ascending: true });
-
-      const [yyyy, mm, dd] = filtroFecha.split('-');
-      const fechaObjSel = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
       const JORNADA_BASE_HORAS = 7;
+      const mapaAgrupado = {};
 
-      const reporte = empleadosList.map(emp => {
-        const misMarcaciones = (marcaciones || []).filter(m => String(m.empleado_id) === String(emp.id));
+      (marcaciones || []).forEach(m => {
+        const fechaCorta = m.fecha_hora.split('T')[0];
+        const key = `${m.empleado_id}_${fechaCorta}`;
+        if (!mapaAgrupado[key]) mapaAgrupado[key] = [];
+        mapaAgrupado[key].push(m);
+      });
 
-        let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
+      const reporte = [];
 
-        misMarcaciones.forEach(m => {
-          const d = new Date(m.fecha_hora);
-          if (m.tipo === 'Entrada al CDA' && !entradaCDA) entradaCDA = d;
-          if (m.tipo === 'Entrada Descanso') entradaDescanso = d;
-          if (m.tipo === 'Salida Descanso') salidaDescanso = d;
-          if (m.tipo === 'Salida del CDA') salidaCDA = d;
-        });
+      empleadosList.forEach(emp => {
+        const keysEmp = Object.keys(mapaAgrupado).filter(k => k.startsWith(`${emp.id}_`));
 
-        if (entradaCDA && salidaCDA) {
-          const horaEstipuladaEntrada = new Date(entradaCDA);
-          horaEstipuladaEntrada.setHours(7, 30, 0, 0);
+        keysEmp.forEach(k => {
+          const misMarcaciones = mapaAgrupado[k];
+          const fechaStrRaw = k.split('_')[1];
+          const [y, m, d] = fechaStrRaw.split('-').map(Number);
+          const fechaObjSel = new Date(y, m - 1, d);
 
-          let tiempoTotalMs = salidaCDA - horaEstipuladaEntrada;
-          if (tiempoTotalMs < 0) tiempoTotalMs = salidaCDA - entradaCDA;
+          let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
 
-          let tiempoDescansoMs = 0;
-          if (entradaDescanso && salidaDescanso && salidaDescanso > entradaDescanso) {
-            tiempoDescansoMs = salidaDescanso - entradaDescanso;
-          } else {
-            tiempoDescansoMs = 1 * 60 * 60 * 1000;
+          misMarcaciones.forEach(m => {
+            const dateObj = new Date(m.fecha_hora);
+            if (m.tipo === 'Entrada al CDA' && !entradaCDA) entradaCDA = dateObj;
+            if (m.tipo === 'Entrada Descanso') entradaDescanso = dateObj;
+            if (m.tipo === 'Salida Descanso') salidaDescanso = dateObj;
+            if (m.tipo === 'Salida del CDA') salidaCDA = dateObj;
+          });
+
+          if (entradaCDA && salidaCDA) {
+            const horaEstipuladaEntrada = new Date(entradaCDA);
+            horaEstipuladaEntrada.setHours(7, 30, 0, 0);
+
+            let tiempoTotalMs = salidaCDA - horaEstipuladaEntrada;
+            if (tiempoTotalMs < 0) tiempoTotalMs = salidaCDA - entradaCDA;
+
+            let tiempoDescansoMs = 0;
+            if (entradaDescanso && salidaDescanso && salidaDescanso > entradaDescanso) {
+              tiempoDescansoMs = salidaDescanso - entradaDescanso;
+            } else {
+              tiempoDescansoMs = 1 * 60 * 60 * 1000;
+            }
+
+            const tiempoNetoMs = tiempoTotalMs - tiempoDescansoMs;
+            const horasLaboradasNetas = Math.max(0, tiempoNetoMs / (1000 * 60 * 60));
+            const horasExtrasNetas = horasLaboradasNetas > JORNADA_BASE_HORAS ? (horasLaboradasNetas - JORNADA_BASE_HORAS) : 0;
+
+            reporte.push({
+              emp,
+              fechaObj: fechaObjSel,
+              fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
+              mesStr: getNombreMes(fechaObjSel),
+              semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
+              horaEstipuladaStr: "07:30 AM",
+              salidaCDAStr: salidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+              horasDescanso: (tiempoDescansoMs / (1000 * 60 * 60)).toFixed(2),
+              horasLaboradasNetas: horasLaboradasNetas.toFixed(2),
+              horasExtrasNetas: horasExtrasNetas.toFixed(2),
+              novedad: 'Jornada Completa',
+              completo: true
+            });
           }
-
-          const tiempoNetoMs = tiempoTotalMs - tiempoDescansoMs;
-          const horasLaboradasNetas = Math.max(0, tiempoNetoMs / (1000 * 60 * 60));
-          const horasExtrasNetas = horasLaboradasNetas > JORNADA_BASE_HORAS ? (horasLaboradasNetas - JORNADA_BASE_HORAS) : 0;
-
-          return {
-            emp,
-            fechaObj: fechaObjSel,
-            fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
-            mesStr: getNombreMes(fechaObjSel),
-            semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
-            horaEstipuladaStr: "07:30 AM",
-            salidaCDAStr: salidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
-            horasDescanso: (tiempoDescansoMs / (1000 * 60 * 60)).toFixed(2),
-            horasLaboradasNetas: horasLaboradasNetas.toFixed(2),
-            horasExtrasNetas: horasExtrasNetas.toFixed(2),
-            novedad: 'Jornada Completa',
-            completo: true
-          };
-        } else {
-          return {
-            emp,
-            fechaObj: fechaObjSel,
-            fechaStr: fechaObjSel.toLocaleDateString('es-CO'),
-            mesStr: getNombreMes(fechaObjSel),
-            semanaStr: `Semana ${getNumeroSemana(fechaObjSel)}`,
-            horaEstipuladaStr: "07:30 AM",
-            salidaCDAStr: '---',
-            horasDescanso: '0.00',
-            horasLaboradasNetas: '0.00',
-            horasExtrasNetas: '0.00',
-            novedad: entradaCDA ? 'FALTA REGISTRAR SALIDA' : 'SIN REGISTRO DE ASISTENCIA',
-            completo: false
-          };
-        }
+        });
       });
 
       const filtrados = reporte.filter(r => {
         const matchNombre = r.emp.nombre.toLowerCase().includes(filtroNombre) || r.emp.id.toLowerCase().includes(filtroNombre);
         const matchCDA = filtroCDA === 'TODOS' || r.emp.cda_nombre.includes(filtroCDA);
-        
-        let matchMes = true;
-        if (filtroMes) {
-          const [yr, ms] = filtroMes.split('-');
-          matchMes = (r.fechaObj.getFullYear() == yr && (r.fechaObj.getMonth() + 1) == parseInt(ms));
-        }
-
-        let matchSemana = true;
-        if (filtroSemana) {
-          const [yrW, wkW] = filtroSemana.split('-W');
-          matchSemana = (r.fechaObj.getFullYear() == yrW && getNumeroSemana(r.fechaObj) == parseInt(wkW));
-        }
-
-        return matchNombre && matchCDA && matchMes && matchSemana;
+        return matchNombre && matchCDA;
       });
 
+      if (!filtrados.length) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-zinc-500">No se encontraron jornadas completas en el rango seleccionado.</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = filtrados.map(r => `
-        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.completo ? 'bg-rose-950/10' : ''}">
+        <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30">
           <td class="p-2.5 font-semibold text-white">${r.emp.nombre}</td>
           <td class="p-2.5 font-mono text-lime-400">${r.emp.id}</td>
           <td class="p-2.5 text-zinc-400">${r.mesStr}</td>
@@ -2122,7 +2155,7 @@
           <td class="p-2.5 font-mono text-lime-400 font-bold">${r.horaEstipuladaStr}</td>
           <td class="p-2.5 font-mono text-rose-400 font-bold">${r.salidaCDAStr}</td>
           <td class="p-2.5 font-mono text-amber-400">${r.horasDescanso} hrs</td>
-          <td class="p-2.5 font-bold ${r.completo ? 'text-lime-400' : 'text-zinc-600'}">${r.horasLaboradasNetas} hrs</td>
+          <td class="p-2.5 font-bold text-lime-400">${r.horasLaboradasNetas} hrs</td>
           <td class="p-2.5 font-bold ${parseFloat(r.horasExtrasNetas) > 0 ? 'text-amber-400' : 'text-zinc-500'}">
             ${parseFloat(r.horasExtrasNetas) > 0 ? `+${r.horasExtrasNetas} hrs Extras` : '0.00 hrs'}
           </td>
