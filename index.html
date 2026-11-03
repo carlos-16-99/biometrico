@@ -756,6 +756,7 @@
       });
     }
 
+    // AJUSTE 2: FILTROS QUE ABARCAN DESDE EL INICIO HASTA EL DÍA ACTUAL INCLUYENDO HOY
     function obtenerRangoFiltros(prefix) {
       let desde = document.getElementById(`flt-${prefix}-desde`)?.value || getHoyInputString();
       let hasta = document.getElementById(`flt-${prefix}-hasta`)?.value || getHoyInputString();
@@ -1716,7 +1717,7 @@
       `).join('');
     }
 
-    /* HISTORIAL DE ASISTENCIAS CON ORDEN CRONOLÓGICO ASCENDENTE */
+    /* HISTORIAL DE ASISTENCIAS (AJUSTE 1: COLOR DISTINTO PARA PENDIENTE) */
 
     async function cargarHistorialAsistencias() {
       if (!supabaseClient) return;
@@ -1786,7 +1787,6 @@
               if (m.latitud && m.longitud) gpsList.push(`${m.tipo}: ${m.latitud.toFixed(4)},${m.longitud.toFixed(4)}`);
             });
 
-            // REGLAS NUEVAS DE ESTADOS Y NOVEDADES
             let estadoHtml = '';
             const tieneEntrada = !!entradaCDA;
             const tieneSalida = !!salidaCDA;
@@ -1796,7 +1796,8 @@
               estadoHtml = `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">REGISTRADO</span>`;
             } else if ((tieneEntrada && !tieneSalida) || tieneDescansoIncompleto) {
               if (fechaCorta === hoyStr) {
-                estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold"><i class="fa-solid fa-clock mr-1"></i>PENDIENTE</span>`;
+                // AJUSTE 1: COLOR DISTINTO (AZUL/CIAN) PARA PENDIENTE
+                estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-sky-950 text-sky-400 border border-sky-500/40 font-bold"><i class="fa-solid fa-clock mr-1"></i>PENDIENTE</span>`;
               } else {
                 estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider"><i class="fa-solid fa-triangle-exclamation mr-1"></i>MARCACIÓN INCORRECTA</span>`;
               }
@@ -1831,7 +1832,6 @@
         }
       });
 
-      // ORDENAMIENTO CRONOLÓGICO ASCENDENTE POR FECHA
       filasProcesadas.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
       tbody.innerHTML = filasProcesadas.map(r => `
@@ -1862,7 +1862,7 @@
       cargarHistorialAsistencias();
     }
 
-    /* CONTROL LLEGADAS TARDES (COLUMNA FOTO + 7:00 AM POR DEFECTO + ORDEN CRONOLÓGICO) */
+    /* CONTROL LLEGADAS TARDES (AJUSTE 3: TEXTOS SIMPLIFICADOS EN NOVEDAD / MÉTODO) */
 
     function limpiarFiltrosLlegadasTardes() {
       setFechasHoyFiltros();
@@ -1921,7 +1921,6 @@
             const horaRealStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
             
             const keyHora = `${emp.id}_${fechaCorta}`;
-            // 7:00 AM POR DEFECTO
             const horaEstipulada = horasEstipuladasPersonalizadas[keyHora] || "07:00:00";
 
             const [hRef, mRef] = horaEstipulada.split(':').map(Number);
@@ -1932,11 +1931,19 @@
             const diffMinutos = minutosReal - minutosRef;
             const esTarde = diffMinutos > 5;
 
+            // AJUSTE 3: FORMATEO DE NOVEDAD Y MÉTODO
+            let novedadTexto = m.novedad || '';
+            if (novedadTexto.includes('VERIFICACIÓN BIOMÉTRICA') || novedadTexto.includes('biométrica')) {
+              novedadTexto = 'Verificación biométrica';
+            } else if (novedadTexto.includes('MANUAL') || novedadTexto.includes('manual')) {
+              novedadTexto = 'Verificación manual';
+            }
+
             reporte.push({
               emp, fecha: fechaCorta, keyHora, horaRealStr, horaEstipulada, esTarde,
               minutosRetraso: diffMinutos > 0 ? diffMinutos : 0,
               foto_marcacion_url: m.foto_marcacion_url,
-              novedad: m.novedad || 'Marcación Biométrica',
+              novedad: novedadTexto,
               laboro: true
             });
           });
@@ -1945,12 +1952,11 @@
           const esHoy = (fechaHastaStr === hoyStr);
           reporte.push({
             emp, fecha: fechaHastaStr, keyHora: `${emp.id}_sin_fecha`, horaRealStr: '---', horaEstipulada: '07:00:00', esTarde: false,
-            minutosRetraso: 0, foto_marcacion_url: null, novedad: esHoy ? 'PENDIENTE DE REGISTRO EN EL DÍA' : 'SIN REGISTRO DE ASISTENCIA', laboro: false, esHoy
+            minutosRetraso: 0, foto_marcacion_url: null, novedad: esHoy ? 'Pendiente registro en el día' : 'Sin registro de asistencia', laboro: false, esHoy
           });
         }
       });
 
-      // ORDENAMIENTO CRONOLÓGICO ASCENDENTE
       reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
       const filtrados = reporte.filter(r => {
@@ -1995,7 +2001,7 @@
       cargarReporteLlegadasTardes();
     }
 
-    /* SEGUIMIENTO HORAS EXTRA (COLUMNAS INDEPENDIENTES + 7:00 AM + ORDEN CRONOLÓGICO) */
+    /* SEGUIMIENTO HORAS EXTRA */
 
     function limpiarFiltrosHorasExtras() {
       setFechasHoyFiltros();
@@ -2070,7 +2076,6 @@
 
             if (entradaCDA && salidaCDA) {
               const keyHora = `${emp.id}_${fechaCorta}`;
-              // 7:00 AM POR DEFECTO
               const horaEstipuladaStr = horasEstipuladasPersonalizadas[keyHora] || "07:00:00";
 
               const [hRef, mRef] = horaEstipuladaStr.split(':').map(Number);
@@ -2138,7 +2143,6 @@
         }
       });
 
-      // ORDENAMIENTO CRONOLÓGICO ASCENDENTE
       reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
       tbody.innerHTML = reporte.map(r => `
