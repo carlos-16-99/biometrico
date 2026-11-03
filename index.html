@@ -1714,7 +1714,7 @@
             ${e.permitir_manual ? `<span class="px-2 py-0.5 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/30 font-bold"><i class="fa-solid fa-key mr-1"></i>PIN: ${e.pin_manual || '1234'}</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-zinc-950 text-zinc-500">Deshabilitado</span>`}
           </td>
           <td class="p-2.5">
-            ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30 font-bold">DESHABILITADO</span>`}
+            ${e.activo !== false ? `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30">Activo</span>` : `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-800 font-bold">DESHABILITADO</span>`}
           </td>
           <td class="p-2.5 text-right space-x-1">
             ${currentAdminRole === 'SUPERADMIN' ? `
@@ -1811,7 +1811,11 @@
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
             let tipoEntradaCDA = '-', tipoEntradaDescanso = '-', tipoSalidaDescanso = '-', tipoSalidaCDA = '-';
             let primaryId = misMarcaciones[0]?.id;
-            let textoNovedadActual = misMarcaciones[0]?.novedad || '';
+            
+            // FILTRO DE NOVEDAD LIMPIA: Oculta textos automáticos del sistema o basura previa
+            let rawNov = misMarcaciones[0]?.novedad || '';
+            let textoNovedadActual = (rawNov.includes('ESTRICTA') || rawNov.includes('VERIFICACIÓN')) ? '' : rawNov;
+
             const fotos = [], gpsList = [];
 
             misMarcaciones.forEach(m => {
@@ -1999,10 +2003,13 @@
             const diffMinutos = minutosReal - minutosRef;
             const esTarde = diffMinutos > 5;
 
+            let rawNov = m.novedad || '';
+            let textoNovedadActual = (rawNov.includes('ESTRICTA') || rawNov.includes('VERIFICACIÓN')) ? '' : rawNov;
+
             reporte.push({
               emp, fecha: fechaCorta, horaRealStr, horaEstipulada, esTarde, primaryId: m.id,
               minutosRetraso: diffMinutos > 0 ? diffMinutos : 0,
-              textoNovedadActual: m.novedad || '',
+              textoNovedadActual,
               laboro: true
             });
           });
@@ -2143,7 +2150,9 @@
             const fechaCorta = k.split('_')[1];
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
             let primaryId = misMarcaciones[0]?.id;
-            let textoNovedadActual = misMarcaciones[0]?.novedad || '';
+            
+            let rawNov = misMarcaciones[0]?.novedad || '';
+            let textoNovedadActual = (rawNov.includes('ESTRICTA') || rawNov.includes('VERIFICACIÓN')) ? '' : rawNov;
 
             misMarcaciones.forEach(m => {
               const dateObj = new Date(m.fecha_hora);
