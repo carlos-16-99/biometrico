@@ -482,6 +482,15 @@
                 <select id="flt-asis-cda" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
                   <option value="TODOS">Todos los CDA</option>
                 </select>
+
+                <select id="flt-asis-estado" onchange="cargarHistorialAsistencias()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los Estados</option>
+                  <option value="EXITOSO">Solo Exitosos</option>
+                  <option value="PENDIENTE">Solo Pendientes</option>
+                  <option value="MARCACION_INCORRECTA">Solo Marcación Incorrecta</option>
+                  <option value="NO_HA_MARCADO">Solo No Ha Marcado Hoy</option>
+                  <option value="NO_LABORO">Solo No Laboró</option>
+                </select>
                 
                 <button type="button" onclick="limpiarFiltrosAsistencias()" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-3 py-1 rounded-lg font-bold border border-zinc-700 flex items-center gap-1">
                   <i class="fa-solid fa-rotate-left"></i> Restablecer a Hoy
@@ -505,6 +514,7 @@
                     <th class="p-2.5 text-lime-400">Entrada Descanso</th>
                     <th class="p-2.5 text-amber-400">Salida Descanso</th>
                     <th class="p-2.5 text-rose-400">Salida CDA</th>
+                    <th class="p-2.5">Tipo de Registro</th>
                     <th class="p-2.5">Ubicaciones GPS</th>
                     <th class="p-2.5">Evidencias Foto</th>
                     <th class="p-2.5">Estado</th>
@@ -512,7 +522,7 @@
                   </tr>
                 </thead>
                 <tbody id="tabla-asistencias-body">
-                  <tr><td colspan="12" class="p-4 text-center text-zinc-500">Cargando registros...</td></tr>
+                  <tr><td colspan="13" class="p-4 text-center text-zinc-500">Cargando registros...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -591,6 +601,14 @@
                 
                 <select id="flt-extra-cda" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
                   <option value="TODOS">Todos los CDA</option>
+                </select>
+
+                <select id="flt-extra-estado" onchange="cargarReporteHorasExtras()" class="bg-zinc-900 border border-zinc-800 rounded px-2 py-1 text-zinc-200 outline-none focus:border-lime-500">
+                  <option value="TODOS">Todos los Estados</option>
+                  <option value="JORNADA_EXITOSA">Solo Jornada Completa Exitosa</option>
+                  <option value="JORNADA_INCOMPLETA">Solo Jornada Incompleta</option>
+                  <option value="NO_HA_MARCADO">Solo No Ha Marcado Hoy</option>
+                  <option value="NO_LABORO">Solo No Laboró</option>
                 </select>
 
                 <button type="button" onclick="limpiarFiltrosHorasExtras()" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 px-3 py-1 rounded-lg font-bold border border-zinc-700 flex items-center gap-1">
@@ -1467,7 +1485,7 @@
           latitud: currentLat,
           longitud: currentLng,
           foto_marcacion_url: fotoUrl,
-          novedad: "Verificación manual"
+          novedad: ""
         }]);
 
         status.className = "text-sm font-bold text-lime-400 animate-bounce";
@@ -1717,7 +1735,6 @@
       `).join('');
     }
 
-    /* FUNCIÓN PARA GUARDAR NOVEDADES/JUSTIFICACIONES EN SUPABASE */
     async function guardarNovedadRegistro(asistenciaId, empleadoId, fechaStr, inputElementId) {
       const textoNovedad = document.getElementById(inputElementId)?.value || '';
 
@@ -1744,11 +1761,12 @@
       if (!supabaseClient) return;
 
       const tbody = document.getElementById('tabla-asistencias-body');
-      tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento de personal...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento de personal...</td></tr>`;
 
       const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('asis');
       const filtroNombre = document.getElementById('flt-asis-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
+      const filtroEstado = document.getElementById('flt-asis-estado')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
       const { data: marcaciones } = await supabaseClient
@@ -1767,7 +1785,7 @@
 
       const { data: todosEmpleados } = await queryEmp;
       if (!todosEmpleados || todosEmpleados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-zinc-500">No hay personal para el filtro aplicado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-500">No hay personal para el filtro aplicado.</td></tr>`;
         return;
       }
 
@@ -1793,6 +1811,7 @@
             const misMarcaciones = mapaAgrupado[k];
             const fechaCorta = k.split('_')[1];
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
+            let tipoEntradaCDA = '-', tipoEntradaDescanso = '-', tipoSalidaDescanso = '-', tipoSalidaCDA = '-';
             let primaryId = misMarcaciones[0]?.id;
             let textoNovedadActual = misMarcaciones[0]?.novedad || '';
             const fotos = [], gpsList = [];
@@ -1800,33 +1819,42 @@
             misMarcaciones.forEach(m => {
               const dateObj = new Date(m.fecha_hora);
               const horaStr = dateObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+              
+              // Determinar si fue biométrica o manual según la URL de foto o texto predeterminado
+              const tipoRegStr = (m.foto_marcacion_url && m.foto_marcacion_url.includes('manual')) ? 'Verificación manual' : 'Verificación biométrica';
 
-              if (m.tipo === 'Entrada al CDA') entradaCDA = horaStr;
-              if (m.tipo === 'Entrada Descanso') entradaDescanso = horaStr;
-              if (m.tipo === 'Salida Descanso') salidaDescanso = horaStr;
-              if (m.tipo === 'Salida del CDA') salidaCDA = horaStr;
+              if (m.tipo === 'Entrada al CDA') { entradaCDA = horaStr; tipoEntradaCDA = tipoRegStr; }
+              if (m.tipo === 'Entrada Descanso') { entradaDescanso = horaStr; tipoEntradaDescanso = tipoRegStr; }
+              if (m.tipo === 'Salida Descanso') { salidaDescanso = horaStr; tipoSalidaDescanso = tipoRegStr; }
+              if (m.tipo === 'Salida del CDA') { salidaCDA = horaStr; tipoSalidaCDA = tipoRegStr; }
 
               if (m.foto_marcacion_url) fotos.push({ tipo: m.tipo, url: m.foto_marcacion_url });
               if (m.latitud && m.longitud) gpsList.push(`${m.tipo}: ${m.latitud.toFixed(4)},${m.longitud.toFixed(4)}`);
             });
 
+            let estadoFiltroKey = 'EXITOSO';
             let estadoHtml = '';
             const tieneEntrada = !!entradaCDA;
             const tieneSalida = !!salidaCDA;
             const tieneDescansoIncompleto = (entradaDescanso && !salidaDescanso);
 
             if (tieneEntrada && tieneSalida && !tieneDescansoIncompleto) {
+              estadoFiltroKey = 'EXITOSO';
               estadoHtml = `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30 font-bold">EXITOSO</span>`;
             } else if ((tieneEntrada && !tieneSalida) || tieneDescansoIncompleto) {
               if (fechaCorta === hoyStr) {
+                estadoFiltroKey = 'PENDIENTE';
                 estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-sky-950 text-sky-400 border border-sky-500/40 font-bold">PENDIENTE</span>`;
               } else {
+                estadoFiltroKey = 'MARCACION_INCORRECTA';
                 estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider">MARCACIÓN INCORRECTA</span>`;
               }
             } else {
               if (fechaCorta === hoyStr) {
+                estadoFiltroKey = 'NO_HA_MARCADO';
                 estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold">NO HA MARCADO</span>`;
               } else {
+                estadoFiltroKey = 'NO_LABORO';
                 estadoHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider">NO LABORÓ</span>`;
               }
             }
@@ -1834,13 +1862,15 @@
             filasProcesadas.push({
               emp, fecha: fechaCorta, primaryId,
               entradaCDA, entradaDescanso, salidaDescanso, salidaCDA,
-              fotos, gpsList, estadoHtml, textoNovedadActual,
+              tipoRegistroStr: `Entrada CDA: ${tipoEntradaCDA}<br>Ent. Desc: ${tipoEntradaDescanso}<br>Sal. Desc: ${tipoSalidaDescanso}<br>Salida CDA: ${tipoSalidaCDA}`,
+              fotos, gpsList, estadoHtml, estadoFiltroKey, textoNovedadActual,
               laboro: true
             });
           });
         } else {
           if (emp.activo === false) return;
           const esHoy = (fechaHastaStr === hoyStr);
+          const estadoFiltroKey = esHoy ? 'NO_HA_MARCADO' : 'NO_LABORO';
           const estadoHtml = esHoy 
             ? `<span class="px-2.5 py-1 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold">NO HA MARCADO</span>`
             : `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider">NO LABORÓ</span>`;
@@ -1848,7 +1878,8 @@
           filasProcesadas.push({
             emp, fecha: fechaHastaStr, primaryId: null,
             entradaCDA: null, entradaDescanso: null, salidaDescanso: null, salidaCDA: null,
-            fotos: [], gpsList: [], estadoHtml, textoNovedadActual: '',
+            tipoRegistroStr: 'Sin registros',
+            fotos: [], gpsList: [], estadoHtml, estadoFiltroKey, textoNovedadActual: '',
             laboro: false, esHoy
           });
         }
@@ -1856,7 +1887,12 @@
 
       filasProcesadas.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
-      tbody.innerHTML = filasProcesadas.map((r, idx) => {
+      const filtrados = filasProcesadas.filter(r => {
+        if (filtroEstado !== 'TODOS' && r.estadoFiltroKey !== filtroEstado) return false;
+        return true;
+      });
+
+      tbody.innerHTML = filtrados.map((r, idx) => {
         const inputId = `nov_asis_${idx}`;
         return `
           <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.laboro ? (r.esHoy ? 'bg-amber-950/10' : 'bg-rose-950/20') : ''}">
@@ -1868,6 +1904,7 @@
             <td class="p-2.5 font-mono font-bold ${r.entradaDescanso ? 'text-lime-400' : 'text-zinc-600'}">${r.entradaDescanso || '---'}</td>
             <td class="p-2.5 font-mono font-bold ${r.salidaDescanso ? 'text-amber-400' : 'text-zinc-600'}">${r.salidaDescanso || '---'}</td>
             <td class="p-2.5 font-mono font-bold ${r.salidaCDA ? 'text-rose-400' : 'text-zinc-600'}">${r.salidaCDA || '---'}</td>
+            <td class="p-2.5 text-[10px] text-zinc-300">${r.tipoRegistroStr}</td>
             <td class="p-2.5 text-[10px] text-zinc-400">${r.gpsList.join('<br>') || 'Sin GPS'}</td>
             <td class="p-2.5">
               <div class="flex gap-1 overflow-x-auto">
@@ -1875,11 +1912,11 @@
               </div>
             </td>
             <td class="p-2.5">${r.estadoHtml}</td>
-            <td class="p-2.5 min-w-[200px]">
-              <div class="flex flex-col gap-1.5">
+            <td class="p-2.5 min-w-[180px]">
+              <div class="flex items-center gap-1.5">
                 <textarea id="${inputId}" placeholder="Escribe justificación..." class="w-full bg-zinc-950 border border-zinc-800 rounded p-1.5 text-white text-[11px] outline-none focus:border-lime-500 resize-y">${r.textoNovedadActual || ''}</textarea>
-                <button type="button" onclick="guardarNovedadRegistro('${r.primaryId || ''}', '${r.emp.id}', '${r.fecha}', '${inputId}')" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 font-bold py-1 px-2 rounded text-[10px] flex items-center justify-center gap-1 transition">
-                  <i class="fa-solid fa-floppy-disk"></i> Guardar Novedad
+                <button type="button" onclick="guardarNovedadRegistro('${r.primaryId || ''}', '${r.emp.id}', '${r.fecha}', '${inputId}')" title="Guardar Novedad" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 p-2 rounded text-xs flex items-center justify-center transition">
+                  <i class="fa-solid fa-floppy-disk"></i>
                 </button>
               </div>
             </td>
@@ -1892,6 +1929,7 @@
       setFechasHoyFiltros();
       document.getElementById('flt-asis-nombre').value = '';
       document.getElementById('flt-asis-cda').value = 'TODOS';
+      document.getElementById('flt-asis-estado').value = 'TODOS';
       cargarHistorialAsistencias();
     }
 
@@ -1976,7 +2014,7 @@
           const esHoy = (fechaHastaStr === hoyStr);
           reporte.push({
             emp, fecha: fechaHastaStr, keyHora: `${emp.id}_sin_fecha`, horaRealStr: '---', horaEstipulada: '07:00:00', esTarde: false, primaryId: null,
-            minutosRetraso: 0, textoNovedadActual: esHoy ? 'Pendiente registro en el día' : 'Sin registro de asistencia', laboro: false, esHoy
+            minutosRetraso: 0, textoNovedadActual: '', laboro: false, esHoy
           });
         }
       });
@@ -2014,11 +2052,11 @@
                   ? `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30">TARDE (+${formatearMinutosAHorasMinutos(r.minutosRetraso)})</span>` 
                   : `<span class="px-2 py-0.5 rounded text-[10px] bg-lime-950 text-lime-400 border border-lime-500/30 font-bold">A TIEMPO</span>`)}
             </td>
-            <td class="p-2.5 min-w-[200px]">
-              <div class="flex flex-col gap-1.5">
+            <td class="p-2.5 min-w-[180px]">
+              <div class="flex items-center gap-1.5">
                 <textarea id="${inputId}" placeholder="Escribe justificación..." class="w-full bg-zinc-950 border border-zinc-800 rounded p-1.5 text-white text-[11px] outline-none focus:border-lime-500 resize-y">${r.textoNovedadActual || ''}</textarea>
-                <button type="button" onclick="guardarNovedadRegistro('${r.primaryId || ''}', '${r.emp.id}', '${r.fecha}', '${inputId}')" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 font-bold py-1 px-2 rounded text-[10px] flex items-center justify-center gap-1 transition">
-                  <i class="fa-solid fa-floppy-disk"></i> Guardar Novedad
+                <button type="button" onclick="guardarNovedadRegistro('${r.primaryId || ''}', '${r.emp.id}', '${r.fecha}', '${inputId}')" title="Guardar Novedad" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 p-2 rounded text-xs flex items-center justify-center transition">
+                  <i class="fa-solid fa-floppy-disk"></i>
                 </button>
               </div>
             </td>
@@ -2038,6 +2076,7 @@
       setFechasHoyFiltros();
       document.getElementById('flt-extra-nombre').value = '';
       document.getElementById('flt-extra-cda').value = 'TODOS';
+      document.getElementById('flt-extra-estado').value = 'TODOS';
       cargarReporteHorasExtras();
     }
 
@@ -2050,6 +2089,7 @@
       const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('extra');
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
+      const filtroEstado = document.getElementById('flt-extra-estado')?.value || 'TODOS';
       const hoyStr = getHoyInputString();
 
       let queryEmp = supabaseClient.from('empleados').select('*').neq('departamento', 'Administrador de CDA').order('nombre', { ascending: true });
@@ -2147,6 +2187,7 @@
                 tieneExtras: tiempoExtrasMs > 0,
                 tieneLaboradas: tiempoNetoMs > 0,
                 estadoTexto: "Jornada completa exitosa",
+                estadoFiltroKey: "JORNADA_EXITOSA",
                 textoNovedadActual,
                 laboro: true
               });
@@ -2163,6 +2204,7 @@
                 descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
                 tieneExtras: false, tieneLaboradas: false,
                 estadoTexto: "Jornada incompleta",
+                estadoFiltroKey: "JORNADA_INCOMPLETA",
                 textoNovedadActual,
                 laboro: true
               });
@@ -2176,7 +2218,8 @@
             descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
             tieneExtras: false, tieneLaboradas: false,
             estadoTexto: esHoy ? "NO HA MARCADO" : "NO LABORÓ",
-            textoNovedadActual: esHoy ? 'PENDIENTE DE ASISTENCIA' : 'SIN ASISTENCIA REGISTRADA',
+            estadoFiltroKey: esHoy ? "NO_HA_MARCADO" : "NO_LABORO",
+            textoNovedadActual: '',
             laboro: false, esHoy
           });
         }
@@ -2184,7 +2227,12 @@
 
       reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
 
-      tbody.innerHTML = reporte.map((r, idx) => {
+      const filtrados = reporte.filter(r => {
+        if (filtroEstado !== 'TODOS' && r.estadoFiltroKey !== filtroEstado) return false;
+        return true;
+      });
+
+      tbody.innerHTML = filtrados.map((r, idx) => {
         const inputId = `nov_extra_${idx}`;
         return `
           <tr class="border-b border-zinc-800/80 hover:bg-zinc-800/30 ${!r.laboro ? (r.esHoy ? 'bg-amber-950/10' : 'bg-rose-950/20') : ''}">
@@ -2206,11 +2254,11 @@
               ${r.estadoTexto === 'NO HA MARCADO' ? `<span class="px-2.5 py-0.5 rounded text-[10px] bg-amber-950 text-amber-400 border border-amber-500/40 font-bold">NO HA MARCADO</span>` : ''}
               ${r.estadoTexto === 'NO LABORÓ' ? `<span class="px-2.5 py-0.5 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black">NO LABORÓ</span>` : ''}
             </td>
-            <td class="p-2.5 min-w-[200px]">
-              <div class="flex flex-col gap-1.5">
+            <td class="p-2.5 min-w-[180px]">
+              <div class="flex items-center gap-1.5">
                 <textarea id="${inputId}" placeholder="Escribe justificación..." class="w-full bg-zinc-950 border border-zinc-800 rounded p-1.5 text-white text-[11px] outline-none focus:border-lime-500 resize-y">${r.textoNovedadActual || ''}</textarea>
-                <button type="button" onclick="guardarNovedadRegistro('${r.primaryId || ''}', '${r.emp.id}', '${r.fecha}', '${inputId}')" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 font-bold py-1 px-2 rounded text-[10px] flex items-center justify-center gap-1 transition">
-                  <i class="fa-solid fa-floppy-disk"></i> Guardar Novedad
+                <button type="button" onclick="guardarNovedadRegistro('${r.primaryId || ''}', '${r.emp.id}', '${r.fecha}', '${inputId}')" title="Guardar Novedad" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 p-2 rounded text-xs flex items-center justify-center transition">
+                  <i class="fa-solid fa-floppy-disk"></i>
                 </button>
               </div>
             </td>
