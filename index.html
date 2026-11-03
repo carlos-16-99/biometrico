@@ -878,17 +878,30 @@
       return { valido: true, mensaje: "OK" };
     }
 
-    /* BUCLE DE ESCANEO BIOMÉTRICO CON REINICIO DE ESTADOS Y FIJACIÓN DE CÁMARA CONGELADA */
+    /* BUCLE DE ESCANEO BIOMÉTRICO CON CORRECCIÓN DE CÁMARA CONGELADA */
 
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
-      isProcessingScan = false; // REINICIO DE BANDERA DE PROCESAMIENTO
+      isProcessingScan = false;
       currentLandmarks = null;
       
-      // Detener cualquier transmisión anterior activa antes de abrir una nueva
+      // 1. Detener transmisiones previas en ejecución
       if (scanStream) {
         scanStream.getTracks().forEach(t => t.stop());
         scanStream = null;
+      }
+
+      const video = document.getElementById('scan-video');
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+      }
+
+      // 2. Limpiar el canvas de captura
+      const canvas = document.getElementById('scan-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
       document.getElementById('modal-titulo').innerText = `Marcación: ${tipo.toUpperCase()}`;
@@ -897,12 +910,14 @@
       document.getElementById('modal-escaner').classList.remove('hidden');
 
       try {
+        // Solicitar nuevo stream de cámara en vivo
         scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
-        const video = document.getElementById('scan-video');
         video.srcObject = scanStream;
-        video.play(); // Forzar la reproducción en vivo
 
-        video.onloadedmetadata = () => {
+        video.onloadedmetadata = async () => {
+          try {
+            await video.play(); // Forzar la reactivación en vivo
+          } catch(e) {}
           document.getElementById('scan-status').innerText = "👤 Mira de frente a la cámara...";
           iniciarBucleEscaneo();
         };
@@ -921,7 +936,9 @@
       }
       const video = document.getElementById('scan-video');
       if (video) {
+        video.pause();
         video.srcObject = null;
+        video.load(); // Restablece el elemento HTML video para evitar fotogramas residuales
       }
 
       document.getElementById('modal-escaner').classList.add('hidden');
@@ -932,17 +949,17 @@
       const guide = document.getElementById('scan-oval-guide');
       const status = document.getElementById('scan-status');
 
-      // REINICIO COMPLETO DE VARIABLES AL ENTRAR A CADA ESCANEO NUEVO
+      // Variables de control de estabilidad reiniciadas a cero
       let framesCoincidentes = 0;
       let empTemporalDetectado = null;
-      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de confirmación visual continua
-      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de búsqueda máxima
+      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de confirmación continua
+      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de límite
       const inicioEscaneo = Date.now();
 
       const processFrame = async () => {
         if (!scanStream || isProcessingScan) return;
 
-        // Si sobrepasa el límite sin confirmar rostro, se genera alerta de rechazo
+        // Si se supera el límite sin éxito, se alerta y se cierra la cámara limpia
         if (Date.now() - inicioEscaneo > TIEMPO_LIMITE_MS && framesCoincidentes === 0) {
           isProcessingScan = true;
           guide.className = "face-oval-guide guide-danger";
@@ -958,7 +975,7 @@
           await faceMesh.send({ image: video });
 
           if (currentLandmarks) {
-            // Comprobación de postura totalmente de frente
+            // Verificación de simetría facial
             const dOjoIzq = currentLandmarks[33].x;
             const dOjoDer = currentLandmarks[263].x;
             const centroNariz = currentLandmarks[1].x;
@@ -1011,7 +1028,7 @@
                 status.className = "text-xs font-bold text-amber-400";
                 status.innerText = `🔍 Identificando a ${empEncontrado.nombre.split(' ')[0]}... Mantén la mirada (${porcentaje}%)`;
 
-                // Solo al completar el tiempo sostenido (frames), se ejecuta la marcación
+                // Solo al completar los fotogramas sostenidos, se intenta registrar
                 if (framesCoincidentes >= FRAMES_REQUERIDOS) {
                   isProcessingScan = true;
 
@@ -1030,7 +1047,7 @@
                     return;
                   }
 
-                  // Si supera las reglas, guarda la evidencia
+                  // Registro válido
                   guide.className = "face-oval-guide guide-success";
                   status.className = "text-base font-bold text-lime-400 animate-pulse";
                   status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado. Registrando...`;
@@ -1100,7 +1117,7 @@
         regStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
         const video = document.getElementById('reg-video');
         video.srcObject = regStream;
-        video.play();
+        await video.play();
 
         video.onloadedmetadata = () => {
           status.innerText = "Ubícate dentro del croquis de frente y presiona 'Capturar Rostro'";
@@ -1118,7 +1135,11 @@
         regStream = null;
       }
       const video = document.getElementById('reg-video');
-      if (video) video.srcObject = null;
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.load();
+      }
       document.getElementById('modal-registro-facial').classList.add('hidden');
     }
 
@@ -1358,7 +1379,11 @@
         manStream = null;
       }
       const video = document.getElementById('man-video');
-      if (video) video.srcObject = null;
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+        video.load();
+      }
       document.getElementById('modal-manual').classList.add('hidden');
     }
 
@@ -1415,7 +1440,7 @@
         manStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         const video = document.getElementById('man-video');
         video.srcObject = manStream;
-        video.play();
+        await video.play();
         document.getElementById('contenedor-camara-manual').classList.remove('hidden');
         document.getElementById('btn-abrir-camara-manual').classList.add('hidden');
         status.className = "text-xs font-bold text-lime-400";
