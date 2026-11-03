@@ -763,7 +763,7 @@
       return false;
     }
 
-    /* MOTOR DE RECONOCIMIENTO FACIAL STRICTO Y NORMALIZADO */
+    /* MOTOR DE RECONOCIMIENTO FACIAL ESTRICTO Y NORMALIZADO */
 
     function normalizarRostroVectorial(pts) {
       if (!pts || pts.length === 0) return null;
@@ -827,15 +827,67 @@
       return { coincidencia: esValido, score: scoreGlobal };
     }
 
-    /* BUCLE DE ESCANEO BIOMÉTRICO CON TIEMPO DE VALIDACIÓN Y ALERTA DE NO REGISTRADO */
+    /* VALIDACIÓN DE REGLAS DE SECUENCIA Y MARCACIÓN ÚNICA DIARIA */
+
+    async function validarReglasMarcacion(empleadoId, tipoSolicitado) {
+      const hoyStr = getHoyInputString();
+
+      // Consultar todas las marcaciones realizadas hoy por el trabajador
+      const { data: marcacionesHoy } = await supabaseClient
+        .from('asistencias')
+        .select('tipo')
+        .eq('empleado_id', empleadoId)
+        .gte('fecha_hora', `${hoyStr}T00:00:00`)
+        .lte('fecha_hora', `${hoyStr}T23:59:59`);
+
+      const tiposRealizados = (marcacionesHoy || []).map(m => m.tipo);
+
+      // 1. REGLA: No permitir repetir la misma marcación en el mismo día
+      if (tiposRealizados.includes(tipoSolicitado)) {
+        return { valido: false, mensaje: `⛔ Ya registraste '${tipoSolicitado}' el día de hoy.` };
+      }
+
+      const tieneEntradaCDA = tiposRealizados.includes('Entrada al CDA');
+      const tieneEntradaDescanso = tiposRealizados.includes('Entrada Descanso');
+      const tieneSalidaDescanso = tiposRealizados.includes('Salida Descanso');
+
+      // 2. REGLA: No dejar marcar Entrada Descanso si no ha registrado Entrada CDA
+      if (tipoSolicitado === 'Entrada Descanso') {
+        if (!tieneEntradaCDA) {
+          return { valido: false, mensaje: "⛔ Debes registrar 'Entrada al CDA' antes de marcar inicio de descanso." };
+        }
+      }
+
+      // 3. REGLA: No dejar marcar Salida Descanso si no ha registrado Entrada Descanso
+      if (tipoSolicitado === 'Salida Descanso') {
+        if (!tieneEntradaDescanso) {
+          return { valido: false, mensaje: "⛔ Debes registrar 'Entrada Descanso' antes de marcar fin de descanso." };
+        }
+      }
+
+      // 4. REGLA: No dejar marcar Salida CDA si no ha marcado Entrada CDA, y si marcó Entrada Descanso debe haber marcado Salida Descanso
+      if (tipoSolicitado === 'Salida del CDA') {
+        if (!tieneEntradaCDA) {
+          return { valido: false, mensaje: "⛔ Debes registrar 'Entrada al CDA' antes de marcar la Salida final." };
+        }
+        if (tieneEntradaDescanso && !tieneSalidaDescanso) {
+          return { valido: false, mensaje: "⛔ Tienes pendiente registrar 'Salida Descanso' antes de cerrar jornada en CDA." };
+        }
+      }
+
+      return { valido: true, mensaje: "OK" };
+    }
+
+    /* BUCLE DE ESCANEO BIOMÉTRICO CON REINICIO DE ESTADOS Y TIEMPO DE VALIDACIÓN */
 
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
+      isProcessingScan = false; // REINICIO OBLIGATORIO DE ESTADO DE ESCANEO
+      
       document.getElementById('modal-titulo').innerText = `Marcación: ${tipo.toUpperCase()}`;
       document.getElementById('scan-status').innerText = "🎥 Encendiendo cámara de alta precisión...";
       document.getElementById('scan-oval-guide').className = "face-oval-guide";
       document.getElementById('modal-escaner').classList.remove('hidden');
-      isProcessingScan = false;
 
       try {
         scanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 640, height: 480 } });
@@ -865,17 +917,17 @@
       const guide = document.getElementById('scan-oval-guide');
       const status = document.getElementById('scan-status');
 
-      // Variables para controlar el tiempo y la estabilidad antes de tomar la marcación
+      // REINICIO DE VARIABLES DE ESTABILIDAD AL ABRIR CADA ESCANEO
       let framesCoincidentes = 0;
       let empTemporalDetectado = null;
-      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de confirmación continua
-      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de búsqueda máxima
+      const FRAMES_REQUERIDOS = 9; // ~1.5 segundos de estabilidad continua
+      const TIEMPO_LIMITE_MS = 8000; // 8 segundos de límite
       const inicioEscaneo = Date.now();
 
       const processFrame = async () => {
         if (!scanStream || isProcessingScan) return;
 
-        // Comprobación de tiempo límite de búsqueda (Alerta si no se reconoce a nadie)
+        // Comprobación de límite de tiempo (Alerta de rostro no reconocido)
         if (Date.now() - inicioEscaneo > TIEMPO_LIMITE_MS && framesCoincidentes === 0) {
           isProcessingScan = true;
           guide.className = "face-oval-guide guide-danger";
@@ -899,6 +951,7 @@
 
             if (simetria > 0.08) {
               framesCoincidentes = 0;
+              empTemporalDetectado = null;
               guide.className = "face-oval-guide guide-warning";
               status.className = "text-xs font-bold text-amber-400";
               status.innerText = "⚠️ Por favor mira de frente sin girar el rostro";
@@ -943,9 +996,26 @@
                 status.className = "text-xs font-bold text-amber-400";
                 status.innerText = `🔍 Identificando a ${empEncontrado.nombre.split(' ')[0]}... Mantén la mirada (${porcentaje}%)`;
 
-                // Solo cuando se confirma la presencia continua por N fotogramas, se toma la marcación
+                // Solo cuando se confirma la presencia continua por N fotogramas, se entra a validar las reglas
                 if (framesCoincidentes >= FRAMES_REQUERIDOS) {
                   isProcessingScan = true;
+
+                  // VERIFICACIÓN DE REGLAS DE SECUENCIA Y MARCACIÓN ÚNICA
+                  status.className = "text-xs font-semibold text-amber-300";
+                  status.innerText = "📋 Verificando historial y secuencia de marcación...";
+                  const checkReglas = await validarReglasMarcacion(empEncontrado.id, scanTipo);
+
+                  if (!checkReglas.valido) {
+                    guide.className = "face-oval-guide guide-danger";
+                    status.className = "text-xs font-bold text-rose-400 animate-bounce";
+                    status.innerText = checkReglas.mensaje;
+                    setTimeout(() => {
+                      cerrarModalEscaner();
+                    }, 4000);
+                    return;
+                  }
+
+                  // Si supera todas las reglas, se toma la marcación
                   guide.className = "face-oval-guide guide-success";
                   status.className = "text-base font-bold text-lime-400 animate-pulse";
                   status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado. Registrando...`;
@@ -1275,6 +1345,7 @@
     async function activarCamaraManualEnVivo() {
       const doc = document.getElementById('man-doc').value.trim();
       const pin = document.getElementById('man-pin').value.trim();
+      const tipo = document.getElementById('man-tipo').value;
       const status = document.getElementById('man-status');
 
       if (!doc || !pin) {
@@ -1284,7 +1355,7 @@
       }
 
       status.className = "text-xs font-semibold text-amber-400";
-      status.innerText = "🔍 Verificando autorización...";
+      status.innerText = "🔍 Verificando autorización y secuencia...";
 
       const { data: emp, error } = await supabaseClient
         .from('empleados')
@@ -1307,6 +1378,14 @@
       if (emp.pin_manual !== pin) {
         status.className = "text-xs font-bold text-rose-400";
         status.innerText = "❌ PIN de Contingencia incorrecto.";
+        return;
+      }
+
+      // Validar secuencia de reglas en marcación manual también
+      const checkReglas = await validarReglasMarcacion(emp.id, tipo);
+      if (!checkReglas.valido) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = checkReglas.mensaje;
         return;
       }
 
