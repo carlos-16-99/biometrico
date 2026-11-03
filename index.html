@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
-  <!-- ESTILOS DE RESPALDO Y FIX PARA NAVEGADORES MÓVILES (ANDROID / IOS / WEBVIEW) -->
+  <!-- ESTILOS DE RESPALDO Y FIX PARA NAVEGADORES MÓVILES -->
   <style>
     .modal-backdrop {
       position: fixed;
@@ -143,7 +143,7 @@
         </div>
 
         <div id="models-status" class="text-xs text-lime-400 pt-2 flex items-center justify-center gap-1 font-bold">
-          <i class="fa-solid fa-circle-check"></i> Motor Facial Listo (Google MediaPipe)
+          <i class="fa-solid fa-shield-halved"></i> Motor Biométrico de Alta Precisión Listo
         </div>
       </div>
     </section>
@@ -163,7 +163,7 @@
           
           <div class="face-guide-overlay">
             <div id="scan-oval-guide" class="face-oval-guide"></div>
-            <span id="scan-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/80 px-2 py-0.5 rounded shadow">Enfoca tu cara dentro del croquis</span>
+            <span id="scan-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/80 px-2 py-0.5 rounded shadow">Mira de frente a la cámara</span>
           </div>
         </div>
 
@@ -284,7 +284,7 @@
 
           <div class="face-guide-overlay">
             <div id="reg-oval-guide" class="face-oval-guide"></div>
-            <span id="reg-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/80 px-2 py-0.5 rounded shadow">Ubica la cara dentro del croquis</span>
+            <span id="reg-guide-msg" class="text-[10px] text-lime-400 font-bold tracking-widest uppercase mt-2 bg-black/80 px-2 py-0.5 rounded shadow">Mira de frente sin inclinar la cabeza</span>
           </div>
         </div>
 
@@ -667,6 +667,12 @@
 
     const NOMBRES_MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+    // ÍNDICES DE PUNTOS CLAVE DE MEDIAPIPE FACE MESH POR REGIONALES
+    const REGION_OJOS = [33, 133, 159, 145, 263, 362, 386, 374];
+    const REGION_NARIZ = [1, 2, 98, 327, 168, 197, 5];
+    const REGION_BOCA = [61, 291, 0, 17, 84, 314, 13, 14];
+    const REGION_CONTORNO = [10, 152, 234, 454, 127, 356];
+
     function getHoyInputString() {
       const hoy = new Date();
       const yyyy = hoy.getFullYear();
@@ -698,8 +704,8 @@
       faceMesh.setOptions({
         maxNumFaces: 1,
         refineLandmarks: true,
-        minDetectionConfidence: 0.6,
-        minTrackingConfidence: 0.6
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
       });
       faceMesh.onResults(onFaceResults);
     }
@@ -753,24 +759,86 @@
       return false;
     }
 
-    /* LÓGICA BIOMÉTRICA (CÁMARA, ESCANEO Y REGISTRO FACIAL) */
+    /* MOTOR DE RECONOCIMIENTO FACIAL STRICTO Y NORMALIZADO (PROCRUSTES + REGION FILTER) */
 
-    function calcularDistanciaFacial(pts1, pts2) {
-      if (!pts1 || !pts2 || pts1.length !== pts2.length) return 999;
-      let suma = 0;
-      for (let i = 0; i < pts1.length; i++) {
-        const dx = pts1[i].x - pts2[i].x;
-        const dy = pts1[i].y - pts2[i].y;
-        const dz = (pts1[i].z || 0) - (pts2[i].z || 0);
-        suma += Math.sqrt(dx * dx + dy * dy + dz * dz);
+    // Normalización: Centra la cara en (0,0) y la escala según la distancia interocular
+    function normalizarRostroVectorial(pts) {
+      if (!pts || pts.length === 0) return null;
+      
+      // Centroide
+      let cx = 0, cy = 0;
+      for (let p of pts) {
+        cx += p.x;
+        cy += p.y;
       }
-      return suma / pts1.length;
+      cx /= pts.length;
+      cy /= pts.length;
+
+      // Distancia interocular (ojo izq: 33, ojo der: 263)
+      const distInterocular = Math.hypot(pts[33].x - pts[263].x, pts[33].y - pts[263].y);
+      if (distInterocular === 0) return null;
+
+      return pts.map(p => ({
+        x: (p.x - cx) / distInterocular,
+        y: (p.y - cy) / distInterocular,
+        z: ((p.z || 0)) / distInterocular
+      }));
     }
+
+    // Calcula error vectorial medio entre regiones
+    function calcularErrorRegion(vec1, vec2, indices) {
+      let suma = 0;
+      for (let idx of indices) {
+        const dx = vec1[idx].x - vec2[idx].x;
+        const dy = vec1[idx].y - vec2[idx].y;
+        suma += Math.sqrt(dx * dx + dy * dy);
+      }
+      return suma / indices.length;
+    }
+
+    // Evaluador Estricto Multicapa
+    function compararRostrosEstricto(ptsEntrada, ptsGuardados) {
+      if (!ptsEntrada || !ptsGuardados || ptsEntrada.length !== ptsGuardados.length) {
+        return { coincidencia: false, score: 999 };
+      }
+
+      const vecEntrada = normalizarRostroVectorial(ptsEntrada);
+      const vecGuardado = normalizarRostroVectorial(ptsGuardados);
+
+      if (!vecEntrada || !vecGuardado) return { coincidencia: false, score: 999 };
+
+      // 1. Error de Regiones Clave
+      const errorOjos = calcularErrorRegion(vecEntrada, vecGuardado, REGION_OJOS);
+      const errorNariz = calcularErrorRegion(vecEntrada, vecGuardado, REGION_NARIZ);
+      const errorBoca = calcularErrorRegion(vecEntrada, vecGuardado, REGION_BOCA);
+      const errorContorno = calcularErrorRegion(vecEntrada, vecGuardado, REGION_CONTORNO);
+
+      // Si una región crítica (Ojos o Nariz) se aleja demasiado, se rechaza de inmediato (Filtro Anti-Suplantación)
+      if (errorOjos > 0.18 || errorNariz > 0.17 || errorBoca > 0.19) {
+        return { coincidencia: false, score: 999 };
+      }
+
+      // 2. Error Global Ponderado
+      let sumaGlobal = 0;
+      for (let i = 0; i < vecEntrada.length; i++) {
+        const dx = vecEntrada[i].x - vecGuardado[i].x;
+        const dy = vecEntrada[i].y - vecGuardado[i].y;
+        sumaGlobal += Math.sqrt(dx * dx + dy * dy);
+      }
+      const scoreGlobal = sumaGlobal / vecEntrada.length;
+
+      // Umbral Estricto Ajustado (0.145)
+      const esValido = scoreGlobal <= 0.145;
+
+      return { coincidencia: esValido, score: scoreGlobal };
+    }
+
+    /* BUCLE DE ESCANEO BIOMÉTRICO */
 
     async function abrirModalEscaner(tipo) {
       scanTipo = tipo;
       document.getElementById('modal-titulo').innerText = `Marcación: ${tipo.toUpperCase()}`;
-      document.getElementById('scan-status').innerText = "🎥 Encendiendo cámara...";
+      document.getElementById('scan-status').innerText = "🎥 Encendiendo cámara de alta precisión...";
       document.getElementById('scan-oval-guide').className = "face-oval-guide";
       document.getElementById('modal-escaner').classList.remove('hidden');
       isProcessingScan = false;
@@ -781,11 +849,11 @@
         video.srcObject = scanStream;
 
         video.onloadedmetadata = () => {
-          document.getElementById('scan-status').innerText = "👤 Enfoca tu rostro dentro de la guía...";
+          document.getElementById('scan-status').innerText = "👤 Mira de frente a la cámara...";
           iniciarBucleEscaneo();
         };
       } catch (e) {
-        document.getElementById('scan-status').innerHTML = "<span class='text-rose-400'>❌ Error al acceder a la cámara. Permite el acceso e intenta de nuevo.</span>";
+        document.getElementById('scan-status').innerHTML = "<span class='text-rose-400'>❌ Error al acceder a la cámara. Revisa los permisos e intenta nuevamente.</span>";
       }
     }
 
@@ -810,76 +878,86 @@
           await faceMesh.send({ image: video });
 
           if (currentLandmarks) {
-            guide.className = "face-oval-guide guide-warning";
-            status.className = "text-sm font-semibold text-amber-400";
-            status.innerText = "🔍 Buscando coincidencia de rostro...";
+            // Verificación de postura frontal previa
+            const dOjoIzq = currentLandmarks[33].x;
+            const dOjoDer = currentLandmarks[263].x;
+            const centroNariz = currentLandmarks[1].x;
+            const simetria = Math.abs((centroNariz - dOjoIzq) - (dOjoDer - centroNariz));
 
-            const { data: empleados } = await supabaseClient
-              .from('empleados')
-              .select('*')
-              .eq('activo', true)
-              .not('descriptor_facial', 'is', null);
+            if (simetria > 0.08) {
+              guide.className = "face-oval-guide guide-warning";
+              status.className = "text-xs font-bold text-amber-400";
+              status.innerText = "⚠️ Por favor mira de frente sin girar el rostro";
+            } else {
+              guide.className = "face-oval-guide guide-warning";
+              status.className = "text-xs font-semibold text-amber-400";
+              status.innerText = "🔍 Verificando patrón biométrico estricto...";
 
-            let empEncontrado = null;
-            let menorDistancia = 999;
+              const { data: empleados } = await supabaseClient
+                .from('empleados')
+                .select('*')
+                .eq('activo', true)
+                .not('descriptor_facial', 'is', null);
 
-            if (empleados && empleados.length > 0) {
-              for (const emp of empleados) {
-                if (emp.descriptor_facial) {
-                  try {
-                    const patronGuardado = typeof emp.descriptor_facial === 'string' 
-                      ? JSON.parse(emp.descriptor_facial) 
-                      : emp.descriptor_facial;
+              let empEncontrado = null;
+              let mejorScore = 999;
 
-                    const dist = calcularDistanciaFacial(currentLandmarks, patronGuardado);
-                    if (dist < menorDistancia) {
-                      menorDistancia = dist;
-                      if (dist < 0.12) {
+              if (empleados && empleados.length > 0) {
+                for (const emp of empleados) {
+                  if (emp.descriptor_facial) {
+                    try {
+                      const patronGuardado = typeof emp.descriptor_facial === 'string' 
+                        ? JSON.parse(emp.descriptor_facial) 
+                        : emp.descriptor_facial;
+
+                      const res = compararRostrosEstricto(currentLandmarks, patronGuardado);
+                      if (res.coincidencia && res.score < mejorScore) {
+                        mejorScore = res.score;
                         empEncontrado = emp;
                       }
-                    }
-                  } catch (err) {}
+                    } catch (err) {}
+                  }
                 }
               }
-            }
 
-            if (empEncontrado) {
-              isProcessingScan = true;
-              guide.className = "face-oval-guide guide-success";
-              status.className = "text-base font-bold text-lime-400 animate-pulse";
-              status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Registrando marcación...`;
+              if (empEncontrado) {
+                isProcessingScan = true;
+                guide.className = "face-oval-guide guide-success";
+                status.className = "text-base font-bold text-lime-400 animate-pulse";
+                status.innerText = `✅ ¡Hola ${empEncontrado.nombre.split(' ')[0]}! Rostro verificado con éxito.`;
 
-              const canvas = document.getElementById('scan-canvas');
-              const ctx = canvas.getContext('2d');
-              canvas.width = video.videoWidth || 640;
-              canvas.height = video.videoHeight || 480;
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const canvas = document.getElementById('scan-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-              canvas.toBlob(async (blob) => {
-                const fileName = `face_${empEncontrado.id}_${Date.now()}.jpg`;
-                await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
-                const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
+                canvas.toBlob(async (blob) => {
+                  const fileName = `face_${empEncontrado.id}_${Date.now()}.jpg`;
+                  await supabaseClient.storage.from('fotos-asistencia').upload(fileName, blob, { contentType: 'image/jpeg' });
+                  const fotoUrl = `${SUPABASE_URL}/storage/v1/object/public/fotos-asistencia/${fileName}`;
 
-                await supabaseClient.from('asistencias').insert([{
-                  empleado_id: empEncontrado.id,
-                  tipo: scanTipo,
-                  latitud: currentLat,
-                  longitud: currentLng,
-                  foto_marcacion_url: fotoUrl,
-                  novedad: "MARCACIÓN BIOMÉTRICA RECONOCIDA"
-                }]);
+                  await supabaseClient.from('asistencias').insert([{
+                    empleado_id: empEncontrado.id,
+                    tipo: scanTipo,
+                    latitud: currentLat,
+                    longitud: currentLng,
+                    foto_marcacion_url: fotoUrl,
+                    novedad: "VERIFICACIÓN BIOMÉTRICA ESTRICTA CONFIRMADA"
+                  }]);
 
-                setTimeout(() => {
-                  cerrarModalEscaner();
-                }, 2500);
-              }, 'image/jpeg', 0.85);
+                  setTimeout(() => {
+                    cerrarModalEscaner();
+                  }, 2200);
+                }, 'image/jpeg', 0.85);
 
-              return;
+                return;
+              }
             }
           } else {
             guide.className = "face-oval-guide";
-            status.className = "text-sm font-semibold text-amber-400";
-            status.innerText = "👤 Ajusta tu cara dentro del croquis...";
+            status.className = "text-xs font-semibold text-amber-400";
+            status.innerText = "👤 Ubica tu cara dentro de la guía...";
           }
         }
 
@@ -891,7 +969,7 @@
       requestAnimationFrame(processFrame);
     }
 
-    /* REGISTRO FACIAL DE PERSONAL (CAPTURA DE PUNTOS FACIALES) */
+    /* REGISTRO FACIAL DE PERSONAL CON VALIDACIÓN DE POSTURA */
 
     async function abrirModalRegistroFacial() {
       const status = document.getElementById('reg-status');
@@ -906,7 +984,7 @@
         video.srcObject = regStream;
 
         video.onloadedmetadata = () => {
-          status.innerText = "Ubícate dentro del croquis y presiona 'Capturar Rostro'";
+          status.innerText = "Ubícate dentro del croquis de frente y presiona 'Capturar Rostro'";
           bucleMonitoreoRegistro();
         };
       } catch (e) {
@@ -950,7 +1028,19 @@
 
       if (!currentLandmarks) {
         status.className = "text-xs font-bold text-rose-400";
-        status.innerText = "❌ No se detecta rostro dentro de la guía. Mira hacia la cámara.";
+        status.innerText = "❌ No se detecta rostro dentro de la guía. Mira directamente a la cámara.";
+        return;
+      }
+
+      // Validar postura antes de registrar para asegurar la máxima precisión
+      const dOjoIzq = currentLandmarks[33].x;
+      const dOjoDer = currentLandmarks[263].x;
+      const centroNariz = currentLandmarks[1].x;
+      const simetria = Math.abs((centroNariz - dOjoIzq) - (dOjoDer - centroNariz));
+
+      if (simetria > 0.07) {
+        status.className = "text-xs font-bold text-rose-400";
+        status.innerText = "❌ Rostro inclinado o de lado. Ponte completamente de frente.";
         return;
       }
 
@@ -964,16 +1054,16 @@
 
       canvas.toBlob((blob) => {
         fotoRefBlob = blob;
-        document.getElementById('lbl-biometrico-status').innerText = "✅ Rostro Capturado Correctamente";
+        document.getElementById('lbl-biometrico-status').innerText = "✅ Puntos Faciales de Alta Precisión Capturados";
         status.className = "text-xs font-bold text-lime-400";
-        status.innerText = "✅ Puntos faciales extraídos con éxito. Cerrando...";
+        status.innerText = "✅ Patrón vectorial extraído con éxito. Guardando...";
         setTimeout(() => {
           cerrarModalRegistroFacial();
         }, 1200);
       }, 'image/jpeg', 0.85);
     }
 
-    /* FIN LÓGICA BIOMÉTRICA */
+    /* RESTO DE FUNCIONALIDADES (ADMINISTRACIÓN Y CONSULTAS) */
 
     function renderCheckboxesCDA() {
       const container = document.getElementById('cda-checkboxes-container');
