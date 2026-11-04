@@ -1809,7 +1809,7 @@
         mapaAgrupado[key].push(m);
       });
 
-      const listaFechas = generarListaFechas(fechaDesdeStr, fechaHastaStr);
+      const listaFechasFiltro = generarListaFechas(fechaDesdeStr, fechaHastaStr);
       const filasProcesadas = [];
 
       todosEmpleados.forEach(emp => {
@@ -1817,7 +1817,19 @@
           return;
         }
 
-        listaFechas.forEach(fechaCorta => {
+        // Obtener fecha de creación del empleado desde created_at o id/fallback
+        const fechaCreacionStr = emp.created_at ? emp.created_at.split('T')[0] : fechaDesdeStr;
+
+        listaFechasFiltro.forEach(fechaCorta => {
+          // REGLA: Si el día del reporte es anterior a cuando se registró el empleado, omitir
+          if (fechaCorta < fechaCreacionStr) return;
+
+          // REGLA: Si el empleado está inactivo y la fecha evaluada es posterior a su última actualización o deshabilitación, omitir
+          if (emp.activo === false && emp.updated_at) {
+            const fechaActualizacionStr = emp.updated_at.split('T')[0];
+            if (fechaCorta > fechaActualizacionStr) return;
+          }
+
           const key = `${emp.id}_${fechaCorta}`;
           const misMarcaciones = mapaAgrupado[key];
 
@@ -1881,7 +1893,6 @@
               laboro: true
             });
           } else {
-            if (emp.activo === false) return;
             const esHoy = (fechaCorta === hoyStr);
             const estadoFiltroKey = esHoy ? 'NO_HA_MARCADO' : 'NO_LABORO';
             const estadoHtml = esHoy 
@@ -1998,7 +2009,7 @@
       });
 
       const opcionesHoras = generarOpcionesHoras24h();
-      const listaFechas = generarListaFechas(fechaDesdeStr, fechaHastaStr);
+      const listaFechasFiltro = generarListaFechas(fechaDesdeStr, fechaHastaStr);
       const reporte = [];
 
       todosEmpleados.forEach(emp => {
@@ -2006,9 +2017,16 @@
           return;
         }
 
+        const fechaCreacionStr = emp.created_at ? emp.created_at.split('T')[0] : fechaDesdeStr;
         const horaEstipuladaBase = emp.hora_entrada_estipulada ? (emp.hora_entrada_estipulada.length === 5 ? emp.hora_entrada_estipulada + ':00' : emp.hora_entrada_estipulada) : "07:00:00";
 
-        listaFechas.forEach(fechaCorta => {
+        listaFechasFiltro.forEach(fechaCorta => {
+          if (fechaCorta < fechaCreacionStr) return;
+          if (emp.activo === false && emp.updated_at) {
+            const fechaActualizacionStr = emp.updated_at.split('T')[0];
+            if (fechaCorta > fechaActualizacionStr) return;
+          }
+
           const key = `${emp.id}_${fechaCorta}`;
           const misEntradas = mapaEntradas[key];
 
@@ -2037,7 +2055,6 @@
               });
             });
           } else {
-            if (emp.activo === false) return;
             const esHoy = (fechaCorta === hoyStr);
             reporte.push({
               emp, fecha: fechaCorta, horaRealStr: '---', horaEstipulada: horaEstipuladaBase, esTarde: false, primaryId: null,
@@ -2158,7 +2175,7 @@
         mapaAgrupado[key].push(m);
       });
 
-      const listaFechas = generarListaFechas(fechaDesdeStr, fechaHastaStr);
+      const listaFechasFiltro = generarListaFechas(fechaDesdeStr, fechaHastaStr);
       const reporte = [];
 
       todosEmpleados.forEach(emp => {
@@ -2166,9 +2183,16 @@
           return;
         }
 
+        const fechaCreacionStr = emp.created_at ? emp.created_at.split('T')[0] : fechaDesdeStr;
         const horaEstipuladaBase = emp.hora_entrada_estipulada ? (emp.hora_entrada_estipulada.length === 5 ? emp.hora_entrada_estipulada + ':00' : emp.hora_entrada_estipulada) : "07:00:00";
 
-        listaFechas.forEach(fechaCorta => {
+        listaFechasFiltro.forEach(fechaCorta => {
+          if (fechaCorta < fechaCreacionStr) return;
+          if (emp.activo === false && emp.updated_at) {
+            const fechaActualizacionStr = emp.updated_at.split('T')[0];
+            if (fechaCorta > fechaActualizacionStr) return;
+          }
+
           const key = `${emp.id}_${fechaCorta}`;
           const misMarcaciones = mapaAgrupado[key];
 
@@ -2248,7 +2272,6 @@
               });
             }
           } else {
-            if (emp.activo === false) return;
             const esHoy = (fechaCorta === hoyStr);
             const estadoTxt = esHoy ? "NO HA MARCADO" : "NO LABORÓ";
             const estadoKey = esHoy ? "NO_HA_MARCADO" : "NO_LABORO";
