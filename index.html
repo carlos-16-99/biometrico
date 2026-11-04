@@ -699,6 +699,20 @@
       return `${yyyy}-${mm}-${dd}`;
     }
 
+    function generarListaFechas(desdeStr, hastaStr) {
+      const fechas = [];
+      let curr = new Date(desdeStr + 'T00:00:00');
+      const fin = new Date(hastaStr + 'T00:00:00');
+      while (curr <= fin) {
+        const yyyy = curr.getFullYear();
+        const mm = String(curr.getMonth() + 1).padStart(2, '0');
+        const dd = String(curr.getDate()).padStart(2, '0');
+        fechas.push(`${yyyy}-${mm}-${dd}`);
+        curr.setDate(curr.getDate() + 1);
+      }
+      return fechas;
+    }
+
     function formatearMsAHorasMinutos(ms) {
       if (!ms || ms <= 0) return "00h 00m";
       const totalMinutos = Math.floor(ms / (1000 * 60));
@@ -1761,7 +1775,7 @@
       const tbody = document.getElementById('tabla-asistencias-body');
       tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Consultando seguimiento de personal...</td></tr>`;
 
-      const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('asis');
+      const { inicioStr, finStr, fechaDesdeStr, fechaHastaStr } = obtenerRangoFiltros('asis');
       const filtroNombre = document.getElementById('flt-asis-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-asis-cda')?.value || 'TODOS';
       const filtroEstado = document.getElementById('flt-asis-estado')?.value || 'TODOS';
@@ -1795,6 +1809,7 @@
         mapaAgrupado[key].push(m);
       });
 
+      const listaFechas = generarListaFechas(fechaDesdeStr, fechaHastaStr);
       const filasProcesadas = [];
 
       todosEmpleados.forEach(emp => {
@@ -1802,17 +1817,15 @@
           return;
         }
 
-        const keysEmp = Object.keys(mapaAgrupado).filter(k => k.startsWith(`${emp.id}_`));
+        listaFechas.forEach(fechaCorta => {
+          const key = `${emp.id}_${fechaCorta}`;
+          const misMarcaciones = mapaAgrupado[key];
 
-        if (keysEmp.length > 0) {
-          keysEmp.forEach(k => {
-            const misMarcaciones = mapaAgrupado[k];
-            const fechaCorta = k.split('_')[1];
+          if (misMarcaciones && misMarcaciones.length > 0) {
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
             let tipoEntradaCDA = '-', tipoEntradaDescanso = '-', tipoSalidaDescanso = '-', tipoSalidaCDA = '-';
             let primaryId = misMarcaciones[0]?.id;
             
-            // FILTRO DE NOVEDAD LIMPIA: Oculta textos automáticos del sistema o basura previa
             let rawNov = misMarcaciones[0]?.novedad || '';
             let textoNovedadActual = (rawNov.includes('ESTRICTA') || rawNov.includes('VERIFICACIÓN')) ? '' : rawNov;
 
@@ -1867,23 +1880,23 @@
               fotos, gpsList, estadoHtml, estadoFiltroKey, textoNovedadActual,
               laboro: true
             });
-          });
-        } else {
-          if (emp.activo === false) return;
-          const esHoy = (fechaHastaStr === hoyStr);
-          const estadoFiltroKey = esHoy ? 'NO_HA_MARCADO' : 'NO_LABORO';
-          const estadoHtml = esHoy 
-            ? `<span class="px-2.5 py-1 rounded text-[10px] bg-yellow-950 text-yellow-400 border border-yellow-500/40 font-bold tracking-wide">NO HA MARCADO</span>`
-            : `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider">NO LABORÓ</span>`;
+          } else {
+            if (emp.activo === false) return;
+            const esHoy = (fechaCorta === hoyStr);
+            const estadoFiltroKey = esHoy ? 'NO_HA_MARCADO' : 'NO_LABORO';
+            const estadoHtml = esHoy 
+              ? `<span class="px-2.5 py-1 rounded text-[10px] bg-yellow-950 text-yellow-400 border border-yellow-500/40 font-bold tracking-wide">NO HA MARCADO</span>`
+              : `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/40 font-black tracking-wider">NO LABORÓ</span>`;
 
-          filasProcesadas.push({
-            emp, fecha: fechaHastaStr, primaryId: null,
-            entradaCDA: null, entradaDescanso: null, salidaDescanso: null, salidaCDA: null,
-            tipoRegistroStr: 'Sin registros',
-            fotos: [], gpsList: [], estadoHtml, estadoFiltroKey, textoNovedadActual: '',
-            laboro: false, esHoy
-          });
-        }
+            filasProcesadas.push({
+              emp, fecha: fechaCorta, primaryId: null,
+              entradaCDA: null, entradaDescanso: null, salidaDescanso: null, salidaCDA: null,
+              tipoRegistroStr: 'Sin registros',
+              fotos: [], gpsList: [], estadoHtml, estadoFiltroKey, textoNovedadActual: '',
+              laboro: false, esHoy
+            });
+          }
+        });
       });
 
       filasProcesadas.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
@@ -1950,7 +1963,7 @@
       const tbody = document.getElementById('tabla-llegadas-tardes-body');
       tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Verificando puntualidad...</td></tr>`;
 
-      const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('tardes');
+      const { inicioStr, finStr, fechaDesdeStr, fechaHastaStr } = obtenerRangoFiltros('tardes');
       const filtroNombre = document.getElementById('flt-tardes-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-tardes-cda')?.value || 'TODOS';
       const filtroEstado = document.getElementById('flt-tardes-estado')?.value || 'TODOS';
@@ -1976,7 +1989,16 @@
         .gte('fecha_hora', inicioStr)
         .lte('fecha_hora', finStr);
 
+      const mapaEntradas = {};
+      (entradas || []).forEach(m => {
+        const fechaCorta = m.fecha_hora.split('T')[0];
+        const key = `${m.empleado_id}_${fechaCorta}`;
+        if (!mapaEntradas[key]) mapaEntradas[key] = [];
+        mapaEntradas[key].push(m);
+      });
+
       const opcionesHoras = generarOpcionesHoras24h();
+      const listaFechas = generarListaFechas(fechaDesdeStr, fechaHastaStr);
       const reporte = [];
 
       todosEmpleados.forEach(emp => {
@@ -1984,43 +2006,45 @@
           return;
         }
 
-        const misEntradas = (entradas || []).filter(m => String(m.empleado_id) === String(emp.id));
         const horaEstipuladaBase = emp.hora_entrada_estipulada ? (emp.hora_entrada_estipulada.length === 5 ? emp.hora_entrada_estipulada + ':00' : emp.hora_entrada_estipulada) : "07:00:00";
 
-        if (misEntradas.length > 0) {
-          misEntradas.forEach(m => {
-            const fechaObj = new Date(m.fecha_hora);
-            const fechaCorta = m.fecha_hora.split('T')[0];
-            const horaRealStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
-            
-            const horaEstipulada = horaEstipuladaBase;
+        listaFechas.forEach(fechaCorta => {
+          const key = `${emp.id}_${fechaCorta}`;
+          const misEntradas = mapaEntradas[key];
 
-            const [hRef, mRef] = horaEstipulada.split(':').map(Number);
-            const [hReal, mReal] = horaRealStr.split(':').map(Number);
+          if (misEntradas && misEntradas.length > 0) {
+            misEntradas.forEach(m => {
+              const fechaObj = new Date(m.fecha_hora);
+              const horaRealStr = fechaObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+              const horaEstipulada = horaEstipuladaBase;
 
-            const minutosRef = hRef * 60 + mRef;
-            const minutosReal = hReal * 60 + mReal;
-            const diffMinutos = minutosReal - minutosRef;
-            const esTarde = diffMinutos > 5;
+              const [hRef, mRef] = horaEstipulada.split(':').map(Number);
+              const [hReal, mReal] = horaRealStr.split(':').map(Number);
 
-            let rawNov = m.novedad || '';
-            let textoNovedadActual = (rawNov.includes('ESTRICTA') || rawNov.includes('VERIFICACIÓN')) ? '' : rawNov;
+              const minutosRef = hRef * 60 + mRef;
+              const minutosReal = hReal * 60 + mReal;
+              const diffMinutos = minutosReal - minutosRef;
+              const esTarde = diffMinutos > 5;
 
-            reporte.push({
-              emp, fecha: fechaCorta, horaRealStr, horaEstipulada, esTarde, primaryId: m.id,
-              minutosRetraso: diffMinutos > 0 ? diffMinutos : 0,
-              textoNovedadActual,
-              laboro: true
+              let rawNov = m.novedad || '';
+              let textoNovedadActual = (rawNov.includes('ESTRICTA') || rawNov.includes('VERIFICACIÓN')) ? '' : rawNov;
+
+              reporte.push({
+                emp, fecha: fechaCorta, horaRealStr, horaEstipulada, esTarde, primaryId: m.id,
+                minutosRetraso: diffMinutos > 0 ? diffMinutos : 0,
+                textoNovedadActual,
+                laboro: true
+              });
             });
-          });
-        } else {
-          if (emp.activo === false) return;
-          const esHoy = (fechaHastaStr === hoyStr);
-          reporte.push({
-            emp, fecha: fechaHastaStr, horaRealStr: '---', horaEstipulada: horaEstipuladaBase, esTarde: false, primaryId: null,
-            minutosRetraso: 0, textoNovedadActual: '', laboro: false, esHoy
-          });
-        }
+          } else {
+            if (emp.activo === false) return;
+            const esHoy = (fechaCorta === hoyStr);
+            reporte.push({
+              emp, fecha: fechaCorta, horaRealStr: '---', horaEstipulada: horaEstipuladaBase, esTarde: false, primaryId: null,
+              minutosRetraso: 0, textoNovedadActual: '', laboro: false, esHoy
+            });
+          }
+        });
       });
 
       reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
@@ -2098,7 +2122,7 @@
       const tbody = document.getElementById('tabla-horas-extras-body');
       tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando horas extra...</td></tr>`;
 
-      const { inicioStr, finStr, fechaHastaStr } = obtenerRangoFiltros('extra');
+      const { inicioStr, finStr, fechaDesdeStr, fechaHastaStr } = obtenerRangoFiltros('extra');
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
       const filtroCDA = document.getElementById('flt-extra-cda')?.value || 'TODOS';
       const filtroEstado = document.getElementById('flt-extra-estado')?.value || 'TODOS';
@@ -2134,6 +2158,7 @@
         mapaAgrupado[key].push(m);
       });
 
+      const listaFechas = generarListaFechas(fechaDesdeStr, fechaHastaStr);
       const reporte = [];
 
       todosEmpleados.forEach(emp => {
@@ -2141,13 +2166,13 @@
           return;
         }
 
-        const keysEmp = Object.keys(mapaAgrupado).filter(k => k.startsWith(`${emp.id}_`));
         const horaEstipuladaBase = emp.hora_entrada_estipulada ? (emp.hora_entrada_estipulada.length === 5 ? emp.hora_entrada_estipulada + ':00' : emp.hora_entrada_estipulada) : "07:00:00";
 
-        if (keysEmp.length > 0) {
-          keysEmp.forEach(k => {
-            const misMarcaciones = mapaAgrupado[k];
-            const fechaCorta = k.split('_')[1];
+        listaFechas.forEach(fechaCorta => {
+          const key = `${emp.id}_${fechaCorta}`;
+          const misMarcaciones = mapaAgrupado[key];
+
+          if (misMarcaciones && misMarcaciones.length > 0) {
             let entradaCDA = null, entradaDescanso = null, salidaDescanso = null, salidaCDA = null;
             let primaryId = misMarcaciones[0]?.id;
             
@@ -2222,20 +2247,23 @@
                 laboro: true
               });
             }
-          });
-        } else {
-          if (emp.activo === false) return;
-          const esHoy = (fechaHastaStr === hoyStr);
-          reporte.push({
-            emp, fecha: fechaHastaStr, primaryId: null, entradaRealStr: '---', estipuladaLimpiaStr: horaEstipuladaBase.substring(0, 5), salidaCDAStr: '---', 
-            descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
-            tieneExtras: false, tieneLaboradas: false,
-            estadoTexto: esHoy ? "NO HA MARCADO" : "NO LABORÓ",
-            estadoFiltroKey: esHoy ? "NO_HA_MARCADO" : "NO_LABORO",
-            textoNovedadActual: '',
-            laboro: false, esHoy
-          });
-        }
+          } else {
+            if (emp.activo === false) return;
+            const esHoy = (fechaCorta === hoyStr);
+            const estadoTxt = esHoy ? "NO HA MARCADO" : "NO LABORÓ";
+            const estadoKey = esHoy ? "NO_HA_MARCADO" : "NO_LABORO";
+            
+            reporte.push({
+              emp, fecha: fechaCorta, primaryId: null, entradaRealStr: '---', estipuladaLimpiaStr: horaEstipuladaBase.substring(0, 5), salidaCDAStr: '---', 
+              descansoFormatted: "00h 00m", laboradasFormatted: "00h 00m", extrasFormatted: "00h 00m",
+              tieneExtras: false, tieneLaboradas: false,
+              estadoTexto: estadoTxt,
+              estadoFiltroKey: estadoKey,
+              textoNovedadActual: '',
+              laboro: false, esHoy
+            });
+          }
+        });
       });
 
       reporte.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.emp.nombre.localeCompare(b.emp.nombre));
