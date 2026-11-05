@@ -640,7 +640,7 @@
                     <th class="p-2.5 text-rose-400">Salida CDA</th>
                     <th class="p-2.5 text-amber-400">Descanso Descontado (HH:MM)</th>
                     <th class="p-2.5 text-lime-400 font-bold">Horas Laboradas Netas (HH:MM)</th>
-                    <th class="p-2.5 text-amber-400">Horas Extra Netas (Base 7h, Regla Franja)</th>
+                    <th class="p-2.5 text-amber-400">Horas Extra Netas (Regla 15m/40m)</th>
                     <th class="p-2.5">Estado</th>
                     <th class="p-2.5">Novedades y Justificaciones</th>
                   </tr>
@@ -664,7 +664,7 @@
               </div>
               <div>
                 <h1 class="text-xl font-black text-white">NÓMINA Y REPORTE QUINCENAL</h1>
-                <p class="text-xs text-zinc-400">Jornada Nocturna (Desde las 7:00 p.m. / 19:00 - Recargo 75%), Recargo Dominical/Festivo y Auxilio de Transporte Oficial (Decreto 1470 de 2025)</p>
+                <p class="text-xs text-zinc-400">Jornada Nocturna (Desde las 9:00 p.m. - Recargo 75%), Auxilio de Transporte Oficial y Salarios Base Parametrizados</p>
               </div>
             </div>
             
@@ -755,7 +755,7 @@
 
           <!-- CONTENEDOR DINÁMICO DE NÓMINA POR EMPLEADO -->
           <div id="contenedor-nomina-empleados" class="space-y-6">
-            <!-- Se inyecta dinámicamente con horas, recargos dominicales y selector de novedades -->
+            <!-- Se inyecta dinámicamente con horas de entrada, salida, extras y selector de novedad -->
           </div>
 
         </div>
@@ -864,19 +864,16 @@
       return `${String(hrs).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m`;
     }
 
-    /* Regla exacta para cálculo de horas extras por franjas */
-    function calcularHorasExtrasPorFranja(minutosExtraBrutos) {
-      if (!minutosExtraBrutos || minutosExtraBrutos <= 0) return 0;
-      let horasCalculadas = 0;
-      if (minutosExtraBrutos <= 15) {
-        horasCalculadas = 0;
-      } else if (minutosExtraBrutos <= 40) {
-        horasCalculadas = 0.5;
+    /* Regla de cálculo de horas extra por tramos (15m y 40m) */
+    function calcularMinutosExtrasSegunRegla(minutosExcedenteBruto) {
+      if (!minutosExcedenteBruto || minutosExcedenteBruto <= 15) {
+        return 0; // Si es menor o igual a 15 min, no cuenta como extra
+      } else if (minutosExcedenteBruto > 15 && minutosExcedenteBruto <= 40) {
+        return 30; // Entre 15 min y 40 min cuenta exactamente como media hora (30 min)
       } else {
-        horasCalculadas = Math.round(minutosExtraBrutos / 60 * 2) / 2;
-        if (horasCalculadas < 1) horasCalculadas = 1;
+        // Supera los 40 minutos: se redondea hacia arriba a la hora completa (60 min) o múltiplos según corresponda
+        return Math.ceil(minutosExcedenteBruto / 60) * 60;
       }
-      return horasCalculadas;
     }
 
     function generarOpcionesHoras24h() {
@@ -1088,7 +1085,7 @@
         video.onloadedmetadata = async () => {
           try { await video.play(); } catch(e) {}
           isProcessingScan = false;
-          document.getElementById('scan-status').innerText = "👤 Mira de frente a la cámara...";
+          document.getElementById('scan-status').innerText = "👤 Mira de frente à la cámara...";
           iniciarBucleEscaneo();
         };
       } catch (e) {
@@ -2283,7 +2280,7 @@
       }
     }
 
-    /* SEGUIMIENTO HORAS EXTRA (CON REGLA DE FRANJAS) */
+    /* SEGUIMIENTO HORAS EXTRA */
 
     function limpiarFiltrosHorasExtras() {
       setFechasHoyFiltros();
@@ -2297,7 +2294,7 @@
       if (!supabaseClient) return;
 
       const tbody = document.getElementById('tabla-horas-extras-body');
-      tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando horas extra por franjas...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-zinc-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Calculando horas extra...</td></tr>`;
 
       const { inicioStr, finStr, fechaDesdeStr, fechaHastaStr } = obtenerRangoFiltros('extra');
       const filtroNombre = document.getElementById('flt-extra-nombre')?.value.trim().toLowerCase() || '';
@@ -2394,10 +2391,12 @@
               }
 
               const tiempoNetoMs = Math.max(0, tiempoTotalMs - tiempoDescansoMs);
-              const tiempoExtrasMs = tiempoNetoMs > JORNADA_BASE_MS ? (tiempoNetoMs - JORNADA_BASE_MS) : 0;
-              const minutosExtrasBrutos = Math.floor(tiempoExtrasMs / (1000 * 60));
               
-              const horasExtrasFranja = calcularHorasExtrasPorFranja(minutosExtrasBrutos);
+              // Aplicación rigurosa de la nueva regla de horas extra (15m y 40m)
+              const tiempoExcedenteBrutoMs = tiempoNetoMs > JORNADA_BASE_MS ? (tiempoNetoMs - JORNADA_BASE_MS) : 0;
+              const minutosExcedenteBruto = Math.floor(tiempoExcedenteBrutoMs / (1000 * 60));
+              const minutosExtrasAplicados = calcularMinutosExtrasSegunRegla(minutosExcedenteBruto);
+              const tiempoExtrasMs = minutosExtrasAplicados * 60 * 1000;
 
               const entradaRealStr = entradaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
               const estipuladaLimpiaStr = horaEstipuladaStr.substring(0, 5);
@@ -2409,8 +2408,8 @@
                 salidaCDAStr: salidaCDA.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false }),
                 descansoFormatted: formatearMsAHorasMinutos(tiempoDescansoMs),
                 laboradasFormatted: formatearMsAHorasMinutos(tiempoNetoMs),
-                extrasFormatted: `${horasExtrasFranja}h 00m`,
-                tieneExtras: horasExtrasFranja > 0,
+                extrasFormatted: formatearMinutosAHorasMinutos(minutosExtrasAplicados),
+                tieneExtras: minutosExtrasAplicados > 0,
                 tieneLaboradas: tiempoNetoMs > 0,
                 estadoTexto: "Jornada completa exitosa",
                 estadoFiltroKey: "JORNADA_EXITOSA",
@@ -2494,7 +2493,7 @@
       }).join('');
     }
 
-    /* MÓDULO DE NÓMINA QUINCENAL DINÁMICO (INCLUYENDO DOMINGOS/FESTIVOS Y NOCTURNA DESDE LAS 7 PM / 19:00) */
+    /* MÓDULO DE NÓMINA QUINCENAL DINÁMICO ACTUALIZADO Y MEJORADO (CON DOMINGOS Y FESTIVOS INCLUIDOS) */
 
     async function precargarDatosNomina() {
       if (!supabaseClient) return;
@@ -2557,7 +2556,7 @@
       }
 
       tbody.innerHTML = cacheEmpleadosNomina.map(e => {
-        const salarioActual = cacheSalariosBase[e.id] || 1850000;
+        const salarioActual = cacheSalariosBase[e.id] || 2300000;
         return `
           <tr class="hover:bg-zinc-800/30">
             <td class="p-3 font-bold text-white">${e.nombre}</td>
@@ -2578,7 +2577,7 @@
 
     function guardarSalarioBase(id, nombre) {
       const val = document.getElementById(`base-${id}`).value;
-      cacheSalariosBase[id] = parseFloat(val) || 1850000;
+      cacheSalariosBase[id] = parseFloat(val) || 2300000;
       alert(`✅ Salario base actualizado correctamente para ${nombre}. Sincronizado en la liquidación.`);
       renderNominaGeneral();
     }
@@ -2619,15 +2618,13 @@
       const periodoTexto = ciclo === 'q1' ? `Q1 (Días 01 al 15 - ${mes}/${anio})` : `Q2 (Días 16 al ${diaFin} - ${mes}/${anio})`;
 
       contenedor.innerHTML = filtrados.map(emp => {
-        const salarioBaseMensual = cacheSalariosBase[emp.id] || 1850000;
-        const valorAuxTransporteDiario = Math.round(249095 / 30); // Base decreto 2026: $8.303 diarios
+        const salarioBaseMensual = cacheSalariosBase[emp.id] || 2300000;
+        const valorAuxTransporteDiario = Math.round(249095 / 30); // Base decreto oficial
 
         let totalMinutosLaboradosNetos = 0;
-        let totalHorasExtrasDiurnasFranja = 0;
-        let totalHorasExtrasNocturnasFranja = 0;
-        let diasCalendarioCount = listaFechas.length; 
-        let diasLaboradosEfectivos = 0;
-        let horasDominicalesFestivasTrabajadas = 0;
+        let totalMinutosExtrasDiurnas = 0;
+        let totalMinutosExtrasNocturnas = 0;
+        let diasRemuneradosCount = 0; // Incluye días laborados + domingos/festivos pagados por ley
 
         const filasDiasHtml = listaFechas.map((fechaCorta, idx) => {
           const keyMap = `${emp.id}_${fechaCorta}`;
@@ -2637,12 +2634,11 @@
           let entradaStr = '---', salidaStr = '---';
           let laboradasStr = '00h 00m', extrasStr = '00h 00m';
           let estadoDiaHtml = '';
+          let esDiaRemuneradoValido = false;
 
           if (marcacionesDia.length > 0) {
-            diasLaboradosEfectivos++;
-            if (festivoDom.esFestivoDom) {
-              horasDominicalesFestivasTrabajadas += 7; 
-            }
+            esDiaRemuneradoValido = true;
+            diasRemuneradosCount++;
 
             let entObj = null, salObj = null, entDesc = null, salDesc = null;
             marcacionesDia.forEach(m => {
@@ -2674,26 +2670,31 @@
               const jornadaBaseMs = 7 * 60 * 60 * 1000;
               if (netoMs > jornadaBaseMs) {
                 const extraMs = netoMs - jornadaBaseMs;
-                const minExtraBrutos = Math.floor(extraMs / (1000 * 60));
-                const horasFranja = calcularHorasExtrasPorFranja(minutosExtraBrutos);
-
-                if (horasFranja > 0) {
-                  // Regla actualizada: Hora extra nocturna a partir de las 7:00 p.m. (19:00 horas)
-                  if (salObj.getHours() >= 19) {
-                    totalHorasExtrasNocturnasFranja += horasFranja;
-                    extrasStr = `+${horasFranja}h Extra Nocturna (Recargo 75%)`;
+                const minExcedenteBruto = Math.floor(extraMs / (1000 * 60));
+                const minExtraAplicado = calcularMinutosExtrasSegunRegla(minExcedenteBruto);
+                
+                if (minExtraAplicado > 0) {
+                  if (salObj.getHours() >= 21) {
+                    totalMinutosExtrasNocturnas += minExtraAplicado;
+                    extrasStr = `+${formatearMinutosAHorasMinutos(minExtraAplicado)} Extra Nocturna (75%)`;
                   } else {
-                    totalHorasExtrasDiurnasFranja += horasFranja;
-                    extrasStr = `+${horasFranja}h Extra Diurna (Recargo 25%)`;
+                    totalMinutosExtrasDiurnas += minExtraAplicado;
+                    extrasStr = `+${formatearMinutosAHorasMinutos(minExtraAplicado)} Extra Diurna (25%)`;
                   }
                 }
               }
             }
 
-            estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-bold">LABORADO</span>`;
-          } else {
             if (festivoDom.esFestivoDom) {
-              estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-purple-950 text-purple-400 border border-purple-500/30 font-bold">${festivoDom.tipo} (Descanso)</span>`;
+              estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-purple-950 text-purple-400 border border-purple-500/30 font-bold">${festivoDom.tipo} LABORADO (Recargo)</span>`;
+            } else {
+              estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-bold">LABORADO</span>`;
+            }
+          } else {
+            // Día sin marcación: Por ley laboral colombiana (Art. 172-178 CST), el descanso dominical y festivo es remunerado e integra el salario ordinario mensual.
+            if (festivoDom.esFestivoDom) {
+              diasRemuneradosCount++; // Se incluye por ley en el pago quincenal/mensual
+              estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-500/30 font-bold">DESCANSO ${festivoDom.tipo} (Remunerado Ley)</span>`;
             } else {
               estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30 font-bold">NO LABORÓ / AUSENTE</span>`;
             }
@@ -2705,7 +2706,7 @@
           return `
             <tr class="hover:bg-zinc-800/30">
               <td class="p-3 font-mono text-center font-bold text-zinc-400">${idx + 1}</td>
-              <td class="p-3 font-mono text-zinc-300 font-bold">${fechaCorta} ${festivoDom.esFestivoDom ? `<span class="text-purple-400 text-[10px]">(${festivoDom.tipo})</span>` : ''}</td>
+              <td class="p-3 font-mono text-zinc-300 font-bold">${fechaCorta}</td>
               <td class="p-3 font-mono text-lime-400">${entradaStr}</td>
               <td class="p-3 font-mono text-rose-400">${salidaStr}</td>
               <td class="p-3 font-mono font-bold text-lime-400">${laboradasStr}</td>
@@ -2734,20 +2735,16 @@
         }).join('');
 
         const valorHoraOrdinaria = salarioBaseMensual / 240;
-        
-        const subtotalDevengadoQuincena = (salarioBaseMensual / 30) * (diasCalendarioCount / 2);
-        const totalAuxTransporteQuincenal = diasLaboradosEfectivos * valorAuxTransporteDiario;
+        const subtotalDevengadoDias = diasRemuneradosCount * (salarioBaseMensual / 30);
+        const totalAuxTransporteQuincenal = diasRemuneradosCount * valorAuxTransporteDiario;
         
         const valorHoraExtraDiurna = valorHoraOrdinaria * 1.25; 
         const valorHoraExtraNocturna = valorHoraOrdinaria * 1.75; 
-        const totalPagoExtras = (totalHorasExtrasDiurnasFranja * valorHoraExtraDiurna) + (totalHorasExtrasNocturnasFranja * valorHoraExtraNocturna);
+        const totalPagoExtras = (totalMinutosExtrasDiurnas / 60 * valorHoraExtraDiurna) + (totalMinutosExtrasNocturnas / 60 * valorHoraExtraNocturna);
 
-        const valorHoraDominicalFestiva = valorHoraOrdinaria * 1.90;
-        const totalPagoDominicalesFestivos = horasDominicalesFestivasTrabajadas * valorHoraDominicalFestiva;
-
-        const totalIngresos = subtotalDevengadoQuincena + totalAuxTransporteQuincenal + totalPagoExtras + totalPagoDominicalesFestivos;
-        const deduccionSalud = Math.round(subtotalDevengadoQuincena * 0.04);
-        const deduccionPension = Math.round(subtotalDevengadoQuincena * 0.04);
+        const totalIngresos = subtotalDevengadoDias + totalAuxTransporteQuincenal + totalPagoExtras;
+        const deduccionSalud = Math.round(subtotalDevengadoDias * 0.04);
+        const deduccionPension = Math.round(subtotalDevengadoDias * 0.04);
         const totalDeducciones = deduccionSalud + deduccionPension;
         const netoPagar = totalIngresos - totalDeducciones;
 
@@ -2765,7 +2762,7 @@
               <span class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-lg font-mono border border-zinc-700">Ciclo Quincenal: ${periodoTexto}</span>
             </div>
 
-            <!-- TABLA DIARIA CON DOMINGOS, FESTIVOS Y NOVEDADES -->
+            <!-- TABLA DIARIA RESTAURADA CON DOMINGOS Y FESTIVOS INCLUIDOS -->
             <div class="overflow-x-auto max-h-72 overflow-y-auto">
               <table class="w-full text-left text-xs text-zinc-300 whitespace-nowrap">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800 sticky top-0">
@@ -2775,7 +2772,7 @@
                     <th class="p-3 text-lime-400">Hora Entrada</th>
                     <th class="p-3 text-rose-400">Hora Salida</th>
                     <th class="p-3 text-lime-400">Horas Laboradas Netas</th>
-                    <th class="p-3 text-amber-400">Horas Extra (Regla Franja)</th>
+                    <th class="p-3 text-amber-400">Horas Extra (Regla 15m/40m)</th>
                     <th class="p-3">Estado del Día</th>
                     <th class="p-3">Tipo de Novedad / Permisos / Otro</th>
                   </tr>
@@ -2786,7 +2783,7 @@
               </table>
             </div>
 
-            <!-- CALCULADORA DE LIQUIDACIÓN QUINCENAL -->
+            <!-- CALCULADORA DE LIQUIDACIÓN QUINCENAL (ACTUALIZADA) -->
             <div class="bg-zinc-950 border border-lime-500/30 p-4 rounded-xl space-y-4">
               <div class="flex justify-between items-center flex-wrap gap-2 border-b border-zinc-800 pb-2">
                 <h4 class="text-xs font-bold text-lime-400 uppercase tracking-wider">
@@ -2810,34 +2807,28 @@
                   </thead>
                   <tbody class="divide-y divide-zinc-800/50 font-mono text-xs">
                     <tr>
-                      <td class="p-2.5 text-white font-sans font-semibold">Sueldo Básico Quincenal (Incluye Domingos y Festivos Calendario)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${diasCalendarioCount} días calendario (Quincena)</td>
+                      <td class="p-2.5 text-white font-sans font-semibold">Días Remunerados Quincena (Efectivos + Descansos Ley / Festivos)</td>
+                      <td class="p-2.5 text-center text-zinc-300">${diasRemuneradosCount} días remunerados</td>
                       <td class="p-2.5 text-right text-zinc-400">${formatoPesos(salarioBaseMensual / 30)} / día</td>
-                      <td class="p-2.5 text-right text-lime-400 font-bold">${formatoPesos(subtotalDevengadoQuincena)}</td>
+                      <td class="p-2.5 text-right text-lime-400 font-bold">${formatoPesos(subtotalDevengadoDias)}</td>
                     </tr>
                     <tr>
-                      <td class="p-2.5 text-white font-sans font-semibold">Auxilio de Transporte Oficial (<span class="text-amber-400">Decreto 1470 de 2025</span>)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${diasLaboradosEfectivos} días laborados efectivos</td>
+                      <td class="p-2.5 text-white font-sans font-semibold">Auxilio de Transporte Oficial (Decreto Vigente)</td>
+                      <td class="p-2.5 text-center text-zinc-300">${diasRemuneradosCount} días remunerados</td>
                       <td class="p-2.5 text-right text-zinc-400">${formatoPesos(valorAuxTransporteDiario)} / día</td>
                       <td class="p-2.5 text-right text-lime-400 font-bold">${formatoPesos(totalAuxTransporteQuincenal)}</td>
                     </tr>
                     <tr>
-                      <td class="p-2.5 text-white font-sans font-semibold">Recargo Domingos y Festivos Lab. (90%)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${horasDominicalesFestivasTrabajadas} horas festivas/dom.</td>
-                      <td class="p-2.5 text-right text-zinc-400">${formatoPesos(valorHoraDominicalFestiva)} / hora</td>
-                      <td class="p-2.5 text-right text-amber-400 font-bold">${formatoPesos(totalPagoDominicalesFestivos)}</td>
-                    </tr>
-                    <tr>
-                      <td class="p-2.5 text-white font-sans font-semibold">Horas Extras Diurnas (Regla Franja - 25%)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${totalHorasExtrasDiurnasFranja} horas extra</td>
+                      <td class="p-2.5 text-white font-sans font-semibold">Horas Extras Diurnas (Regla 15m/40m - Recargo 25%)</td>
+                      <td class="p-2.5 text-center text-zinc-300">${formatearMinutosAHorasMinutos(totalMinutosExtrasDiurnas)}</td>
                       <td class="p-2.5 text-right text-zinc-400">${formatoPesos(valorHoraExtraDiurna)} / hora</td>
-                      <td class="p-2.5 text-right text-amber-400 font-bold">${formatoPesos(totalHorasExtrasDiurnasFranja * valorHoraExtraDiurna)}</td>
+                      <td class="p-2.5 text-right text-amber-400 font-bold">${formatoPesos(totalMinutosExtrasDiurnas / 60 * valorHoraExtraDiurna)}</td>
                     </tr>
                     <tr>
-                      <td class="p-2.5 text-white font-sans font-semibold">Horas Extras Nocturnas (Regla Franja desde las 7 PM - 75%)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${totalHorasExtrasNocturnasFranja} horas extra</td>
+                      <td class="p-2.5 text-white font-sans font-semibold">Horas Extras Nocturnas (Regla 15m/40m - Recargo 75%)</td>
+                      <td class="p-2.5 text-center text-zinc-300">${formatearMinutosAHorasMinutos(totalMinutosExtrasNocturnas)}</td>
                       <td class="p-2.5 text-right text-zinc-400">${formatoPesos(valorHoraExtraNocturna)} / hora</td>
-                      <td class="p-2.5 text-right text-amber-400 font-bold">${formatoPesos(totalHorasExtrasNocturnasFranja * valorHoraExtraNocturna)}</td>
+                      <td class="p-2.5 text-right text-amber-400 font-bold">${formatoPesos(totalMinutosExtrasNocturnas / 60 * valorHoraExtraNocturna)}</td>
                     </tr>
                     <tr class="bg-rose-950/10">
                       <td class="p-2.5 text-rose-300 font-sans font-semibold">Deducción Aporte Salud (4% a cargo del empleado)</td>
