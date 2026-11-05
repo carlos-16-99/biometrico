@@ -2878,31 +2878,161 @@
       cacheNovedadesManualesNomina[key] = { estado, nota };
     }
 
-    function exportarNominaExcel() {
-      alert("📥 Exportando reporte detallado de nómina general a Excel...");
+function exportarNominaExcel() {
+      if (!cacheEmpleadosNomina || cacheEmpleadosNomina.length === 0) {
+        alert("⚠️ No hay datos de nómina cargados para exportar.");
+        return;
+      }
+
+      const anio = document.getElementById('nom-filtro-anio').value;
+      const mes = document.getElementById('nom-filtro-mes').value;
+      const ciclo = document.getElementById('nom-filtro-ciclo').value;
+      const cdaFiltro = document.getElementById('nom-filtro-cda').value;
+      const empFiltro = document.getElementById('nom-filtro-empleado').value;
+
+      let diaInicio = (ciclo === 'q1') ? 1 : 16;
+      let diaFin = (ciclo === 'q1') ? 15 : (mes === '02' ? 28 : ['04','06','09','11'].includes(mes) ? 30 : 31);
+
+      const listaFechas = [];
+      for (let d = diaInicio; d <= diaFin; d++) {
+        const dd = String(d).padStart(2, '0');
+        listaFechas.push(`${anio}-${mes}-${dd}`);
+      }
+
+      const filtrados = cacheEmpleadosNomina.filter(e => {
+        if (cdaFiltro !== 'TODOS' && !(e.cda_nombre || '').toLowerCase().includes(cdaFiltro.toLowerCase())) return false;
+        if (empFiltro !== 'TODOS' && e.id !== empFiltro) return false;
+        return true;
+      });
+
+      const datosExcel = [];
+      datosExcel.push([`REPORTE DE NÓMINA QUINCENAL - CDA MOTOS S.A.S.`]);
+      datosExcel.push([`Ciclo: ${ciclo.toUpperCase()} (${diaInicio} al ${diaFin}) - Mes: ${mes}/${anio}`]);
+      datosExcel.push([]); // Espacio en blanco
+
+      // Cabecera principal de la tabla consolidada
+      datosExcel.push([
+        "Documento (CC/NIT)",
+        "Nombre Completo",
+        "Cargo",
+        "CDA / CEA",
+        "Salario Base Mensual",
+        "Días Remunerados",
+        "Subtotal Devengado Días",
+        "Auxilio Transporte Quincenal",
+        "Minutos Extras Diurnas",
+        "Pago Extras Diurnas",
+        "Minutos Extras Nocturnas",
+        "Pago Extras Nocturnas",
+        "Total Ingresos Devengados",
+        "Deducción Salud (4%)",
+        "Deducción Pensión (4%)",
+        "Total Deducciones",
+        "NETO A PAGAR QUINCENA"
+      ]);
+
+      filtrados.forEach(emp => {
+        const salarioBaseMensual = cacheSalariosBase[emp.id] || 2300000;
+        const valorAuxTransporteDiario = Math.round(249095 / 30);
+
+        let totalMinutosLab = 0;
+        let totalMinExtDiurnas = 0;
+        let totalMinExtNocturnas = 0;
+        let diasRemunerados = 0;
+
+        listaFechas.forEach(fechaCorta => {
+          const keyMap = `${emp.id}_${fechaCorta}`;
+          const marcacionesDia = cacheAsistenciasNomina[keyMap] || [];
+          const festivoDom = esFestivoOdomingo(fechaCorta);
+
+          if (marcacionesDia.length > 0) {
+            diasRemunerados++;
+            let entObj = null, salObj = null, entDesc = null, salDesc = null;
+            marcacionesDia.forEach(m => {
+              const dObj = new Date(m.fecha_hora);
+              if (m.tipo === 'Entrada al CDA' && !entObj) entObj = dObj;
+              if (m.tipo === 'Entrada Descanso') entDesc = dObj;
+              if (m.tipo === 'Salida Descanso') salDesc = dObj;
+              if (m.tipo === 'Salida del CDA') salObj = dObj;
+            });
+
+            if (entObj && salObj) {
+              const [hRef, mRef] = (emp.hora_entrada_estipulada || "07:00:00").split(':').map(Number);
+              const estipulada = new Date(entObj);
+              estipulada.setHours(hRef, mRef, 0, 0);
+
+              let inicioConteo = entObj < estipulada ? estipulada : entObj;
+              let totalMs = salObj - inicioConteo;
+              if (totalMs < 0) totalMs = 0;
+
+              let descMs = (entDesc && salDesc && salDesc > entDesc) ? (salDesc - entDesc) : (1 * 60 * 60 * 1000);
+              let netoMs = Math.max(0, totalMs - descMs);
+              totalMinutosLab += Math.floor(netoMs / (1000 * 60));
+
+              const jornadaBaseMs = 7 * 60 * 60 * 1000;
+              if (netoMs > jornadaBaseMs) {
+                const extraMs = netoMs - jornadaBaseMs;
+                const minExcedenteBruto = Math.floor(extraMs / (1000 * 60));
+                const minExtraAplicado = calcularMinutosExtrasSegunRegla(minExcedenteBruto);
+                
+                if (minExtraAplicado > 0) {
+                  if (salObj.getHours() >= 21) {
+                    totalMinExtNocturnas += minExtraAplicado;
+                  } else {
+                    totalMinExtDiurnas += minExtraAplicado;
+                  }
+                }
+              }
+            }
+          } else {
+            if (festivoDom.esFestivoDom) {
+              diasRemunerados++; // Descanso dominical/festivo remunerado por ley
+            }
+          }
+        });
+
+        const valorHoraOrdinaria = salarioBaseMensual / 240;
+        const subtotalDevengadoDias = diasRemunerados * (salarioBaseMensual / 30);
+        const totalAuxTransporteQuincenal = diasRemunerados * valorAuxTransporteDiario;
+        
+        const valorHoraExtraDiurna = valorHoraOrdinaria * 1.25; 
+        const valorHoraExtraNocturna = valorHoraOrdinaria * 1.75; 
+        const pagoExtrasDiurnas = (totalMinExtDiurnas / 60) * valorHoraExtraDiurna;
+        const pagoExtrasNocturnas = (totalMinExtNocturnas / 60) * valorHoraExtraNocturna;
+
+        const totalIngresos = subtotalDevengadoDias + totalAuxTransporteQuincenal + pagoExtrasDiurnas + pagoExtrasNocturnas;
+        const deduccionSalud = Math.round(subtotalDevengadoDias * 0.04);
+        const deduccionPension = Math.round(subtotalDevengadoDias * 0.04);
+        const totalDeducciones = deduccionSalud + deduccionPension;
+        const netoPagar = totalIngresos - totalDeducciones;
+
+        datosExcel.push([
+          emp.id,
+          emp.nombre,
+          emp.departamento || 'Operativo',
+          emp.cda_nombre || 'CDA MOTOS RUTA',
+          salarioBaseMensual,
+          diasRemunerados,
+          Math.round(subtotalDevengadoDias),
+          Math.round(totalAuxTransporteQuincenal),
+          totalMinExtDiurnas,
+          Math.round(pagoExtrasDiurnas),
+          totalMinExtNocturnas,
+          Math.round(pagoExtrasNocturnas),
+          Math.round(totalIngresos),
+          deduccionSalud,
+          deduccionPension,
+          totalDeducciones,
+          Math.round(netoPagar)
+        ]);
+      });
+
       const wb = XLSX.utils.book_new();
-      const ws_data = [["Reporte de Nómina Quincenal - CDA MOTOS S.A.S."]];
-      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      const ws = XLSX.utils.aoa_to_sheet(datosExcel);
       XLSX.utils.book_append_sheet(wb, ws, "NominaQuincenal");
-      XLSX.writeFile(wb, `Nomina_Quincenal_${getHoyInputString()}.xlsx`);
-    }
-
-    function exportarExcelAsistencias() {
-      const tabla = document.getElementById('tabla-asistencias-excel');
-      const wb = XLSX.utils.table_to_book(tabla, { sheet: "Asistencias" });
-      XLSX.writeFile(wb, `Reporte_Asistencias_${getHoyInputString()}.xlsx`);
-    }
-
-    function exportarExcelLlegadasTardes() {
-      const tabla = document.getElementById('tabla-tardes-excel');
-      const wb = XLSX.utils.table_to_book(tabla, { sheet: "LlegadasTardes" });
-      XLSX.writeFile(wb, `Reporte_Llegadas_Tardes_${getHoyInputString()}.xlsx`);
-    }
-
-    function exportarExcelHorasExtras() {
-      const tabla = document.getElementById('tabla-extras-excel');
-      const wb = XLSX.utils.table_to_book(tabla, { sheet: "HorasExtras" });
-      XLSX.writeFile(wb, `Reporte_Horas_Extras_${getHoyInputString()}.xlsx`);
+      
+      const nombreArchivo = `Nomina_Quincenal_${ciclo.toUpperCase()}_${mes}_${anio}.xlsx`;
+      XLSX.writeFile(wb, nombreArchivo);
     }
   </script>
 </body>
