@@ -2906,44 +2906,44 @@ function exportarNominaExcel() {
       });
 
       const datosExcel = [];
-      datosExcel.push([`REPORTE DE NÓMINA QUINCENAL - CDA MOTOS S.A.S.`]);
-      datosExcel.push([`Ciclo: ${ciclo.toUpperCase()} (${diaInicio} al ${diaFin}) - Mes: ${mes}/${anio}`]);
-      datosExcel.push([]); // Espacio en blanco
+      datosExcel.push([`REPORTE GENERAL DE NÓMINA QUINCENAL - CDA MOTOS S.A.S.`]);
+      datosExcel.push([`Ciclo: ${ciclo.toUpperCase()} (Días ${diaInicio} al ${diaFin}) - Mes: ${mes}/${anio}`]);
+      datosExcel.push([]); // Espacio
 
-      // Cabecera principal de la tabla consolidada
-      datosExcel.push([
-        "Documento (CC/NIT)",
-        "Nombre Completo",
-        "Cargo",
-        "CDA / CEA",
-        "Salario Base Mensual",
-        "Días Remunerados",
-        "Subtotal Devengado Días",
-        "Auxilio Transporte Quincenal",
-        "Minutos Extras Diurnas",
-        "Pago Extras Diurnas",
-        "Minutos Extras Nocturnas",
-        "Pago Extras Nocturnas",
-        "Total Ingresos Devengados",
-        "Deducción Salud (4%)",
-        "Deducción Pensión (4%)",
-        "Total Deducciones",
-        "NETO A PAGAR QUINCENA"
-      ]);
-
-      filtrados.forEach(emp => {
+      filtrados.forEach((emp, index) => {
         const salarioBaseMensual = cacheSalariosBase[emp.id] || 2300000;
         const valorAuxTransporteDiario = Math.round(249095 / 30);
+
+        datosExcel.push([`--- EMPLEADO #${index + 1}: ${emp.nombre} (CC: ${emp.id}) ---`]);
+        datosExcel.push([`Cargo: ${emp.departamento || 'Operativo'} | CDA/CEA: ${emp.cda_nombre || 'CDA MOTOS RUTA'} | Salario Base Mensual: $${salarioBaseMensual.toLocaleString('es-CO')}`]);
+        
+        // Cabecera de la tabla diaria del empleado
+        datosExcel.push([
+          "N°",
+          "Fecha",
+          "Hora Entrada",
+          "Hora Salida",
+          "Horas Laboradas Netas",
+          "Horas Extra",
+          "Estado del Día",
+          "Novedad / Observación"
+        ]);
 
         let totalMinutosLab = 0;
         let totalMinExtDiurnas = 0;
         let totalMinExtNocturnas = 0;
         let diasRemunerados = 0;
 
-        listaFechas.forEach(fechaCorta => {
+        listaFechas.forEach((fechaCorta, dIdx) => {
           const keyMap = `${emp.id}_${fechaCorta}`;
           const marcacionesDia = cacheAsistenciasNomina[keyMap] || [];
           const festivoDom = esFestivoOdomingo(fechaCorta);
+          const novedadKey = `${emp.id}_${fechaCorta}`;
+          const novedadActual = cacheNovedadesManualesNomina[novedadKey] || { estado: '', nota: '' };
+
+          let entradaStr = '---', salidaStr = '---';
+          let laboradasStr = '00h 00m', extrasStr = '00h 00m';
+          let estadoDiaTxt = 'NO LABORÓ / AUSENTE';
 
           if (marcacionesDia.length > 0) {
             diasRemunerados++;
@@ -2955,6 +2955,9 @@ function exportarNominaExcel() {
               if (m.tipo === 'Salida Descanso') salDesc = dObj;
               if (m.tipo === 'Salida del CDA') salObj = dObj;
             });
+
+            if (entObj) entradaStr = entObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+            if (salObj) salidaStr = salObj.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
 
             if (entObj && salObj) {
               const [hRef, mRef] = (emp.hora_entrada_estipulada || "07:00:00").split(':').map(Number);
@@ -2968,6 +2971,7 @@ function exportarNominaExcel() {
               let descMs = (entDesc && salDesc && salDesc > entDesc) ? (salDesc - entDesc) : (1 * 60 * 60 * 1000);
               let netoMs = Math.max(0, totalMs - descMs);
               totalMinutosLab += Math.floor(netoMs / (1000 * 60));
+              laboradasStr = formatearMsAHorasMinutos(netoMs);
 
               const jornadaBaseMs = 7 * 60 * 60 * 1000;
               if (netoMs > jornadaBaseMs) {
@@ -2978,19 +2982,37 @@ function exportarNominaExcel() {
                 if (minExtraAplicado > 0) {
                   if (salObj.getHours() >= 21) {
                     totalMinExtNocturnas += minExtraAplicado;
+                    extrasStr = `+${formatearMinutosAHorasMinutos(minExtraAplicado)} Extra Nocturna`;
                   } else {
                     totalMinExtDiurnas += minExtraAplicado;
+                    extrasStr = `+${formatearMinutosAHorasMinutos(minExtraAplicado)} Extra Diurna`;
                   }
                 }
               }
             }
+            estadoDiaTxt = festivoDom.esFestivoDom ? `${festivoDom.tipo} LABORADO` : 'LABORADO';
           } else {
             if (festivoDom.esFestivoDom) {
-              diasRemunerados++; // Descanso dominical/festivo remunerado por ley
+              diasRemunerados++;
+              estadoDiaTxt = `DESCANSO ${festivoDom.tipo} (Remunerado Ley)`;
             }
           }
+
+          let textoNovedadFila = novedadActual.estado ? `${novedadActual.estado} ${novedadActual.nota ? '- ' + novedadActual.nota : ''}` : '---';
+
+          datosExcel.push([
+            dIdx + 1,
+            fechaCorta,
+            entradaStr,
+            salidaStr,
+            laboradasStr,
+            extrasStr,
+            estadoDiaTxt,
+            textoNovedadFila
+          ]);
         });
 
+        // Cálculos de liquidación quincenal
         const valorHoraOrdinaria = salarioBaseMensual / 240;
         const subtotalDevengadoDias = diasRemunerados * (salarioBaseMensual / 30);
         const totalAuxTransporteQuincenal = diasRemunerados * valorAuxTransporteDiario;
@@ -3006,30 +3028,23 @@ function exportarNominaExcel() {
         const totalDeducciones = deduccionSalud + deduccionPension;
         const netoPagar = totalIngresos - totalDeducciones;
 
-        datosExcel.push([
-          emp.id,
-          emp.nombre,
-          emp.departamento || 'Operativo',
-          emp.cda_nombre || 'CDA MOTOS RUTA',
-          salarioBaseMensual,
-          diasRemunerados,
-          Math.round(subtotalDevengadoDias),
-          Math.round(totalAuxTransporteQuincenal),
-          totalMinExtDiurnas,
-          Math.round(pagoExtrasDiurnas),
-          totalMinExtNocturnas,
-          Math.round(pagoExtrasNocturnas),
-          Math.round(totalIngresos),
-          deduccionSalud,
-          deduccionPension,
-          totalDeducciones,
-          Math.round(netoPagar)
-        ]);
+        // Tabla resumen de liquidación del empleado en el Excel
+        datosExcel.push([]);
+        datosExcel.push(["CONCEPTO DE LIQUIDACIÓN QUINCENAL", "BASE / CANTIDAD", "VALOR UNITARIO", "SUBTOTAL (COP)"]);
+        datosExcel.push(["Días Remunerados Quincena", `${diasRemunerados} días`, Math.round(salarioBaseMensual / 30), Math.round(subtotalDevengadoDias)]);
+        datosExcel.push(["Auxilio de Transporte Oficial", `${diasRemunerados} días`, valorAuxTransporteDiario, Math.round(totalAuxTransporteQuincenal)]);
+        datosExcel.push(["Horas Extras Diurnas (25%)", formatearMinutosAHorasMinutos(totalMinExtDiurnas), Math.round(valorHoraExtraDiurna), Math.round(pagoExtrasDiurnas)]);
+        datosExcel.push(["Horas Extras Nocturnas (75%)", formatearMinutosAHorasMinutos(totalMinExtNocturnas), Math.round(valorHoraExtraNocturna), Math.round(pagoExtrasNocturnas)]);
+        datosExcel.push(["Deducción Salud (4%)", "Base Quincenal", "4%", -deduccionSalud]);
+        datosExcel.push(["Deducción Pensión (4%)", "Base Quincenal", "4%", -deduccionPension]);
+        datosExcel.push(["NETO A PAGAR AL EMPLEADO", "", "", Math.round(netoPagar)]);
+        datosExcel.push([]); // Espacio entre empleados
+        datosExcel.push([]);
       });
 
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet(datosExcel);
-      XLSX.utils.book_append_sheet(wb, ws, "NominaQuincenal");
+      XLSX.utils.book_append_sheet(wb, ws, "NominaQuincenalDetallada");
       
       const nombreArchivo = `Nomina_Quincenal_${ciclo.toUpperCase()}_${mes}_${anio}.xlsx`;
       XLSX.writeFile(wb, nombreArchivo);
