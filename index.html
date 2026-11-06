@@ -725,7 +725,7 @@
               <label class="block text-zinc-400 font-bold mb-1">Ciclo Quincenal:</label>
               <select id="nom-filtro-ciclo" onchange="renderNominaGeneral()" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 outline-none focus:border-lime-500">
                 <option value="q1">Quincena 1 (Días 01 al 15)</option>
-                <option value="q2" selected>Quincena 2 (Días 16 al 30/31)</option>
+                <option value="q2">Quincena 2 (Días 16 al 30/31)</option>
               </select>
             </div>
 
@@ -734,14 +734,14 @@
               <select id="nom-filtro-mes" onchange="renderNominaGeneral()" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 outline-none focus:border-lime-500 font-bold">
                 <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option>
                 <option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option>
-                <option value="09">Septiembre</option><option value="10" selected>Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                <option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
               </select>
             </div>
 
             <div>
               <label class="block text-zinc-400 font-bold mb-1">Seleccionar Año:</label>
               <select id="nom-filtro-anio" onchange="renderNominaGeneral()" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-200 outline-none focus:border-lime-500 font-bold">
-                <option value="2026" selected>2026</option>
+                <option value="2026">2026</option>
                 <option value="2025">2025</option>
               </select>
             </div>
@@ -833,6 +833,22 @@
       return `${yyyy}-${mm}-${dd}`;
     }
 
+    function inicializarFiltrosNominaFechaActual() {
+      const hoy = new Date();
+      const yyyy = hoy.getFullYear();
+      const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dd = hoy.getDate();
+      const cicloActual = dd <= 15 ? 'q1' : 'q2';
+
+      const selAnio = document.getElementById('nom-filtro-anio');
+      const selMes = document.getElementById('nom-filtro-mes');
+      const selCiclo = document.getElementById('nom-filtro-ciclo');
+
+      if (selAnio) selAnio.value = String(yyyy);
+      if (selMes) selMes.value = mm;
+      if (selCiclo) selCiclo.value = cicloActual;
+    }
+
     function generarListaFechas(desdeStr, hastaStr) {
       const fechas = [];
       let curr = new Date(desdeStr + 'T00:00:00');
@@ -871,7 +887,6 @@
       } else if (minutosExcedenteBruto > 15 && minutosExcedenteBruto <= 40) {
         return 30; // Entre 15 min y 40 min cuenta exactamente como media hora (30 min)
       } else {
-        // Supera los 40 minutos: se redondea hacia arriba a la hora completa (60 min) o múltiplos según corresponda
         return Math.ceil(minutosExcedenteBruto / 60) * 60;
       }
     }
@@ -917,6 +932,7 @@
       initFaceMesh();
       renderCheckboxesCDA();
       setFechasHoyFiltros();
+      inicializarFiltrosNominaFechaActual();
       if ("geolocation" in navigator) {
         navigator.geolocation.watchPosition(pos => {
           currentLat = pos.coords.latitude;
@@ -1085,7 +1101,7 @@
         video.onloadedmetadata = async () => {
           try { await video.play(); } catch(e) {}
           isProcessingScan = false;
-          document.getElementById('scan-status').innerText = "👤 Mira de frente à la cámara...";
+          document.getElementById('scan-status').innerText = "👤 Mira de frente a la cámara...";
           iniciarBucleEscaneo();
         };
       } catch (e) {
@@ -1396,7 +1412,10 @@
       if (subtab === 'asistencias') cargarHistorialAsistencias();
       if (subtab === 'llegadas-tardes') cargarReporteLlegadasTardes();
       if (subtab === 'horas-extras') cargarReporteHorasExtras();
-      if (subtab === 'nomina') await precargarDatosNomina();
+      if (subtab === 'nomina') {
+        inicializarFiltrosNominaFechaActual();
+        await precargarDatosNomina();
+      }
     }
 
     async function loginAdmin() {
@@ -2392,7 +2411,6 @@
 
               const tiempoNetoMs = Math.max(0, tiempoTotalMs - tiempoDescansoMs);
               
-              // Aplicación rigurosa de la nueva regla de horas extra (15m y 40m)
               const tiempoExcedenteBrutoMs = tiempoNetoMs > JORNADA_BASE_MS ? (tiempoNetoMs - JORNADA_BASE_MS) : 0;
               const minutosExcedenteBruto = Math.floor(tiempoExcedenteBrutoMs / (1000 * 60));
               const minutosExtrasAplicados = calcularMinutosExtrasSegunRegla(minutosExcedenteBruto);
@@ -2619,12 +2637,12 @@
 
       contenedor.innerHTML = filtrados.map(emp => {
         const salarioBaseMensual = cacheSalariosBase[emp.id] || 2300000;
-        const valorAuxTransporteDiario = Math.round(249095 / 30); // Base decreto oficial
+        const valorAuxTransporteDiario = Math.round(249095 / 30);
 
         let totalMinutosLaboradosNetos = 0;
         let totalMinutosExtrasDiurnas = 0;
         let totalMinutosExtrasNocturnas = 0;
-        let diasRemuneradosCount = 0; // Incluye días laborados + domingos/festivos pagados por ley
+        let diasRemuneradosCount = 0;
 
         const filasDiasHtml = listaFechas.map((fechaCorta, idx) => {
           const keyMap = `${emp.id}_${fechaCorta}`;
@@ -2691,9 +2709,8 @@
               estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-bold">LABORADO</span>`;
             }
           } else {
-            // Día sin marcación: Por ley laboral colombiana (Art. 172-178 CST), el descanso dominical y festivo es remunerado e integra el salario ordinario mensual.
             if (festivoDom.esFestivoDom) {
-              diasRemuneradosCount++; // Se incluye por ley en el pago quincenal/mensual
+              diasRemuneradosCount++;
               estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-500/30 font-bold">DESCANSO ${festivoDom.tipo} (Remunerado Ley)</span>`;
             } else {
               estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30 font-bold">NO LABORÓ / AUSENTE</span>`;
@@ -2878,7 +2895,7 @@
       cacheNovedadesManualesNomina[key] = { estado, nota };
     }
 
-function exportarNominaExcel() {
+    function exportarNominaExcel() {
       if (!cacheEmpleadosNomina || cacheEmpleadosNomina.length === 0) {
         alert("⚠️ No hay datos de nómina cargados para exportar.");
         return;
@@ -2917,7 +2934,6 @@ function exportarNominaExcel() {
         datosExcel.push([`--- EMPLEADO #${index + 1}: ${emp.nombre} (CC: ${emp.id}) ---`]);
         datosExcel.push([`Cargo: ${emp.departamento || 'Operativo'} | CDA/CEA: ${emp.cda_nombre || 'CDA MOTOS RUTA'} | Salario Base Mensual: $${salarioBaseMensual.toLocaleString('es-CO')}`]);
         
-        // Cabecera de la tabla diaria del empleado
         datosExcel.push([
           "N°",
           "Fecha",
@@ -3012,7 +3028,6 @@ function exportarNominaExcel() {
           ]);
         });
 
-        // Cálculos de liquidación quincenal
         const valorHoraOrdinaria = salarioBaseMensual / 240;
         const subtotalDevengadoDias = diasRemunerados * (salarioBaseMensual / 30);
         const totalAuxTransporteQuincenal = diasRemunerados * valorAuxTransporteDiario;
@@ -3028,7 +3043,6 @@ function exportarNominaExcel() {
         const totalDeducciones = deduccionSalud + deduccionPension;
         const netoPagar = totalIngresos - totalDeducciones;
 
-        // Tabla resumen de liquidación del empleado en el Excel
         datosExcel.push([]);
         datosExcel.push(["CONCEPTO DE LIQUIDACIÓN QUINCENAL", "BASE / CANTIDAD", "VALOR UNITARIO", "SUBTOTAL (COP)"]);
         datosExcel.push(["Días Remunerados Quincena", `${diasRemunerados} días`, Math.round(salarioBaseMensual / 30), Math.round(subtotalDevengadoDias)]);
@@ -3038,7 +3052,7 @@ function exportarNominaExcel() {
         datosExcel.push(["Deducción Salud (4%)", "Base Quincenal", "4%", -deduccionSalud]);
         datosExcel.push(["Deducción Pensión (4%)", "Base Quincenal", "4%", -deduccionPension]);
         datosExcel.push(["NETO A PAGAR AL EMPLEADO", "", "", Math.round(netoPagar)]);
-        datosExcel.push([]); // Espacio entre empleados
+        datosExcel.push([]);
         datosExcel.push([]);
       });
 
