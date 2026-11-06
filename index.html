@@ -367,7 +367,7 @@
         </div>
 
         <!-- MÓDULO REGISTRO PERSONAL -->
-        <div id="subview-empleados" class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+        <div id="subview-empleados" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
           <div class="lg:col-span-4 bg-zinc-900 p-6 rounded-2xl border border-zinc-800 space-y-4 shadow-xl">
             <h3 class="font-bold text-md text-lime-400 border-b border-zinc-800 pb-2 flex justify-between items-center">
               <span><i class="fa-solid fa-id-card mr-2"></i>Datos Básicos y Registro</span>
@@ -755,7 +755,7 @@
 
           <!-- CONTENEDOR DINÁMICO DE NÓMINA POR EMPLEADO -->
           <div id="contenedor-nomina-empleados" class="space-y-6">
-            <!-- Se inyecta dinámicamente con horas de entrada, salida, extras y selector de novedad -->
+            <!-- Se inyecta dinámicamente -->
           </div>
 
         </div>
@@ -880,12 +880,11 @@
       return `${String(hrs).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m`;
     }
 
-    /* Regla de cálculo de horas extra por tramos (15m y 40m) */
     function calcularMinutosExtrasSegunRegla(minutosExcedenteBruto) {
       if (!minutosExcedenteBruto || minutosExcedenteBruto <= 15) {
-        return 0; // Si es menor o igual a 15 min, no cuenta como extra
+        return 0;
       } else if (minutosExcedenteBruto > 15 && minutosExcedenteBruto <= 40) {
-        return 30; // Entre 15 min y 40 min cuenta exactamente como media hora (30 min)
+        return 30;
       } else {
         return Math.ceil(minutosExcedenteBruto / 60) * 60;
       }
@@ -2511,7 +2510,7 @@
       }).join('');
     }
 
-    /* MÓDULO DE NÓMINA QUINCENAL DINÁMICO ACTUALIZADO Y MEJORADO (CON DOMINGOS Y FESTIVOS INCLUIDOS) */
+    /* MÓDULO DE NÓMINA QUINCENAL DINÁMICO */
 
     async function precargarDatosNomina() {
       if (!supabaseClient) return;
@@ -2642,21 +2641,20 @@
         let totalMinutosLaboradosNetos = 0;
         let totalMinutosExtrasDiurnas = 0;
         let totalMinutosExtrasNocturnas = 0;
-        let diasRemuneradosCount = 0;
+        let diasLaboradosCount = 0;
 
         const filasDiasHtml = listaFechas.map((fechaCorta, idx) => {
           const keyMap = `${emp.id}_${fechaCorta}`;
           const marcacionesDia = cacheAsistenciasNomina[keyMap] || [];
           const festivoDom = esFestivoOdomingo(fechaCorta);
+          const primaryIdAsis = marcacionesDia.length > 0 ? marcacionesDia[0].id : null;
 
           let entradaStr = '---', salidaStr = '---';
           let laboradasStr = '00h 00m', extrasStr = '00h 00m';
           let estadoDiaHtml = '';
-          let esDiaRemuneradoValido = false;
 
           if (marcacionesDia.length > 0) {
-            esDiaRemuneradoValido = true;
-            diasRemuneradosCount++;
+            diasLaboradosCount++;
 
             let entObj = null, salObj = null, entDesc = null, salDesc = null;
             marcacionesDia.forEach(m => {
@@ -2710,7 +2708,7 @@
             }
           } else {
             if (festivoDom.esFestivoDom) {
-              diasRemuneradosCount++;
+              diasLaboradosCount++;
               estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-blue-950 text-blue-400 border border-blue-500/30 font-bold">DESCANSO ${festivoDom.tipo} (Remunerado Ley)</span>`;
             } else {
               estadoDiaHtml = `<span class="px-2.5 py-1 rounded text-[10px] bg-rose-950 text-rose-400 border border-rose-500/30 font-bold">NO LABORÓ / AUSENTE</span>`;
@@ -2729,31 +2727,34 @@
               <td class="p-3 font-mono font-bold text-lime-400">${laboradasStr}</td>
               <td class="p-3 font-mono font-bold text-amber-400">${extrasStr}</td>
               <td class="p-3">${estadoDiaHtml}</td>
-              <td class="p-3 space-y-1">
-                <select id="nov_tipo_${emp.id}_${fechaCorta}" onchange="toggleInputNovedadManual('${emp.id}', '${fechaCorta}')" class="bg-zinc-950 border border-zinc-700 text-[11px] rounded px-2 py-1 text-amber-300 font-bold outline-none w-full">
-                  <option value="">-- Sin novedad / Asistencia regular --</option>
-                  <optgroup label="Permisos Remunerados">
-                    <option value="PERMISO_REM" ${novedadActual.estado === 'PERMISO_REM' ? 'selected' : ''}>Permiso Remunerado / Cita EPS</option>
-                    <option value="LICENCIA_LUTO" ${novedadActual.estado === 'LICENCIA_LUTO' ? 'selected' : ''}>Licencia por Luto</option>
-                    <option value="LICENCIA_MAT_PAT" ${novedadActual.estado === 'LICENCIA_MAT_PAT' ? 'selected' : ''}>Licencia Maternidad / Paternidad</option>
-                  </optgroup>
-                  <optgroup label="Permisos No Remunerados">
-                    <option value="PERMISO_NO_REM" ${novedadActual.estado === 'PERMISO_NO_REM' ? 'selected' : ''}>Permiso Personal No Remunerado</option>
-                    <option value="SUSPENSION" ${novedadActual.estado === 'SUSPENSION' ? 'selected' : ''}>Suspensión Disciplinaria</option>
-                  </optgroup>
-                  <optgroup label="Otros">
-                    <option value="OTRO" ${novedadActual.estado === 'OTRO' ? 'selected' : ''}>Otro (Especificar manual)</option>
-                  </optgroup>
-                </select>
-                <input type="text" id="nov_nota_${emp.id}_${fechaCorta}" value="${novedadActual.nota}" oninput="actualizarNovedadNomina('${emp.id}', '${fechaCorta}')" placeholder="Detalle u observación..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-[11px] text-white outline-none w-full focus:border-lime-500 ${novedadActual.estado === 'OTRO' ? '' : 'hidden'}">
+              <td class="p-3 min-w-[240px]">
+                <div class="space-y-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <select id="nov_tipo_${emp.id}_${fechaCorta}" onchange="toggleInputNovedadManual('${emp.id}', '${fechaCorta}')" class="bg-zinc-950 border border-zinc-700 text-[11px] rounded px-2 py-1 text-amber-300 font-bold outline-none flex-1">
+                      <option value="">-- Sin novedad / Asistencia regular --</option>
+                      <optgroup label="Permisos">
+                        <option value="PERMISO_REM" ${novedadActual.estado === 'PERMISO_REM' ? 'selected' : ''}>Permiso / Cita EPS</option>
+                        <option value="LICENCIA_LUTO" ${novedadActual.estado === 'LICENCIA_LUTO' ? 'selected' : ''}>Licencia por Luto</option>
+                        <option value="LICENCIA_MAT_PAT" ${novedadActual.estado === 'LICENCIA_MAT_PAT' ? 'selected' : ''}>Licencia Maternidad / Paternidad</option>
+                        <option value="PERMISO_NO_REM" ${novedadActual.estado === 'PERMISO_NO_REM' ? 'selected' : ''}>Permiso Personal No Remunerado</option>
+                        <option value="SUSPENSION" ${novedadActual.estado === 'SUSPENSION' ? 'selected' : ''}>Suspensión Disciplinaria</option>
+                      </optgroup>
+                      <option value="OTRO" ${novedadActual.estado === 'OTRO' ? 'selected' : ''}>Otro (Especificar manual)</option>
+                    </select>
+                    <button type="button" onclick="guardarNovedadRegistro('${primaryIdAsis || ''}', '${emp.id}', '${fechaCorta}', 'nov_nota_${emp.id}_${fechaCorta}')" title="Guardar Novedad" class="bg-zinc-800 hover:bg-zinc-700 text-lime-400 border border-lime-500/40 p-1.5 px-2 rounded text-xs flex items-center justify-center transition">
+                      <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                  </div>
+                  <input type="text" id="nov_nota_${emp.id}_${fechaCorta}" value="${novedadActual.nota}" oninput="actualizarNovedadNomina('${emp.id}', '${fechaCorta}')" placeholder="Detalle u observación..." class="bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-[11px] text-white outline-none w-full focus:border-lime-500 ${novedadActual.estado === 'OTRO' || novedadActual.nota ? '' : 'hidden'}">
+                </div>
               </td>
             </tr>
           `;
         }).join('');
 
         const valorHoraOrdinaria = salarioBaseMensual / 240;
-        const subtotalDevengadoDias = diasRemuneradosCount * (salarioBaseMensual / 30);
-        const totalAuxTransporteQuincenal = diasRemuneradosCount * valorAuxTransporteDiario;
+        const subtotalDevengadoDias = diasLaboradosCount * (salarioBaseMensual / 30);
+        const totalAuxTransporteQuincenal = diasLaboradosCount * valorAuxTransporteDiario;
         
         const valorHoraExtraDiurna = valorHoraOrdinaria * 1.25; 
         const valorHoraExtraNocturna = valorHoraOrdinaria * 1.75; 
@@ -2779,7 +2780,7 @@
               <span class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-lg font-mono border border-zinc-700">Ciclo Quincenal: ${periodoTexto}</span>
             </div>
 
-            <!-- TABLA DIARIA RESTAURADA CON DOMINGOS Y FESTIVOS INCLUIDOS -->
+            <!-- TABLA DIARIA -->
             <div class="overflow-x-auto max-h-72 overflow-y-auto">
               <table class="w-full text-left text-xs text-zinc-300 whitespace-nowrap">
                 <thead class="bg-zinc-950 uppercase text-zinc-400 border-b border-zinc-800 sticky top-0">
@@ -2800,7 +2801,7 @@
               </table>
             </div>
 
-            <!-- CALCULADORA DE LIQUIDACIÓN QUINCENAL (ACTUALIZADA) -->
+            <!-- CALCULADORA DE LIQUIDACIÓN QUINCENAL -->
             <div class="bg-zinc-950 border border-lime-500/30 p-4 rounded-xl space-y-4">
               <div class="flex justify-between items-center flex-wrap gap-2 border-b border-zinc-800 pb-2">
                 <h4 class="text-xs font-bold text-lime-400 uppercase tracking-wider">
@@ -2824,14 +2825,14 @@
                   </thead>
                   <tbody class="divide-y divide-zinc-800/50 font-mono text-xs">
                     <tr>
-                      <td class="p-2.5 text-white font-sans font-semibold">Días Remunerados Quincena (Efectivos + Descansos Ley / Festivos)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${diasRemuneradosCount} días remunerados</td>
+                      <td class="p-2.5 text-white font-sans font-semibold">Días laborados Quincena (Efectivos + Domingos / Festivos Ley)</td>
+                      <td class="p-2.5 text-center text-zinc-300">${diasLaboradosCount} días laborados</td>
                       <td class="p-2.5 text-right text-zinc-400">${formatoPesos(salarioBaseMensual / 30)} / día</td>
                       <td class="p-2.5 text-right text-lime-400 font-bold">${formatoPesos(subtotalDevengadoDias)}</td>
                     </tr>
                     <tr>
                       <td class="p-2.5 text-white font-sans font-semibold">Auxilio de Transporte Oficial (Decreto Vigente)</td>
-                      <td class="p-2.5 text-center text-zinc-300">${diasRemuneradosCount} días remunerados</td>
+                      <td class="p-2.5 text-center text-zinc-300">${diasLaboradosCount} días laborados</td>
                       <td class="p-2.5 text-right text-zinc-400">${formatoPesos(valorAuxTransporteDiario)} / día</td>
                       <td class="p-2.5 text-right text-lime-400 font-bold">${formatoPesos(totalAuxTransporteQuincenal)}</td>
                     </tr>
@@ -2889,8 +2890,10 @@
     }
 
     function actualizarNovedadNomina(empleadoId, fecha) {
-      const estado = document.getElementById(`nov_tipo_${empleadoId}_${fecha}`).value;
-      const nota = document.getElementById(`nov_nota_${empleadoId}_${fecha}`).value;
+      const selectEl = document.getElementById(`nov_tipo_${empleadoId}_${fecha}`);
+      const notaEl = document.getElementById(`nov_nota_${empleadoId}_${fecha}`);
+      const estado = selectEl ? selectEl.value : '';
+      const nota = notaEl ? notaEl.value : '';
       const key = `${empleadoId}_${fecha}`;
       cacheNovedadesManualesNomina[key] = { estado, nota };
     }
@@ -2925,7 +2928,7 @@
       const datosExcel = [];
       datosExcel.push([`REPORTE GENERAL DE NÓMINA QUINCENAL - CDA MOTOS S.A.S.`]);
       datosExcel.push([`Ciclo: ${ciclo.toUpperCase()} (Días ${diaInicio} al ${diaFin}) - Mes: ${mes}/${anio}`]);
-      datosExcel.push([]); // Espacio
+      datosExcel.push([]);
 
       filtrados.forEach((emp, index) => {
         const salarioBaseMensual = cacheSalariosBase[emp.id] || 2300000;
@@ -2948,7 +2951,7 @@
         let totalMinutosLab = 0;
         let totalMinExtDiurnas = 0;
         let totalMinExtNocturnas = 0;
-        let diasRemunerados = 0;
+        let diasLaborados = 0;
 
         listaFechas.forEach((fechaCorta, dIdx) => {
           const keyMap = `${emp.id}_${fechaCorta}`;
@@ -2962,7 +2965,7 @@
           let estadoDiaTxt = 'NO LABORÓ / AUSENTE';
 
           if (marcacionesDia.length > 0) {
-            diasRemunerados++;
+            diasLaborados++;
             let entObj = null, salObj = null, entDesc = null, salDesc = null;
             marcacionesDia.forEach(m => {
               const dObj = new Date(m.fecha_hora);
@@ -3009,8 +3012,8 @@
             estadoDiaTxt = festivoDom.esFestivoDom ? `${festivoDom.tipo} LABORADO` : 'LABORADO';
           } else {
             if (festivoDom.esFestivoDom) {
-              diasRemunerados++;
-              estadoDiaTxt = `DESCANSO ${festivoDom.tipo} (Remunerado Ley)`;
+              diasLaborados++;
+              estadoDiaTxt = `DESCANSO ${festivoDom.tipo} (Ley)`;
             }
           }
 
@@ -3029,8 +3032,8 @@
         });
 
         const valorHoraOrdinaria = salarioBaseMensual / 240;
-        const subtotalDevengadoDias = diasRemunerados * (salarioBaseMensual / 30);
-        const totalAuxTransporteQuincenal = diasRemunerados * valorAuxTransporteDiario;
+        const subtotalDevengadoDias = diasLaborados * (salarioBaseMensual / 30);
+        const totalAuxTransporteQuincenal = diasLaborados * valorAuxTransporteDiario;
         
         const valorHoraExtraDiurna = valorHoraOrdinaria * 1.25; 
         const valorHoraExtraNocturna = valorHoraOrdinaria * 1.75; 
@@ -3045,8 +3048,8 @@
 
         datosExcel.push([]);
         datosExcel.push(["CONCEPTO DE LIQUIDACIÓN QUINCENAL", "BASE / CANTIDAD", "VALOR UNITARIO", "SUBTOTAL (COP)"]);
-        datosExcel.push(["Días Remunerados Quincena", `${diasRemunerados} días`, Math.round(salarioBaseMensual / 30), Math.round(subtotalDevengadoDias)]);
-        datosExcel.push(["Auxilio de Transporte Oficial", `${diasRemunerados} días`, valorAuxTransporteDiario, Math.round(totalAuxTransporteQuincenal)]);
+        datosExcel.push(["Días laborados Quincena", `${diasLaborados} días laborados`, Math.round(salarioBaseMensual / 30), Math.round(subtotalDevengadoDias)]);
+        datosExcel.push(["Auxilio de Transporte Oficial", `${diasLaborados} días laborados`, valorAuxTransporteDiario, Math.round(totalAuxTransporteQuincenal)]);
         datosExcel.push(["Horas Extras Diurnas (25%)", formatearMinutosAHorasMinutos(totalMinExtDiurnas), Math.round(valorHoraExtraDiurna), Math.round(pagoExtrasDiurnas)]);
         datosExcel.push(["Horas Extras Nocturnas (75%)", formatearMinutosAHorasMinutos(totalMinExtNocturnas), Math.round(valorHoraExtraNocturna), Math.round(pagoExtrasNocturnas)]);
         datosExcel.push(["Deducción Salud (4%)", "Base Quincenal", "4%", -deduccionSalud]);
